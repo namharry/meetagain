@@ -15,8 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.shortcuts import redirect  # ★ 리다이렉트 함수 import
 
 urlpatterns = [
+    path('', lambda request: redirect('meetagain/')),  # ★ 루트 URL로 접속하면 meetagain/로 이동
     path('admin/', admin.site.urls),
+    path('meetagain/', include('meetagain.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
