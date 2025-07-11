@@ -1,0 +1,38 @@
+<!-- templates/users/signup.html -->
+<h2>회원가입</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <p>
+        {{ form.studentid.label_tag }}
+        {{ form.studentid }}
+        {{ form.studentid.errors }}
+    </p>
+
+    <p style="display: none;">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+        {{ form.username.errors }}
+    </p>
+
+    <p>
+        {{ form.password1.label_tag }}
+        {{ form.password1 }}
+        {{ form.password1.errors }}
+    </p>
+
+    <p>
+        {{ form.password2.label_tag }}
+        {{ form.password2 }}
+        {{ form.password2.errors }}
+    </p>
+
+    <!-- 비밀번호 안내 문구 -->
+    <p style="font-size: 0.9em; color: gray; margin-top: -10px;">
+        비밀번호: 8~16자의 영문, 숫자, 특수문자를 사용해주세요.
+    </p>
+
+    <button type="submit">가입하기</button>
+</form>
