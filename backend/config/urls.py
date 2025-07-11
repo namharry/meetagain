@@ -14,16 +14,18 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import redirect  # ★ 리다이렉트 함수 import
+from django.shortcuts import redirect
 
 urlpatterns = [
-    path('', lambda request: redirect('meetagain/')),  # ★ 루트 URL로 접속하면 meetagain/로 이동
+    path('', lambda request: redirect('meetagain/')),  # 루트 meetagain
     path('admin/', admin.site.urls),
-    path('meetagain/', include('meetagain.urls')),
+    path('users/', include('users.urls')),             # ★ 사용자 앱
+    path('meetagain/', include('meetagain.urls')),     # ★ 메인 앱
 ]
 
 if settings.DEBUG:
