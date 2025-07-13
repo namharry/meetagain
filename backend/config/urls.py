@@ -18,12 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import redirect  # ★ 리다이렉트 함수 import
+from django.shortcuts import redirect  # 리다이렉트용
 
 urlpatterns = [
-    path('', lambda request: redirect('meetagain/')),  # ★ 루트 URL로 접속하면 meetagain/로 이동
+    path('', lambda request: redirect('meetagain/')),   # 루트 → meetagain/로 리다이렉트
     path('admin/', admin.site.urls),
-    path('meetagain/', include('meetagain.urls')),
+    path('users/', include('users.urls')),              # 사용자 앱 URL 포함
+    path('meetagain/', include('meetagain.urls')),      # 메인 기능 URL 포함
 ]
 
 if settings.DEBUG:
