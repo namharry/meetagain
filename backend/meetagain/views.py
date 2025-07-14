@@ -1,7 +1,12 @@
 from django.shortcuts import render, redirect
 from .forms import LostItemForm
 from .models import LostItem, FoundItem
-
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+from .models import Keyword
+from .models import Notification
 
 def register_lost_item(request):
     if request.method == 'POST':
@@ -65,8 +70,7 @@ def search_view(request):
     return render(request, 'meetagain/search.html', context)
 
 
-# ✅ 지도용 핀 데이터 API
-from django.http import JsonResponse
+#  지도용 핀 데이터 API
 
 def map_pins_api(request):
     items = LostItem.objects.all()
@@ -82,3 +86,63 @@ def map_pins_api(request):
         })
 
     return JsonResponse({'pins': data})
+
+@csrf_exempt
+def add_keyword(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        word = data.get('word')
+        if word:
+            keyword, created = Keyword.objects.get_or_create(word=word)
+            if created:
+                return JsonResponse({"message": "Keyword added", "word": word})
+            else:
+                return JsonResponse({"message": "Keyword already exists"}, status=400)
+        return JsonResponse({"error": "No word provided"}, status=400)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+@csrf_exempt
+def delete_keyword(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        word = data.get('word')
+        if word:
+            try:
+                keyword = Keyword.objects.get(word=word)
+                keyword.delete()
+                return JsonResponse({"message": "Keyword deleted", "word": word})
+            except Keyword.DoesNotExist:
+                return JsonResponse({"message": "Keyword not found"}, status=404)
+        return JsonResponse({"error": "No word provided"}, status=400)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+def keyword_list(request):
+    keywords = list(Keyword.objects.values_list('word', flat=True))
+    return JsonResponse({"keywords": keywords})
+
+@csrf_exempt
+def create_notification(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        message = data.get('message')
+        keyword_id = data.get('keyword_id')
+
+        if not message:
+            return JsonResponse({"error": "No message provided"}, status=400)
+
+        notif = Notification.objects.create(
+            message=message,
+            keyword_id=keyword_id
+        )
+        return JsonResponse({"message": "Notification created", "id": notif.id})
+
+@csrf_exempt
+def get_notifications(request):
+    notifications = Notification.objects.filter(is_read=False).order_by('-created_at')
+    data = [{
+        "id": n.id,
+        "message": n.message,
+        "created_at": n.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+    } for n in notifications]
+
+    return JsonResponse({"notifications": data})

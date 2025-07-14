@@ -1,5 +1,8 @@
 from django.db import models
-
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
+from django.conf import settings
 
 class LostItem(models.Model):
     CATEGORY_CHOICES = [
@@ -67,3 +70,35 @@ class FoundItem(models.Model):
 
     def __str__(self):
         return f"[습득물] {self.name}"
+    
+    
+class Keyword(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    word = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.word}"
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    keyword = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    # Generic relation to LostItem or FoundItem
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    item = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return f"🔔 {self.user.username} - '{self.keyword}' 매칭 알림"
+
+class Notification(models.Model):
+    message = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    # 알림과 관련된 키워드 연결 (옵션)
+    keyword = models.ForeignKey('Keyword', on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.message
