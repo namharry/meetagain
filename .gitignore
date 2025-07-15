@@ -38,3 +38,6 @@ local_settings.py
 # OS 관련 파일
 .DS_Store
 Thumbs.db
+
+# DB 파일 추적 제외 (사용자 계정 등 데이터 보호용)
+*.sqlite3

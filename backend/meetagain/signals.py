@@ -25,4 +25,3 @@ def notify_on_lostitem_save(sender, instance, created, **kwargs):
 def notify_on_founditem_save(sender, instance, created, **kwargs):
     if created:
         create_notifications(instance, FoundItem)
-

@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import LostItemForm
 from .models import LostItem, FoundItem
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
