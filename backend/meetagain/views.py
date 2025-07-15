@@ -1,11 +1,9 @@
 from django.shortcuts import render, redirect
 from .forms import LostItemForm
-from .models import LostItem, FoundItem
+from .models import LostItem, FoundItem, Keyword, Notification
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
-from .models import Keyword
-from .models import Notification
 
 def register_lost_item(request):
     if request.method == 'POST':
