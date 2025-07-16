@@ -21,10 +21,12 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect  # 리다이렉트용
 
 urlpatterns = [
-    path('', lambda request: redirect('meetagain/')),   # 루트 → meetagain/로 리다이렉트
+    path('', lambda request: redirect('found/')),       # 루트 접속 시 /found/로 이동
     path('admin/', admin.site.urls),
-    path('users/', include('users.urls')),              # 사용자 앱 URL 포함
-    path('meetagain/', include('meetagain.urls')),      # 메인 기능 URL 포함
+    path('users/', include('users.urls')),
+
+    # 💡 founditems 앱을 최상위로 연결
+    path('', include('founditems.urls')),
 ]
 
 if settings.DEBUG:
