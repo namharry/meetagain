@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>관리자 - 분실물 리스트</h1>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>이름</th>
+        <th>카테고리</th>
+        <th>설명</th>
+        <th>등록일</th>
+        <th>상태</th>
+    </tr>
+    {% for item in lost_items %}
+    <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.name }}</td>
+        <td>{{ item.category }}</td>
+        <td>{{ item.description|default:"-" }}</td>
+        <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+            {% if item.is_returned %} 반환완료 {% else %} 보관중 {% endif %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">등록된 분실물이 없습니다.</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
