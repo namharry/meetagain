@@ -1,7 +1,6 @@
-# users/urls.py
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import signup_view, login_view, password_change_view, dummy_view
+from .views import signup_view, login_view, password_change_view, dummy_view, admin_found_list, admin_lost_list
 from .views import (
     my_account_view,
     app_settings_view,
@@ -40,4 +39,9 @@ urlpatterns = [
     path('notice/', notice_view, name='notice'),
     path('faq/', faq_view, name='faq'),
     path('guide/', guide_view, name='guide'),
+    path('admin/lost/', admin_lost_list, name='admin_lost_list'),
+    path('admin/found/', admin_found_list, name='admin_found_list'),
+
 ]
+
+

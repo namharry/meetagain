@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'users',
     'meetagain',
     'founditems',
+    'items',
 ]
 
 TEMPLATES = [
@@ -136,3 +137,5 @@ LOGIN_URL = '/users/login/'
 
 # Default auto field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'users.User'

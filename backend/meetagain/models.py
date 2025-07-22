@@ -67,6 +67,12 @@ class FoundItem(models.Model):
     lat = models.FloatField(blank=True, null=True)
     lng = models.FloatField(blank=True, null=True)
 
+    STATUS_CHOICES = [
+        ('보관 중', '보관 중'),
+        ('소유자 반환', '소유자 반환'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='보관 중')
+
     def __str__(self):
         return f"[습득물] {self.name}"
     

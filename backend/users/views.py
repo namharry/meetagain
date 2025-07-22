@@ -106,3 +106,20 @@ def faq_view(request):
 
 def guide_view(request):
     return HttpResponse("이용안내 - 준비 중입니다.")
+
+# admin_views.py
+from django.contrib.auth.decorators import user_passes_test
+from items.models import LostItem, FoundItem  # 분실물/습득물 모델 import 필요
+
+def admin_required(view_func):
+    return user_passes_test(lambda u: u.is_staff)(view_func)
+
+@admin_required
+def admin_lost_list(request):
+    lost_items = LostItem.objects.all().order_by('-created_at')
+    return render(request, 'users/admin_lost_list.html', {'lost_items': lost_items})
+
+@admin_required
+def admin_found_list(request):
+    found_items = FoundItem.objects.all().order_by('-created_at')
+    return render(request, 'users/admin_found_list.html', {'found_items': found_items})
