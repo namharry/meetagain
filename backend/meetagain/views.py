@@ -1,17 +1,21 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import LostItemForm
 from .models import LostItem, FoundItem, Keyword, Notification
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def register_lost_item(request):
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES)  # 이미지도 받으니까 request.FILES도 필요
         if form.is_valid():
             form.save()  # DB에 저장
-            return redirect('meetagain:register')  # 임시로 등록 페이지로 다시 이동
-    else:
+            return redirect('meetagain:index')  # 등록 후 메인으로 이동
+        else: #폼이 유효하지 않으면 오류 포함된 상태로 다시 렌더링
+            return render(request, 'register.html', {'form': form})
+    else: 
         form = LostItemForm()
     return render(request, 'register.html', {'form': form})
 
@@ -66,9 +70,7 @@ def search_view(request):
     context = {'items': qs}
     return render(request, 'meetagain/search.html', context)
 
-
 #  지도용 핀 데이터 API
-
 def map_pins_api(request):
     items = LostItem.objects.all()
     data = []
@@ -143,3 +145,23 @@ def get_notifications(request):
     } for n in notifications]
 
     return JsonResponse({"notifications": data})
+
+@login_required
+def update_lost_item(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id)
+    if request.method == 'POST':
+        form = LostItemForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect('meetagain:detail', item_id=item.id)  # 수정 후 상세 페이지로 이동
+    else:
+        form = LostItemForm(instance=item)
+    return render(request, 'update_lost_item.html', {'form': form, 'item': item})
+
+@login_required
+def delete_lost_item(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id)
+    if request.method == 'POST':
+        item.delete()
+        return redirect('meetagain:index')  # 삭제 후 메인으로 이동
+    return render(request, 'confirm_delete.html', {'item': item})

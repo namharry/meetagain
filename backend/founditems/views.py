@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import FoundItem, LostItem
 import json
+from django.contrib.auth.decorators import login_required
 
 # --------------------
 # ✅ 습득물 (FoundItem)
@@ -14,6 +15,7 @@ def founditem_list(request):
     return JsonResponse(list(items), safe=False)
 
 # 상세 조회
+@login_required
 def founditem_detail(request, item_id):
     item = get_object_or_404(FoundItem, id=item_id)
     return JsonResponse({
@@ -30,6 +32,7 @@ def founditem_detail(request, item_id):
     })
 
 # 등록 (POST)
+@login_required
 @csrf_exempt
 def founditem_create(request):
     if request.method == 'POST':
@@ -60,6 +63,7 @@ def lostitem_list(request):
     return JsonResponse(list(items), safe=False)
 
 # 상세 조회
+@login_required
 def lostitem_detail(request, item_id):
     item = get_object_or_404(LostItem, id=item_id)
     return JsonResponse({
@@ -74,6 +78,7 @@ def lostitem_detail(request, item_id):
         'is_claimed': item.is_claimed,
     })
 
+@login_required
 @csrf_exempt
 def lostitem_create(request):
     if request.method == 'POST':

@@ -1,21 +1,32 @@
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  
-  {% for field in form %}
-    <div class="form-group">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>습득물 등록</title>
+</head>
+<body>
+    <h1>습득물 등록</h1>
 
-      {# 오류 메시지 표시 #}
-      {% if field.errors %}
-        <div class="error" style="color:red;">
-          {% for error in field.errors %}
-            {{ error }}
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-  {% endfor %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
 
-  <button type="submit">제출</button>
-</form>
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label><br>
+                {{ field }}
+
+                {% if field.errors %}
+                    <ul style="color: red; margin: 0; padding-left: 1em;">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <br>
+        {% endfor %}
+
+        <button type="submit">제출</button>
+    </form>
+</body>
+</html>

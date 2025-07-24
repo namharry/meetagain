@@ -40,6 +40,12 @@ class LostItemForm(forms.ModelForm):
         if lost_date and lost_date > date.today():
             self.add_error('lost_date', "미래 날짜는 입력할 수 없습니다.")
 
+    def clean_image(self): #다른 형식자의 파일 업로드 불가
+        image = self.cleaned_data.get('image')
+        if image and not image.content_type.startswith('image/'):
+            raise ValidationError("이미지 파일만 업로드할 수 있습니다.")
+        return image
+    
 class FoundItemForm(forms.ModelForm):
     class Meta:
         model = FoundItem
@@ -77,3 +83,9 @@ class FoundItemForm(forms.ModelForm):
         found_date = cleaned_data.get('found_date')
         if found_date and found_date > date.today():
             self.add_error('found_date', "미래 날짜는 입력할 수 없습니다.")
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image and not image.content_type.startswith('image/'):
+            raise ValidationError("이미지 파일만 업로드할 수 있습니다.")
+        return image

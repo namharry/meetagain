@@ -7,25 +7,34 @@
 <body>
     <h1>분실물 등록</h1>
 
-    {# 에러 메시지 출력 #}
-    {% if form.errors %}
-        <div style="color: red;">
-            <ul>
-                {% for field in form %}
-                    {% for error in field.errors %}
-                        <li><strong>{{ field.label }}</strong>: {{ error }}</li>
-                    {% endfor %}
-                {% endfor %}
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+    {# 폼 전체 에러 메시지 (non_field_errors) 출력 #}
+    {% if form.non_field_errors %}
+        <ul>
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
+
+        {# 각 필드 출력 (필드 레이블 + 입력칸 + 에러) #}
+        {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label><br>
+                {{ field }}
+                {% if field.errors %}
+                    <ul>
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <br>
+        {% endfor %}
+
         <button type="submit">등록</button>
     </form>
 </body>
