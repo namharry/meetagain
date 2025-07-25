@@ -1,7 +1,11 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+
 
 class LostItem(models.Model):
     CATEGORY_CHOICES = [

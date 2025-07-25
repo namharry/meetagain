@@ -136,3 +136,10 @@ def delete_lost_item(request, item_id):
         item.delete()
         return redirect('meetagain:index')  # 삭제 후 메인으로 이동
     return render(request, 'confirm_delete.html', {'item': item})
+
+@login_required
+def notification_list(request):
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'notifications/notification_list.html', {
+        'notifications': notifications
+    })

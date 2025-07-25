@@ -1,0 +1,60 @@
+<!-- templates/notifications/notification_list.html -->
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>🔔 나의 알림</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 30px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 15px;
+        }
+        .read {
+            color: #aaa;
+        }
+        .unread {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>🔔 나의 알림</h2>
+
+    {% if notifications %}
+        <ul>
+            {% for n in notifications %}
+                <li class="{% if n.is_read %}read{% else %}unread{% endif %}">
+                    {% if n.item %}
+                        {% if n.content_type.model == "lostitem" %}
+                            <a href="{% url 'meetagain:detail' n.item.pk %}">
+                                [분실물] "{{ n.keyword }}" 관련 알림 – {{ n.item.name }}
+                            </a>
+                        {% elif n.content_type.model == "founditem" %}
+                            <a href="{% url 'found_detail' n.item.pk %}">
+                                [습득물] "{{ n.keyword }}" 관련 알림 – {{ n.item.name }}
+                            </a>
+                        {% else %}
+                            {{ n.keyword }} 관련 알림
+                        {% endif %}
+                    {% else %}
+                        {{ n.keyword }} 관련 알림
+                    {% endif %}
+                    <span style="font-size: 0.85em; color: gray;">
+                        ({{ n.created_at|date:"Y-m-d H:i" }})
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>🔕 알림이 없습니다.</p>
+    {% endif %}
+</body>
+</html>

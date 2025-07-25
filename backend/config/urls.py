@@ -26,7 +26,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
 
     # 💡 founditems 앱을 최상위로 연결
-    path('', include('founditems.urls')),
+    path('', include(('founditems.urls', 'founditems'), namespace='founditems')),
 ]
 
 if settings.DEBUG:

@@ -6,7 +6,7 @@ from . import views
 urlpatterns = [
     # 습득물
     path('found/', views.founditem_list),
-    path('found/<int:item_id>/', views.founditem_detail),
+    path('found/<int:item_id>/', views.founditem_detail, name='found_detail'),
     path('found/create/', views.founditem_create),  # ✅ 등록
 
     # 분실물
