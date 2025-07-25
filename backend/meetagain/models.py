@@ -78,8 +78,11 @@ class FoundItem(models.Model):
     
     
 class Keyword(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    word = models.CharField(max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    word = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = ('user', 'word')  # 사용자별 중복 방지
 
     def __str__(self):
         return f"{self.user.username} - {self.word}"

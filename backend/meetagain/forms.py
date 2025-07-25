@@ -1,8 +1,25 @@
+#meetagain/forms.py
+
 from django import forms
 from .models import LostItem, FoundItem
 from django.core.exceptions import ValidationError
 from datetime import date 
 
+class KeywordForm(forms.ModelForm):
+    class Meta:
+        model = Keyword
+        fields = ['word']
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')  # 유저 정보를 따로 받아옴
+        super().__init__(*args, **kwargs)
+
+    def clean_word(self):
+        word = self.cleaned_data['word']
+        if Keyword.objects.filter(user=self.user, word=word).exists():
+            raise forms.ValidationError("이미 등록한 키워드입니다.")
+        return word
+        
 class LostItemForm(forms.ModelForm):
     class Meta:
         model = LostItem

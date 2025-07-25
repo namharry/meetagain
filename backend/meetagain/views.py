@@ -3,6 +3,8 @@ from .forms import LostItemForm
 from .models import LostItem, FoundItem, Keyword, Notification
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import Keyword
 import json
 from django.contrib.auth.decorators import login_required
 
@@ -87,37 +89,6 @@ def map_pins_api(request):
     return JsonResponse({'pins': data})
 
 @csrf_exempt
-def add_keyword(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        word = data.get('word')
-        if word:
-            keyword, created = Keyword.objects.get_or_create(word=word)
-            if created:
-                return JsonResponse({"message": "Keyword added", "word": word})
-            else:
-                return JsonResponse({"message": "Keyword already exists"}, status=400)
-        return JsonResponse({"error": "No word provided"}, status=400)
-    return JsonResponse({"error": "Invalid request method"}, status=405)
-
-@csrf_exempt
-def delete_keyword(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        word = data.get('word')
-        if word:
-            try:
-                keyword = Keyword.objects.get(word=word)
-                keyword.delete()
-                return JsonResponse({"message": "Keyword deleted", "word": word})
-            except Keyword.DoesNotExist:
-                return JsonResponse({"message": "Keyword not found"}, status=404)
-        return JsonResponse({"error": "No word provided"}, status=400)
-    return JsonResponse({"error": "Invalid request method"}, status=405)
-
-def keyword_list(request):
-    keywords = list(Keyword.objects.values_list('word', flat=True))
-    return JsonResponse({"keywords": keywords})
 
 @csrf_exempt
 def create_notification(request):
