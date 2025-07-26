@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}분실물 목록 - MeetAgain{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center text-primary">📋 분실물 목록</h2>
+  <p class="text-center text-muted">최근 등록된 분실물들을 확인해보세요.</p>
+  <hr>
+
+  <!-- 카드 목록 -->
+  <div class="row">
+    {% for item in lost_items %}
+    <div class="col-md-4">
+      <div class="card mb-4">
+        {% if item.image %}
+          <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}">
+        {% else %}
+          <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="기본 이미지">
+        {% endif %}
+        <div class="card-body">
+          <h5 class="card-title">{{ item.name }}</h5>
+          <p class="card-text">{{ item.location }}</p>
+          <a href="{% url 'lostitem_detail' item.id %}" class="btn btn-outline-primary">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+      <p class="text-center text-muted">등록된 분실물이 없습니다.</p>
+    {% endfor %}
+  </div>
+
+  <!-- 📄 페이지네이션 예시 (선택사항) -->
+  {# 
+  <div class="d-flex justify-content-center">
+    {{ page_obj.paginator.num_pages }} 페이지 중 {{ page_obj.number }} 페이지
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}">이전</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}">다음</a>
+    {% endif %}
+  </div>
+  #}
+
+</div>
+{% endblock %}

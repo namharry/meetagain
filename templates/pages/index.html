@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}메인 페이지{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+  <!-- 제목 -->
+  <h1 class="text-center text-primary">MeetAgain</h1>
+  <p class="text-center">이건 메인 페이지입니다.</p>
+  <hr>
+
+  <!-- 등록하러 가기 버튼 -->
+  <a href="{% url 'founditem_create' %}" class="btn btn-success d-block mx-auto">등록하러 가기</a>
+
+  <!-- 카드 줄 (2줄 × 2개씩) -->
+  <div class="row mt-5">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <img src="{% static 'img/sample1.jpg' %}" class="card-img-top" alt="검정 우산">
+        <div class="card-body">
+          <h5 class="card-title">검정 우산</h5>
+          <p class="card-text">도서관 3층에서 분실 (2025-07-01)</p>
+          <a href="#" class="btn btn-outline-primary">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <img src="{% static 'img/sample2.jpg' %}" class="card-img-top" alt="텀블러">
+        <div class="card-body">
+          <h5 class="card-title">하얀 텀블러</h5>
+          <p class="card-text">학생회관 앞에서 습득 (2025-06-30)</p>
+          <a href="#" class="btn btn-outline-primary">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <img src="{% static 'img/sample3.jpg' %}" class="card-img-top" alt="노란 카드지갑">
+        <div class="card-body">
+          <h5 class="card-title">노란 카드지갑</h5>
+          <p class="card-text">경상대 앞에서 분실 (2025-06-29)</p>
+          <a href="#" class="btn btn-outline-primary">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <img src="{% static 'img/sample4.jpg' %}" class="card-img-top" alt="아이패드">
+        <div class="card-body">
+          <h5 class="card-title">아이패드</h5>
+          <p class="card-text">공학관 1층에서 습득 (2025-06-28)</p>
+          <a href="#" class="btn btn-outline-primary">자세히 보기</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

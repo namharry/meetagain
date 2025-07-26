@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}회원가입 | MeetAgain{% endblock %}
+
+{% block content %}
+<style>
+  * {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
+  }
+
+  body {
+    background: #f4f5fa;
+  }
+
+  .logo {
+    font-size: 28px;
+    font-weight: bold;
+    color: #5a35d3;
+    text-align: center;
+    margin-top: 60px;
+  }
+
+  .signup-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    padding: 32px;
+    width: 360px;
+    margin: 20px auto;
+  }
+
+  .signup-card h2 {
+    margin-bottom: 24px;
+    font-size: 24px;
+    color: #5a35d3;
+    text-align: center;
+  }
+
+  label {
+    display: block;
+    margin: 12px 0 4px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  #send-code {
+    margin-top: 8px;
+    background-color: #5a35d3;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  #send-code:disabled {
+    background-color: #999;
+    cursor: default;
+  }
+
+  #send-code:hover:enabled {
+    background-color: #4329a9;
+  }
+
+  #timer {
+    display: block;
+    margin-top: 8px;
+    color: #888;
+    font-size: 13px;
+  }
+
+  #signup-btn {
+    margin-top: 16px;
+    background-color: #5a35d3;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  #signup-btn:hover {
+    background-color: #4329a9;
+  }
+</style>
+
+<div class="logo">MeetAgain</div>
+
+<div class="signup-card">
+  <h2>회원가입</h2>
+
+  <form method="POST" action="{% url 'signup' %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <label for="{{ form.email.id_for_label }}">학번 (이메일)</label>
+    {{ form.email }}
+
+    <button type="button" id="send-code">인증번호 발송</button>
+    <span id="timer" style="display:none;">03:00</span>
+
+    <label for="{{ form.auth_code.id_for_label }}">인증번호</label>
+    {{ form.auth_code }}
+
+    <label for="{{ form.password1.id_for_label }}">비밀번호</label>
+    {{ form.password1 }}
+
+    <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
+    {{ form.password2 }}
+
+    <button type="submit" id="signup-btn">가입하기</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  // 자동 이메일 도메인 완성
+  const emailInput = document.getElementById("id_email");
+  emailInput.addEventListener("blur", () => {
+    const value = emailInput.value.trim();
+    if (value && !value.includes("@")) {
+      emailInput.value = value + "@sungshin.ac.kr";
+    }
+  });
+
+  // 타이머 기능
+  const timerDisplay = document.getElementById("timer");
+  const sendCodeBtn = document.getElementById("send-code");
+  let timerInterval;
+
+  function startTimer(duration) {
+    let time = duration;
+    timerDisplay.style.display = "block";
+    sendCodeBtn.disabled = true;
+
+    timerInterval = setInterval(() => {
+      const minutes = String(Math.floor(time / 60)).padStart(2, "0");
+      const seconds = String(time % 60).padStart(2, "0");
+      timerDisplay.textContent = `${minutes}:${seconds}`;
+
+      if (--time < 0) {
+        clearInterval(timerInterval);
+        timerDisplay.textContent = "시간 만료";
+        sendCodeBtn.disabled = false;
+      }
+    }, 1000);
+  }
+
+  sendCodeBtn.addEventListener("click", () => {
+    startTimer(180); // 3분
+    // TODO: AJAX로 인증번호 전송 요청 구현 가능
+  });
+</script>
+{% endblock %}

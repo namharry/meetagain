@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}분실물 등록 (지도 포함) - MeetAgain{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">🗺️ 지도에서 위치 선택</h2>
+
+  <!-- 지도 -->
+  <div id="map" style="width: 100%; height: 350px; margin-bottom: 20px; background: #eee;"></div>
+
+  <!-- 폼 -->
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="mb-3">
+      <label for="id_location" class="form-label">장소</label>
+      {{ form.location|add_class:"form-control" }}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_image" class="form-label">사진</label>
+      {{ form.image|add_class:"form-control" }}
+    </div>
+
+    <!-- 기타 필드도 필요하면 추가 가능 -->
+    <button type="submit" class="btn btn-primary">등록</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<!-- Kakao Map SDK -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_API_KEY&libraries=services"></script>
+<script>
+  const container = document.getElementById('map');
+  const options = {
+    center: new kakao.maps.LatLng(37.5922, 127.0165),  // 초기 중심 좌표
+    level: 3
+  };
+  const map = new kakao.maps.Map(container, options);
+  const geocoder = new kakao.maps.services.Geocoder();
+  const marker = new kakao.maps.Marker({ map: map });
+
+  // 지도 클릭 시 주소 검색 → input 채우기
+  kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+    const latlng = mouseEvent.latLng;
+    geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result, status) {
+      if (status === kakao.maps.services.Status.OK) {
+        const address = result[0].address.address_name;
+        document.getElementById('id_location').value = address;
+        marker.setPosition(latlng);
+      }
+    });
+  });
+</script>
+{% endblock %}

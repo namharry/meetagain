@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}분실물 상세보기 | MeetAgain{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📦 분실물 상세 정보</h2>
+
+  <div class="row g-4">
+    <!-- 이미지 영역 -->
+    <div class="col-md-5">
+      {% if lost_item.image %}
+        <img src="{{ lost_item.image.url }}" class="img-fluid rounded border" alt="분실물 사진">
+      {% else %}
+        <img src="https://via.placeholder.com/400x300?text=Lost+Item" class="img-fluid rounded border" alt="분실물 사진">
+      {% endif %}
+    </div>
+
+    <!-- 상세 정보 영역 -->
+    <div class="col-md-7">
+      <ul class="list-group shadow-sm">
+        <li class="list-group-item d-flex justify-content-between">
+          <strong>물품명</strong> <span>{{ lost_item.name }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <strong>종류</strong> <span>{{ lost_item.category }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <strong>분실장소</strong> <span>{{ lost_item.location }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <strong>분실일시</strong> <span>{{ lost_item.lost_datetime|date:"Y년 n월 j일 H:i" }}</span>
+        </li>
+        <li class="list-group-item">
+          <strong>특징</strong><br>
+          {{ lost_item.description }}
+        </li>
+      </ul>
+
+      <div class="mt-4">
+        <button class="btn btn-outline-primary" disabled>
+          📍 지도에서 위치 보기 (준비중)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

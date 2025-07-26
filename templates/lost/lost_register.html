@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}분실물 등록 - MeetAgain{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center text-primary">📤 분실물 등록</h2>
+  <p class="text-center text-muted">분실한 물건의 정보를 작성해 주세요.</p>
+  <hr>
+
+  <!-- 📦 등록 폼 -->
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <!-- 물건 이름 -->
+    <div class="mb-3">
+      <label for="{{ form.name.id_for_label }}" class="form-label">물건 이름</label>
+      {{ form.name|add_class:"form-control" }}
+    </div>
+
+    <!-- 상세 설명 -->
+    <div class="mb-3">
+      <label for="{{ form.description.id_for_label }}" class="form-label">상세 설명</label>
+      {{ form.description|add_class:"form-control" }}
+    </div>
+
+    <!-- 분실 날짜/시간 -->
+    <div class="mb-3">
+      <label for="{{ form.lost_datetime.id_for_label }}" class="form-label">분실 날짜</label>
+      {{ form.lost_datetime|add_class:"form-control" }}
+    </div>
+
+    <!-- 분실 장소 -->
+    <div class="mb-3">
+      <label for="{{ form.location.id_for_label }}" class="form-label">분실 장소</label>
+      {{ form.location|add_class:"form-control" }}
+    </div>
+
+    <!-- 카테고리 -->
+    <div class="mb-3">
+      <label for="{{ form.category.id_for_label }}" class="form-label">카테고리</label>
+      {{ form.category|add_class:"form-select" }}
+    </div>
+
+    <!-- 이미지 -->
+    <div class="mb-3">
+      <label for="{{ form.image.id_for_label }}" class="form-label">물건 사진</label>
+      {{ form.image|add_class:"form-control" }}
+    </div>
+
+    <!-- 제출 -->
+    <button type="submit" class="btn btn-primary">등록하기</button>
+  </form>
+</div>
+{% endblock %}
