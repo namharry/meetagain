@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'users',
     'meetagain',
     'founditems',
-    'items',
 ]
 
 TEMPLATES = [

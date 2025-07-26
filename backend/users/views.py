@@ -109,7 +109,7 @@ def guide_view(request):
 
 # admin_views.py
 from django.contrib.auth.decorators import user_passes_test
-from items.models import LostItem, FoundItem  # 분실물/습득물 모델 import 필요
+from founditems.models import LostItem, FoundItem  # 분실물/습득물 모델 import 필요
 
 def admin_required(view_func):
     return user_passes_test(lambda u: u.is_staff)(view_func)
