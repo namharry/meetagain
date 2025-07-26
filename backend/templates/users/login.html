@@ -1,0 +1,25 @@
+<h2>MeetAgain</h2>
+<form method="post">
+    {% csrf_token %}
+    <label>학번:</label>
+    <input type="text" name="student_id"><br>
+
+    <label>비밀번호:</label>
+    <input type="password" name="password"><br>
+
+    <div>
+        <a href="{% url 'signup' %}">회원가입</a> |
+        <a href="{% url 'password_change' %}">비밀번호 변경</a>
+    </div>
+
+    <br>
+    <button type="submit">로그인</button>
+</form>
+
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}

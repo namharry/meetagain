@@ -1,0 +1,33 @@
+<div class="sidemenu">
+  {% if user.is_authenticated %}
+    <!-- ✅ 로그인한 사용자 전용 -->
+    <h3>마이페이지</h3>
+    <ul>
+      <li><a href="{% url 'my_account' %}">내 계정</a></li>
+      <li><a href="{% url 'app_settings' %}">앱 설정</a></li>
+      <li><a href="{% url 'found_items' %}">습득물 등록 내역</a></li>
+      <li><a href="{% url 'lost_items' %}">분실물 등록 내역</a></li>
+      <li><a href="{% url 'logout' %}">로그아웃</a></li>
+      <li><a href="{% url 'quit' %}">탈퇴</a></li>
+    </ul>
+
+    <h3>고객센터</h3>
+    <ul>
+      <li><a href="{% url 'inquiry' %}">관리자에게 문의</a></li>
+    </ul>
+  {% else %}
+    <!-- ❌ 비로그인 사용자용 -->
+    <h3>계정</h3>
+    <ul>
+      <li><a href="{% url 'login' %}">로그인</a></li>
+      <li><a href="{% url 'signup' %}">회원가입</a></li>
+    </ul>
+  {% endif %}
+
+  <!-- ✅ 공통 영역 -->
+  <h3><a href="{% url 'notice' %}">공지사항</a></h3>
+  <h3><a href="{% url 'faq' %}">FAQ</a></h3>
+
+  <br />
+  <a href="{% url 'guide' %}">HOME/이용안내</a>
+</div>

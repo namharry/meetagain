@@ -1,0 +1,43 @@
+# 가상환경
+venv/
+myvenv/
+
+# IDE/에디터 설정 파일 (추가 권장)
+.vscode/
+.idea/
+
+# Python 캐시
+__pycache__/
+*.py[cod]
+*.pyc
+
+# DB
+db.sqlite3
+db.sqlite3-journal
+
+# 마이그레이션
+**/migrations/
+!**/migrations/__init__.py
+
+# 템플릿 태그 필터
+**/templatetags/
+!**/templatetags/__init__.py
+
+# 업로드 미디어 파일
+media/
+media/post_images/
+
+# 로그 및 번역
+*.log
+*.pot
+
+# 환경설정 및 시크릿
+.env
+local_settings.py
+
+# OS 관련 파일
+.DS_Store
+Thumbs.db
+
+# DB 파일 추적 제외 (사용자 계정 등 데이터 보호용)
+*.sqlite3
