@@ -13,4 +13,6 @@ urlpatterns = [
     path('lost/', views.lostitem_list),
     path('lost/<int:item_id>/', views.lostitem_detail),
     path('lost/create/', views.lostitem_create),
+
+    path('api/items/', views.map_pins_api, name='map_pins_api'),
 ]

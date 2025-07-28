@@ -72,22 +72,6 @@ def search_view(request):
     context = {'items': qs}
     return render(request, 'meetagain/search.html', context)
 
-#  지도용 핀 데이터 API
-def map_pins_api(request):
-    items = LostItem.objects.all()
-    data = []
-
-    for item in items:
-        data.append({
-            'name': item.name,
-            'lat': ... ,  # 위도값 추가 필요 (좌표 변환이 안 돼 있으면 대략적인 값)
-            'lng': ... ,  # 경도값 추가 필요
-            'location': item.lost_location,
-            'date': item.lost_date.strftime('%Y-%m-%d'),
-        })
-
-    return JsonResponse({'pins': data})
-
 @csrf_exempt
 
 @csrf_exempt
@@ -143,3 +127,19 @@ def notification_list(request):
     return render(request, 'notifications/notification_list.html', {
         'notifications': notifications
     })
+
+def detail_view(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id)
+    context = {
+        'item': item,
+    }
+    return render(request, 'meetagain/detail.html', context)
+
+def add_keyword(request):
+    return JsonResponse({'message': 'add_keyword not implemented yet'})
+
+def delete_keyword(request):
+    return JsonResponse({'message': 'delete_keyword not implemented yet'})
+
+def keyword_list(request):
+    return JsonResponse({'message': 'keyword_list not implemented yet'})

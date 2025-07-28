@@ -1,9 +1,9 @@
 #meetagain/forms.py
 
 from django import forms
-from .models import LostItem, FoundItem
+from .models import LostItem, FoundItem, Keyword
 from django.core.exceptions import ValidationError
-from datetime import date 
+from datetime import date
 
 class KeywordForm(forms.ModelForm):
     class Meta:

@@ -13,9 +13,6 @@ urlpatterns = [
     path('item/<int:item_id>/delete/', views.delete_lost_item, name='delete'),
     path('item/<int:item_id>/', views.detail_view, name='detail'),
 
-    # ✅ 지도용 좌표 API
-    path('api/map-pins/', views.map_pins_api, name='map-pins'),
-
     # ✅ 키워드 관련 API
     path('keywords/add/', views.add_keyword, name='add_keyword'),
     path('keywords/delete/', views.delete_keyword, name='delete_keyword'),

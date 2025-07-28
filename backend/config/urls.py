@@ -24,6 +24,7 @@ urlpatterns = [
     path('', lambda request: redirect('found/')),       # 루트 접속 시 /found/로 이동
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
+    path('', include('meetagain.urls')),  # ✅ 앱 내부 URL 연결
 
     # 💡 founditems 앱을 최상위로 연결
     path('', include(('founditems.urls', 'founditems'), namespace='founditems')),

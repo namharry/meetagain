@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import FoundItem, LostItem
 import json
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.admin.views.decorators import staff_member_required
 # --------------------
 # ✅ 습득물 (FoundItem)
 # --------------------
@@ -52,6 +52,28 @@ def founditem_create(request):
         return JsonResponse({'id': item.id, 'message': '습득물 등록 완료!'}, status=201)
 
     return JsonResponse({'error': 'POST 요청만 허용됩니다'}, status=400)
+
+@staff_member_required
+def map_pins_api(request):
+    items = FoundItem.objects.filter(
+        is_returned=False,
+        lat__isnull=False,
+        lng__isnull=False
+    )
+
+    data = [
+        {
+            'id': item.id,
+            'title': item.name,
+            'lat': item.lat,
+            'lng': item.lng,
+            'status': item.status,
+        }
+        for item in items
+    ]
+
+    return JsonResponse(data, safe=False)
+
 
 # --------------------
 # ✅ 분실물 (LostItem)
