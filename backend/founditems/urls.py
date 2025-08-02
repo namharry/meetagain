@@ -8,6 +8,7 @@ urlpatterns = [
     path('found/', views.founditem_list),
     path('found/<int:item_id>/', views.founditem_detail, name='found_detail'),
     path('found/create/', views.founditem_create),  # ✅ 등록
+    path('found/form/', views.founditem_form_view, name='founditem_form'),
 
     # 분실물
     path('lost/', views.lostitem_list),

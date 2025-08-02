@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base/base.html' %}
 {% load static %}
 
 {% block title %}MeetAgain - 로그인{% endblock %}
@@ -10,15 +10,19 @@
     font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
   }
 
-  body {
+  html, body {
+    height: 100%;
     margin: 0;
     padding: 0;
     background: #f4f5fa;
+  }
+
+  .login-page-wrapper {
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    height: 100vh;
+    align-items: center;
+    height: calc(100vh - 4rem); /* mt-4 상단 마진 제거 효과 */
   }
 
   .logo {
@@ -48,6 +52,7 @@
     margin: 12px 0 4px;
     font-weight: bold;
     font-size: 14px;
+    text-align: left;
   }
 
   input {
@@ -92,26 +97,28 @@
   }
 </style>
 
-<div class="logo">MeetAgain</div>
+<div class="login-page-wrapper">
+  <div class="logo">MeetAgain</div>
 
-<div class="login-card">
-  <h2>로그인</h2>
+  <div class="login-card">
+    <h2>로그인</h2>
 
-  <form method="post" action="{% url 'login' %}">
-    {% csrf_token %}
-    
-    <label for="username">학번</label>
-    <input type="text" id="username" name="username" placeholder="20231234" required>
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
 
-    <label for="password">비밀번호</label>
-    <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
+      <label for="username">학번</label>
+      <input type="text" id="username" name="username" placeholder="20231234" required>
 
-    <div class="links">
-      <a href="{% url 'signup' %}">회원가입</a> |
-      <a href="{% url 'password_reset' %}">비밀번호 변경</a>
-    </div>
+      <label for="password">비밀번호</label>
+      <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
 
-    <button type="submit" id="login-btn">로그인</button>
-  </form>
+      <div class="links">
+        <a href="{% url 'signup' %}">회원가입</a> |
+        <a href="{% url 'password_reset' %}">비밀번호 변경</a>
+      </div>
+
+      <button type="submit" id="login-btn">로그인</button>
+    </form>
+  </div>
 </div>
 {% endblock %}

@@ -77,6 +77,19 @@ class FoundItemForm(forms.ModelForm):
             'lat',
             'lng'
         ]
+        widgets = {
+            'found_date': forms.DateInput(
+                attrs={
+                    'type': 'date',
+                    'class': 'form-control',
+                    'placeholder': 'YYYY-MM-DD',
+                }
+            )
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['found_date'].input_formats = ['%Y-%m-%d']
     
     def clean(self): #모든 필드가 입력되었는지 확인해주는 메서드
         cleaned_data = super().clean()

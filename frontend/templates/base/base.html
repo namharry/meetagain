@@ -20,12 +20,14 @@
 <!-- 전체 레이아웃 Alpine 컨트롤 -->
 <div x-data="{ menuOpen: false }" class="container-fluid mt-4 position-relative">
 
-  <!-- 상단 알림/메뉴 아이콘 -->
+  <!-- ✅ 로그인, 회원가입, 비밀번호 재설정 페이지에서는 상단 아이콘 숨기기 -->
+{% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path != '/users/password_reset/' %}
   <div class="top-icons d-flex justify-content-end gap-3">
     <i class="fa-solid fa-bell" onclick="toggleSidebar()"></i>
     <!-- 햄버거 버튼: 클릭 시 menuOpen 토글 -->
     <i class="fa-solid fa-bars" @click="menuOpen = !menuOpen" style="cursor: pointer;"></i>
   </div>
+{% endif %}
 
   <!-- 👉 사이드 메뉴 (슬라이딩) -->
   <div
@@ -46,7 +48,7 @@
   </div>
 
   <!-- 🔔 알림 사이드바 -->
-  {% include "alert_sidebar.html" %}
+  {% include "base/alert_sidebar.html" %}
 
   <!-- 메인 콘텐츠 -->
   {% block content %}{% endblock %}

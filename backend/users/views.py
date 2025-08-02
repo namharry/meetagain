@@ -28,7 +28,7 @@ def login_view(request):
             return redirect('/')
         else:
             messages.error(request, '학번 또는 비밀번호가 잘못되었습니다.')
-    return render(request, 'users/login.html')
+    return render(request, 'auth/login.html')
 
 
 # 비밀번호 변경 뷰
@@ -59,7 +59,7 @@ def signup_view(request):
             return redirect('login')  # 로그인 페이지로 리디렉션
     else:
         form = SignupForm()
-    return render(request, 'users/signup.html', {'form': form})
+    return render(request, 'auth/signup.html', {'form': form})
 
 #로그아웃
 def logout_view(request):
