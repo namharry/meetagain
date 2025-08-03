@@ -130,8 +130,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'
 
-# Email backend (for dev)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email backend 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# Gmail SMTP 서버
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+#발신 전용 Gmail 계정
+EMAIL_HOST_USER = 'meetagain.noreply@gmail.com'      # 👉 너의 Gmail 주소
+EMAIL_HOST_PASSWORD = 'urxa itwv vwji swpl'       # 👉 앱 비밀번호
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Login
 LOGIN_URL = '/users/login/'
