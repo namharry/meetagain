@@ -124,6 +124,9 @@
       </div>
       <p id="verify-result"></p>
     </div>
+    <label for="{{ form.student_id.id_for_label }}">학번</label>
+    {{ form.student_id }}
+
     <label for="{{ form.password1.id_for_label }}">비밀번호</label>
     {{ form.password1 }}
     <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
@@ -230,9 +233,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.success) {
           resultText.textContent = "✅ 인증에 성공했습니다.";
           resultText.style.color = "green";
+          // 인증 성공 시 auth_code 값을 'verified'로 바꿈
+          document.getElementById("id_auth_code").value = "verified";
         } else {
           resultText.textContent = "❌ 인증번호가 올바르지 않거나 만료되었습니다.";
           resultText.style.color = "red";
+          // 실패 시 비워둠
+          document.getElementById("id_auth_code").value = "";
         }
       })
       .catch((err) => {

@@ -1,13 +1,11 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import get_user_model
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
 from .forms import SignupForm, PasswordChangeCustomForm, PasswordResetWithCodeForm
 from founditems.models import LostItem, FoundItem
 from django.contrib.auth.hashers import make_password
@@ -22,17 +20,26 @@ def signup_view(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
+            print("폼 유효성 검사 통과")
             email = form.cleaned_data.get("email")
             verified_email = request.session.get("signup_verified_email")
+            print(f"인증된 이메일: {verified_email}, 입력된 이메일: {email}")
             if verified_email != email:
                 form.add_error(None, "이메일 인증을 완료해주세요.")
+            elif User.objects.filter(email=email).exists():
+                form.add_error("email", "이미 사용 중인 이메일입니다.")
             else:
                 user = form.save(commit=False)
+                user.email = email
                 user.save()
+                print("유저 저장 완료")
                 login(request, user)
                 messages.success(request, '회원가입이 완료되었습니다.')
                 request.session.pop("signup_verified_email", None)
                 return redirect('login')
+        else:
+            print("폼 유효성 검사 실패")
+            print(form.errors)
     else:
         form = SignupForm()
     return render(request, 'auth/signup.html', {'form': form})
@@ -76,7 +83,7 @@ def login_view(request):
         user = authenticate(request, student_id=student_id, password=password)
         if user is not None:
             login(request, user)
-            return redirect('/')
+            return render(request, 'pages/index.html')
         else:
             messages.error(request, '학번 또는 비밀번호가 잘못되었습니다.')
     return render(request, 'auth/login.html')

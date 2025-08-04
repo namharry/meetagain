@@ -6,7 +6,10 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Keyword
 import json
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from users.forms import SignupForm
+from django.shortcuts import render
 
 @login_required
 def register_lost_item(request):
@@ -22,6 +25,7 @@ def register_lost_item(request):
     return render(request, 'register.html', {'form': form})
 
 def index_view(request):
+    print("Index view called")  # 디버깅용 로그
     items = LostItem.objects.all().order_by('-lost_date')
 
     # 검색어, 위치 필터는 기존과 동일
@@ -54,7 +58,10 @@ def index_view(request):
         'date_to': date_to,
         'category_choices': LostItem.CATEGORY_CHOICES,
     }
-    return render(request, 'index.html', context)
+    return render(request, 'pages/index.html', context)
+
+def founditem_create_view(request):
+    return render(request, 'found/found_register.html')
 
 def search_view(request):
     qs = LostItem.objects.all()
@@ -143,3 +150,5 @@ def delete_keyword(request):
 
 def keyword_list(request):
     return JsonResponse({'message': 'keyword_list not implemented yet'})
+
+

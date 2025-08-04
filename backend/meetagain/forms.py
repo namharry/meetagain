@@ -5,6 +5,7 @@ from .models import LostItem, FoundItem, Keyword
 from django.core.exceptions import ValidationError
 from datetime import date
 
+
 class KeywordForm(forms.ModelForm):
     class Meta:
         model = Keyword
