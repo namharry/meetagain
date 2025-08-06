@@ -1,15 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import LostItemForm
-from .models import LostItem, FoundItem, Keyword, Notification
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from .models import Keyword
-import json
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
+
+from .models import LostItem, FoundItem, Keyword, Notification
+from .forms import LostItemForm
 from users.forms import SignupForm
-from django.shortcuts import render
+
+import json
 
 @login_required
 def register_lost_item(request):
@@ -24,6 +24,7 @@ def register_lost_item(request):
         form = LostItemForm()
     return render(request, 'register.html', {'form': form})
 
+@login_required
 def index_view(request):
     print("Index view called")  # 디버깅용 로그
     items = LostItem.objects.all().order_by('-lost_date')
@@ -78,8 +79,6 @@ def search_view(request):
 
     context = {'items': qs}
     return render(request, 'meetagain/search.html', context)
-
-@csrf_exempt
 
 @csrf_exempt
 def create_notification(request):
@@ -142,13 +141,60 @@ def detail_view(request, item_id):
     }
     return render(request, 'meetagain/detail.html', context)
 
+@require_POST
 def add_keyword(request):
-    return JsonResponse({'message': 'add_keyword not implemented yet'})
+    word = request.POST.get('word', '').strip()
+    
+    if not word:
+        messages.error(request, "키워드를 입력해주세요.")
+        return redirect('meetagain:keyword_list')
 
-def delete_keyword(request):
-    return JsonResponse({'message': 'delete_keyword not implemented yet'})
+    # 중복 키워드 방지
+    keyword, created = Keyword.objects.get_or_create(user=request.user, word=word)
+    
+    if created:
+        messages.success(request, f"'{word}' 키워드가 등록되었습니다.")
+    else:
+        messages.info(request, f"이미 '{word}' 키워드를 등록하셨습니다.")
 
+    return redirect('meetagain:keyword_list')
+
+@require_POST
+def delete_keyword(request, keyword_id):
+    keyword = Keyword.objects.filter(id=keyword_id, user=request.user).first()
+    if keyword:
+        messages.success(request, f"'{keyword.word}' 키워드가 삭제되었습니다.")
+        keyword.delete()
+    else:
+        messages.error(request, "해당 키워드를 찾을 수 없습니다.")
+    return redirect('meetagain:keyword_list')
+
+@login_required
 def keyword_list(request):
-    return JsonResponse({'message': 'keyword_list not implemented yet'})
+    keywords = Keyword.objects.filter(user=request.user)
+    return render(request, 'keywords/keyword_list.html', {
+        'keywords': keywords
+    })
 
+def founditem_detail(request, item_id):
+    item = get_object_or_404(FoundItem, id=item_id)
+    return render(request, 'found/founditem_detail.html', {'item': item})
 
+def mark_notification_read_and_redirect(request, notification_id):
+    notification = Notification.objects.filter(id=notification_id, user=request.user).first()
+    
+    if notification:
+        # 읽음 처리
+        notification.is_read = True
+        notification.save()
+
+        # 연결된 아이템으로 리디렉트
+        if notification.item:
+            model_name = notification.content_type.model
+            if model_name == "founditem":
+                return redirect('meetagain:founditem_detail', item_id=notification.item.id)
+            elif model_name == "lostitem":
+                return redirect('meetagain:detail', item_id=notification.item.id)
+    
+    # 예외 처리 → 홈으로
+    return redirect('meetagain:index')

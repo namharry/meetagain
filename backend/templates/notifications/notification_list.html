@@ -32,21 +32,15 @@
         <ul>
             {% for n in notifications %}
                 <li class="{% if n.is_read %}read{% else %}unread{% endif %}">
-                    {% if n.item %}
+                    <a href="{% url 'meetagain:read_notification' n.id %}">
                         {% if n.content_type.model == "lostitem" %}
-                            <a href="{% url 'meetagain:detail' n.item.pk %}">
-                                [분실물] "{{ n.keyword }}" 관련 알림 – {{ n.item.name }}
-                            </a>
+                            [분실물] "{{ n.keyword }}" 관련 알림 – {{ n.item.name }}
                         {% elif n.content_type.model == "founditem" %}
-                            <a href="{% url 'found_detail' n.item.pk %}">
-                                [습득물] "{{ n.keyword }}" 관련 알림 – {{ n.item.name }}
-                            </a>
+                            [습득물] "{{ n.keyword }}" 관련 알림 – {{ n.item.name }}
                         {% else %}
                             {{ n.keyword }} 관련 알림
                         {% endif %}
-                    {% else %}
-                        {{ n.keyword }} 관련 알림
-                    {% endif %}
+                    </a>
                     <span style="font-size: 0.85em; color: gray;">
                         ({{ n.created_at|date:"Y-m-d H:i" }})
                     </span>

@@ -14,13 +14,18 @@ urlpatterns = [
 
     # ✅ 키워드 관련 API
     path('keywords/add/', views.add_keyword, name='add_keyword'),
-    path('keywords/delete/', views.delete_keyword, name='delete_keyword'),
+    path('keywords/delete/<int:keyword_id>/', views.delete_keyword, name='delete_keyword'),  # ⬅️ 수정됨
     path('keywords/', views.keyword_list, name='keyword_list'),
 
     # ✅ 알림 관련 API
     path('notifications/create/', views.create_notification, name='create_notification'),
     path('notifications/', views.get_notifications, name='get_notifications'),
+    path('notifications/read/<int:notification_id>/', views.mark_notification_read_and_redirect, name='read_notification'),
 
     # ✅ 알림 웹 페이지
     path('notifications/page/', views.notification_list, name='notification_list'),
+
+    # ✅ FoundItem 상세 보기
+    path('found/<int:item_id>/', views.founditem_detail, name='founditem_detail'),
+
 ]
