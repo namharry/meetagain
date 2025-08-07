@@ -58,9 +58,15 @@ def verify_signup_code_ajax(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         code = request.POST.get('code')
+        print(">>> 이메일:", email)
+        print(">>> 입력한 코드:", code)
+
         if verify_auth_code(email, code, purpose='signup'):
+            print(">>> 인증 성공")
             request.session['signup_verified_email'] = email
             return JsonResponse({'success': True})
+        else:
+            print(">>> 인증 실패")
     return JsonResponse({'success': False}, status=400)
 
 @csrf_exempt
@@ -80,12 +86,22 @@ def login_view(request):
     if request.method == 'POST':
         student_id = request.POST.get('student_id')
         password = request.POST.get('password')
-        user = authenticate(request, student_id=student_id, password=password)
+
+        print("입력한 학번:", student_id)
+        print("입력한 비밀번호:", password)
+
+        user = authenticate(request, username=student_id, password=password)
+
+        print("인증 결과:", user)
+
         if user is not None:
             login(request, user)
-            return render(request, 'pages/index.html')
+            print("✅ 로그인 성공")
+            return redirect('meetagain:index')
         else:
+            print("❌ 로그인 실패")
             messages.error(request, '학번 또는 비밀번호가 잘못되었습니다.')
+
     return render(request, 'auth/login.html')
 
 # ------------------------------

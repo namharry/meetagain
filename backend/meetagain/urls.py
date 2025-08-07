@@ -5,6 +5,9 @@ from django.contrib.auth import views as auth_views
 app_name = 'meetagain'
 
 urlpatterns = [
+    # ✅ 메인 페이지로 진입하는 URL
+    path('', views.index_view, name='index'),
+    
     # ✅ 분실물 등록/수정/삭제/상세
     path('register/', views.register_lost_item, name='register'),
     path('item/<int:item_id>/edit/', views.update_lost_item, name='edit'),
