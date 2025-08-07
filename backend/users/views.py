@@ -87,19 +87,12 @@ def login_view(request):
         student_id = request.POST.get('student_id')
         password = request.POST.get('password')
 
-        print("입력한 학번:", student_id)
-        print("입력한 비밀번호:", password)
-
         user = authenticate(request, username=student_id, password=password)
-
-        print("인증 결과:", user)
 
         if user is not None:
             login(request, user)
-            print("✅ 로그인 성공")
             return redirect('meetagain:index')
         else:
-            print("❌ 로그인 실패")
             messages.error(request, '학번 또는 비밀번호가 잘못되었습니다.')
 
     return render(request, 'auth/login.html')
