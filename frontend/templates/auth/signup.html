@@ -109,7 +109,7 @@
 <div class="logo">MeetAgain</div>
 <div class="signup-card">
   <h2>회원가입</h2>
-  <form method="POST" action="{% url 'signup' %}">
+  <form method="POST" action="{% url 'users:signup' %}">
     {% csrf_token %}
     {{ form.non_field_errors }}
     <label for="{{ form.email.id_for_label }}">학번 (이메일)</label>
@@ -235,6 +235,9 @@ document.addEventListener("DOMContentLoaded", function () {
           resultText.style.color = "green";
           // 인증 성공 시 auth_code 값을 'verified'로 바꿈
           document.getElementById("id_auth_code").value = "verified";
+          // ✅ 이메일에서 학번 추출해서 자동 입력
+          const studentId = email.split("@")[0];
+          document.getElementById("id_student_id").value = studentId
         } else {
           resultText.textContent = "❌ 인증번호가 올바르지 않거나 만료되었습니다.";
           resultText.style.color = "red";
