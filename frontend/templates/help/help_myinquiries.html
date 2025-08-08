@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin-top: 60px;">
+  <h2 class="text-center mb-4" style="color: #7b3ff2; font-weight: 700;">내 문의내역</h2>
+
+  {% if inquiries %}
+    {% for inquiry in inquiries %}
+      <div class="p-3 mb-3 bg-white rounded shadow-sm">
+        <div class="fw-bold mb-1">{{ inquiry.title }}</div>
+        <div class="text-muted small">
+          {{ inquiry.created_at|date:"Y-m-d" }} · 
+          {% if inquiry.answered %}
+            <span class="text-success">답변 완료</span>
+          {% else %}
+            <span class="text-warning">답변 대기 중</span>
+          {% endif %}
+        </div>
+
+        {% if inquiry.answered %}
+          <div class="bg-light p-2 mt-2 rounded" style="font-size: 0.95rem;">
+            {{ inquiry.answer }}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-center text-muted">문의하신 내역이 없습니다.</p>
+  {% endif %}
+</div>
+{% endblock %}
