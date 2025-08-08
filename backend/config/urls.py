@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect
 
 urlpatterns = [
-    path('', lambda request: redirect('meetagain:index')),
+    path('', lambda request: redirect('users:login')), # Redirect to login page
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('meetagain/', include('meetagain.urls')),

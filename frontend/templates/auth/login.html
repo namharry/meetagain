@@ -112,7 +112,7 @@
     {% endif %}
 
 
-    <form method="post" action="{% url 'login' %}">
+    <form method="post" action="{% url 'users:login' %}">
       {% csrf_token %}
 
       <label for="username">학번</label>
@@ -122,8 +122,8 @@
       <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
 
       <div class="links">
-        <a href="{% url 'signup' %}">회원가입</a> |
-        <a href="{% url 'password_reset' %}">비밀번호 변경</a>
+        <a href="{% url 'users:signup' %}">회원가입</a> |
+        <a href="{% url 'users:password_reset' %}">비밀번호 변경</a>
       </div>
 
       <button type="submit" id="login-btn">로그인</button>
