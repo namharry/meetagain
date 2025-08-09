@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+# backend/config/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -21,7 +22,7 @@ from django.conf.urls.static import static
 from django.shortcuts import redirect
 
 urlpatterns = [
-    path('', lambda request: redirect('users:login')), # Redirect to login page
+    path('', lambda request: redirect('meetagain:index')),  # 루트는 메인으로
     path('admin/', admin.site.urls),
     path('users/', include(('users.urls', 'users'), namespace='users')),
     path('meetagain/', include('meetagain.urls')),
