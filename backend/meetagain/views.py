@@ -8,10 +8,10 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from datetime import datetime
 import json
-
-from .models import LostItem, FoundItem, Keyword, Notification
+from .models import LostItem, Keyword, Notification
 from .forms import LostItemForm, FoundItemForm
 from users.forms import SignupForm
+
 
 # --------------------
 # 분실물 (LostItem) 및 메인 뷰 (meetagain 쪽 중복 선택)
@@ -143,10 +143,6 @@ def detail_view(request, item_id):
 # 습득물 (FoundItem) 관련 뷰 (추가된 것들 모두 유지)
 # --------------------
 
-def founditem_list(request):
-    items = FoundItem.objects.all().values()
-    return JsonResponse(list(items), safe=False)
-
 @login_required
 def founditem_detail(request, item_id):
     item = get_object_or_404(FoundItem, id=item_id)
@@ -164,39 +160,40 @@ def founditem_detail(request, item_id):
     })
 
 @csrf_exempt
-def founditem_create(request):
+def found_register(request):
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': '입력 데이터 형식이 올바르지 않습니다.'}, status=400)
+        # HTML 폼에서 전송된 데이터 받기
+        name = request.POST.get('name')
+        description = request.POST.get('description', '')
+        category = request.POST.get('category', '기타')
+        found_location = request.POST.get('found_location')
+        found_date_str = request.POST.get('found_date')
+        lat = request.POST.get('lat')
+        lng = request.POST.get('lng')
 
         try:
-            lat = float(data.get('lat')) if data.get('lat') is not None else None
-            lng = float(data.get('lng')) if data.get('lng') is not None else None
-        except ValueError:
-            return JsonResponse({'error': '위치 좌표 값이 잘못되었습니다.'}, status=400)
-
-        try:
-            found_date_str = data.get('found_date')
             found_date = datetime.strptime(found_date_str, '%Y-%m-%d').date() if found_date_str else None
         except ValueError:
-            return JsonResponse({'error': '날짜 형식이 잘못되었습니다. YYYY-MM-DD 형식이어야 합니다.'}, status=400)
+            return render(request, 'found/found_register.html', {
+                'error': '날짜 형식이 잘못되었습니다. YYYY-MM-DD 형식이어야 합니다.'
+            })
 
         item = FoundItem.objects.create(
-            name=data.get('name'),
-            description=data.get('description', ''),
-            category=data.get('category', '기타'),
-            found_location=data.get('found_location'),
+            name=name,
+            description=description,
+            category=category,
+            found_location=found_location,
             found_date=found_date,
-            lat=lat,
-            lng=lng,
-            is_returned=False,
+            lat=float(lat) if lat else None,
+            lng=float(lng) if lng else None,
+            is_returned=False
         )
 
-        return JsonResponse({'id': item.id, 'message': '습득물 등록이 완료되었습니다.'}, status=201)
+        # 등록 완료 후 다른 페이지로 이동
+        return redirect('/meetagain/')  # 나중에 목록 페이지 경로로 변경
 
-    return JsonResponse({'error': 'POST 요청만 허용됩니다.'}, status=400)
+    # GET 요청 시 등록 폼 보여주기
+    return render(request, 'found/found_register.html')
 
 @staff_member_required
 def map_pins_api(request):

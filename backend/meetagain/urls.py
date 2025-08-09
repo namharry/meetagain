@@ -29,7 +29,7 @@ urlpatterns = [
     path('notifications/page/', views.notification_list, name='notification_list'),
 
     # 습득물
-    path('found/', views.founditem_list),
+    path('found/register/', views.found_register, name='found_register'),
     path('found/<int:item_id>/', views.founditem_detail, name='found_detail'),
     path('found/form/', views.founditem_form_view, name='founditem_form'),
 
