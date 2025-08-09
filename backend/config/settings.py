@@ -146,7 +146,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Login
 LOGIN_URL = '/users/login/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/meetagain/'
 
 
 # Default auto field
