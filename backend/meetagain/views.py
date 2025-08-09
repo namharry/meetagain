@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -21,6 +20,11 @@ def staff_member_required(view_func):
     return user_passes_test(lambda u: u.is_staff)(view_func)
 
 
+# 메인 홈 화면용 뷰
+def index_view(request):
+    return render(request, 'pages/index.html')
+
+
 # --------------------
 # 분실물 (LostItem) 뷰
 # --------------------
@@ -31,7 +35,7 @@ def lost_register_view(request):
         form = LostItemForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('meetagain:lost_index')  # 변경: 'meetagain:index'에서 'lost_index'로 변경
+            return redirect('meetagain:lost_index')
         else:
             return render(request, 'lost/lost_register.html', {'form': form})
     else:
@@ -109,7 +113,7 @@ def found_register_view(request):
         form = FoundItemForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('meetagain:found_index')  # 습득물 등록 후 해당 페이지로 이동
+            return redirect('meetagain:found_index')
         else:
             return render(request, 'found/found_register.html', {'form': form})
     else:
@@ -212,4 +216,3 @@ def keyword_delete(request, keyword_id):
     else:
         messages.error(request, "해당 키워드를 찾을 수 없습니다.")
     return redirect('meetagain:found_keyword_list')
-
