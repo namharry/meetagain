@@ -1,35 +1,40 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_POST
+from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
+from datetime import datetime
+import json
 
 from .models import LostItem, FoundItem, Keyword, Notification
-from .forms import LostItemForm
+from .forms import LostItemForm, FoundItemForm
 from users.forms import SignupForm
 
-import json
+# --------------------
+# 분실물 (LostItem) 및 메인 뷰 (meetagain 쪽 중복 선택)
+# --------------------
 
 @login_required
 def register_lost_item(request):
     if request.method == 'POST':
-        form = LostItemForm(request.POST, request.FILES)  # 이미지도 받으니까 request.FILES도 필요
+        form = LostItemForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()  # DB에 저장
-            return redirect('meetagain:index')  # 등록 후 메인으로 이동
-        else: #폼이 유효하지 않으면 오류 포함된 상태로 다시 렌더링
+            form.save()
+            return redirect('meetagain:index')
+        else:
             return render(request, 'register.html', {'form': form})
-    else: 
+    else:
         form = LostItemForm()
     return render(request, 'register.html', {'form': form})
 
 @login_required
 def index_view(request):
-    print("Index view called")  # 디버깅용 로그
+    print("Index view called")
     items = LostItem.objects.all().order_by('-lost_date')
 
-    # 검색어, 위치 필터는 기존과 동일
     q = request.GET.get('q', '')
     location = request.GET.get('location', '')
     category = request.GET.get('category', '')
@@ -47,7 +52,6 @@ def index_view(request):
     if date_to:
         items = items.filter(lost_date__lte=date_to)
 
-    # 최근 분실물 6개만 가져오기
     items = items.order_by('-lost_date')[:6]
 
     context = {
@@ -61,14 +65,11 @@ def index_view(request):
     }
     return render(request, 'pages/index.html', context)
 
-def founditem_create_view(request):
-    return render(request, 'found/found_register.html')
-
 def search_view(request):
     qs = LostItem.objects.all()
     category = request.GET.get('category')
     keyword = request.GET.get('q')
-    date = request.GET.get('date')  # YYYY-MM-DD
+    date = request.GET.get('date')
 
     if category:
         qs = qs.filter(category=category)
@@ -79,6 +80,157 @@ def search_view(request):
 
     context = {'items': qs}
     return render(request, 'meetagain/search.html', context)
+
+@login_required
+def update_lost_item(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id)
+    if request.method == 'POST':
+        form = LostItemForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect('meetagain:detail', item_id=item.id)
+    else:
+        form = LostItemForm(instance=item)
+    return render(request, 'update_lost_item.html', {'form': form, 'item': item})
+
+@login_required
+def delete_lost_item(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id)
+    if request.method == 'POST':
+        item.delete()
+        return redirect('meetagain:index')
+    return render(request, 'confirm_delete.html', {'item': item})
+
+@login_required
+def keyword_list(request):
+    keywords = Keyword.objects.filter(user=request.user)
+    return render(request, 'keywords/keyword_list.html', {'keywords': keywords})
+
+@require_POST
+def add_keyword(request):
+    word = request.POST.get('word', '').strip()
+
+    if not word:
+        messages.error(request, "키워드를 입력해주세요.")
+        return redirect('meetagain:keyword_list')
+
+    keyword, created = Keyword.objects.get_or_create(user=request.user, word=word)
+
+    if created:
+        messages.success(request, f"'{word}' 키워드가 등록되었습니다.")
+    else:
+        messages.info(request, f"이미 '{word}' 키워드를 등록하셨습니다.")
+
+    return redirect('meetagain:keyword_list')
+
+@require_POST
+def delete_keyword(request, keyword_id):
+    keyword = Keyword.objects.filter(id=keyword_id, user=request.user).first()
+    if keyword:
+        messages.success(request, f"'{keyword.word}' 키워드가 삭제되었습니다.")
+        keyword.delete()
+    else:
+        messages.error(request, "해당 키워드를 찾을 수 없습니다.")
+    return redirect('meetagain:keyword_list')
+
+@login_required
+def detail_view(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id)
+    context = {'item': item}
+    return render(request, 'meetagain/detail.html', context)
+
+# --------------------
+# 습득물 (FoundItem) 관련 뷰 (추가된 것들 모두 유지)
+# --------------------
+
+def founditem_list(request):
+    items = FoundItem.objects.all().values()
+    return JsonResponse(list(items), safe=False)
+
+@login_required
+def founditem_detail(request, item_id):
+    item = get_object_or_404(FoundItem, id=item_id)
+    return JsonResponse({
+        'id': item.id,
+        'name': item.name,
+        'description': item.description,
+        'category': item.category,
+        'found_location': item.found_location,
+        'found_date': item.found_date,
+        'image': item.image.url if item.image else None,
+        'lat': item.lat,
+        'lng': item.lng,
+        'is_returned': item.is_returned,
+    })
+
+@csrf_exempt
+def founditem_create(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': '입력 데이터 형식이 올바르지 않습니다.'}, status=400)
+
+        try:
+            lat = float(data.get('lat')) if data.get('lat') is not None else None
+            lng = float(data.get('lng')) if data.get('lng') is not None else None
+        except ValueError:
+            return JsonResponse({'error': '위치 좌표 값이 잘못되었습니다.'}, status=400)
+
+        try:
+            found_date_str = data.get('found_date')
+            found_date = datetime.strptime(found_date_str, '%Y-%m-%d').date() if found_date_str else None
+        except ValueError:
+            return JsonResponse({'error': '날짜 형식이 잘못되었습니다. YYYY-MM-DD 형식이어야 합니다.'}, status=400)
+
+        item = FoundItem.objects.create(
+            name=data.get('name'),
+            description=data.get('description', ''),
+            category=data.get('category', '기타'),
+            found_location=data.get('found_location'),
+            found_date=found_date,
+            lat=lat,
+            lng=lng,
+            is_returned=False,
+        )
+
+        return JsonResponse({'id': item.id, 'message': '습득물 등록이 완료되었습니다.'}, status=201)
+
+    return JsonResponse({'error': 'POST 요청만 허용됩니다.'}, status=400)
+
+@staff_member_required
+def map_pins_api(request):
+    items = FoundItem.objects.filter(
+        is_returned=False,
+        lat__isnull=False,
+        lng__isnull=False
+    )
+    data = [{
+        'id': item.id,
+        'title': item.name,
+        'lat': item.lat,
+        'lng': item.lng,
+        'status': '미반환' if not item.is_returned else '반환됨',
+    } for item in items]
+    return JsonResponse(data, safe=False)
+
+@login_required
+def founditem_form_view(request):
+    if request.method == 'POST':
+        form = FoundItemForm(request.POST, request.FILES)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.lat = request.POST.get('lat')
+            item.lng = request.POST.get('lng')
+            item.save()
+            return render(request, 'found_item_success.html')
+    else:
+        form = FoundItemForm()
+    return render(request, 'users/found_items_form.html', {'form': form})
+
+# --------------------
+# 알림(Notification) 관련 뷰
+# --------------------
 
 @csrf_exempt
 def create_notification(request):
@@ -104,97 +256,28 @@ def get_notifications(request):
         "message": n.message,
         "created_at": n.created_at.strftime("%Y-%m-%d %H:%M:%S"),
     } for n in notifications]
-
     return JsonResponse({"notifications": data})
-
-@login_required
-def update_lost_item(request, item_id):
-    item = get_object_or_404(LostItem, id=item_id)
-    if request.method == 'POST':
-        form = LostItemForm(request.POST, request.FILES, instance=item)
-        if form.is_valid():
-            form.save()
-            return redirect('meetagain:detail', item_id=item.id)  # 수정 후 상세 페이지로 이동
-    else:
-        form = LostItemForm(instance=item)
-    return render(request, 'update_lost_item.html', {'form': form, 'item': item})
-
-@login_required
-def delete_lost_item(request, item_id):
-    item = get_object_or_404(LostItem, id=item_id)
-    if request.method == 'POST':
-        item.delete()
-        return redirect('meetagain:index')  # 삭제 후 메인으로 이동
-    return render(request, 'confirm_delete.html', {'item': item})
 
 @login_required
 def notification_list(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'notifications/notification_list.html', {
-        'notifications': notifications
-    })
-
-def detail_view(request, item_id):
-    item = get_object_or_404(LostItem, id=item_id)
-    context = {
-        'item': item,
-    }
-    return render(request, 'meetagain/detail.html', context)
-
-@require_POST
-def add_keyword(request):
-    word = request.POST.get('word', '').strip()
-    
-    if not word:
-        messages.error(request, "키워드를 입력해주세요.")
-        return redirect('meetagain:keyword_list')
-
-    # 중복 키워드 방지
-    keyword, created = Keyword.objects.get_or_create(user=request.user, word=word)
-    
-    if created:
-        messages.success(request, f"'{word}' 키워드가 등록되었습니다.")
-    else:
-        messages.info(request, f"이미 '{word}' 키워드를 등록하셨습니다.")
-
-    return redirect('meetagain:keyword_list')
-
-@require_POST
-def delete_keyword(request, keyword_id):
-    keyword = Keyword.objects.filter(id=keyword_id, user=request.user).first()
-    if keyword:
-        messages.success(request, f"'{keyword.word}' 키워드가 삭제되었습니다.")
-        keyword.delete()
-    else:
-        messages.error(request, "해당 키워드를 찾을 수 없습니다.")
-    return redirect('meetagain:keyword_list')
+    return render(request, 'notifications/notification_list.html', {'notifications': notifications})
 
 @login_required
-def keyword_list(request):
-    keywords = Keyword.objects.filter(user=request.user)
-    return render(request, 'keywords/keyword_list.html', {
-        'keywords': keywords
-    })
-
-def founditem_detail(request, item_id):
-    item = get_object_or_404(FoundItem, id=item_id)
-    return render(request, 'found/founditem_detail.html', {'item': item})
-
 def mark_notification_read_and_redirect(request, notification_id):
     notification = Notification.objects.filter(id=notification_id, user=request.user).first()
-    
+
     if notification:
-        # 읽음 처리
         notification.is_read = True
         notification.save()
 
-        # 연결된 아이템으로 리디렉트
         if notification.item:
             model_name = notification.content_type.model
             if model_name == "founditem":
                 return redirect('meetagain:founditem_detail', item_id=notification.item.id)
             elif model_name == "lostitem":
                 return redirect('meetagain:detail', item_id=notification.item.id)
-    
-    # 예외 처리 → 홈으로
-    return redirect('meetagain:index')
+        else:
+            return redirect('meetagain:notification_list')
+
+    return redirect('meetagain:notification_list')
