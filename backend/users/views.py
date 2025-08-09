@@ -87,7 +87,7 @@ def login_view(request):
         student_id = request.POST.get('student_id')  # 로그인 폼 input name에 맞게
         password = request.POST.get('password')
 
-        user = authenticate(request, username=student_id, password=password
+        user = authenticate(request, username=student_id, password=password)
 
         if user is not None:
             login(request, user)
