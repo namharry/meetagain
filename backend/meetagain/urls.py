@@ -13,7 +13,7 @@ urlpatterns = [
     path('item/<int:item_id>/edit/', views.update_lost_item, name='edit'),
     path('item/<int:item_id>/delete/', views.delete_lost_item, name='delete'),
     path('item/<int:item_id>/', views.detail_view, name='detail'),
-    path('found/create/', views.founditem_create_view, name='founditem_create'),
+   
 
     # ✅ 키워드 관련 API
     path('keywords/add/', views.add_keyword, name='add_keyword'),
@@ -28,7 +28,17 @@ urlpatterns = [
     # ✅ 알림 웹 페이지
     path('notifications/page/', views.notification_list, name='notification_list'),
 
-    # ✅ FoundItem 상세 보기
-    path('found/<int:item_id>/', views.founditem_detail, name='founditem_detail'),
+    # 습득물
+    path('found/', views.founditem_list),
+    path('found/<int:item_id>/', views.founditem_detail, name='found_detail'),
+    path('found/form/', views.founditem_form_view, name='founditem_form'),
 
+    # 분실물
+    path('lost/', views.lostitem_list),
+    path('lost/<int:item_id>/', views.lostitem_detail),
+    path('lost/create/', views.lostitem_create),
+
+    path('api/items/', views.map_pins_api, name='map_pins_api'),
 ]
+
+#분실물 item인지 lost인지 통일 필요
