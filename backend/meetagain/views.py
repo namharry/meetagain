@@ -42,6 +42,7 @@ def lost_register_view(request):
         form = LostItemForm()
     return render(request, 'lost/lost_register.html', {'form': form})
 
+
 @login_required
 def lost_index_view(request):
     items = LostItem.objects.all().order_by('-lost_date')
@@ -76,6 +77,7 @@ def lost_index_view(request):
     }
     return render(request, 'lost/lost_index.html', context)
 
+
 @login_required
 def lost_update_view(request, item_id):
     item = get_object_or_404(LostItem, id=item_id)
@@ -88,6 +90,7 @@ def lost_update_view(request, item_id):
         form = LostItemForm(instance=item)
     return render(request, 'lost/lost_update.html', {'form': form, 'item': item})
 
+
 @login_required
 def lost_delete_view(request, item_id):
     item = get_object_or_404(LostItem, id=item_id)
@@ -95,6 +98,7 @@ def lost_delete_view(request, item_id):
         item.delete()
         return redirect('meetagain:lost_index')
     return render(request, 'lost/confirm_delete.html', {'item': item})
+
 
 @login_required
 def lost_detail_view(request, item_id):
@@ -119,6 +123,7 @@ def found_register_view(request):
     else:
         form = FoundItemForm()
     return render(request, 'found/found_register.html', {'form': form})
+
 
 @login_required
 def found_index_view(request):
@@ -154,6 +159,7 @@ def found_index_view(request):
     }
     return render(request, 'found/found_index.html', context)
 
+
 @login_required
 def found_update_view(request, item_id):
     item = get_object_or_404(FoundItem, id=item_id)
@@ -166,6 +172,7 @@ def found_update_view(request, item_id):
         form = FoundItemForm(instance=item)
     return render(request, 'found/found_update.html', {'form': form, 'item': item})
 
+
 @login_required
 def found_delete_view(request, item_id):
     item = get_object_or_404(FoundItem, id=item_id)
@@ -173,6 +180,7 @@ def found_delete_view(request, item_id):
         item.delete()
         return redirect('meetagain:found_index')
     return render(request, 'found/confirm_delete.html', {'item': item})
+
 
 @login_required
 def found_detail_view(request, item_id):
@@ -190,13 +198,14 @@ def keyword_list(request):
     keywords = Keyword.objects.filter(user=request.user)
     return render(request, 'keywords/keyword_list.html', {'keywords': keywords})
 
+
 @require_POST
 def keyword_add(request):
     word = request.POST.get('word', '').strip()
 
     if not word:
         messages.error(request, "키워드를 입력해주세요.")
-        return redirect('meetagain:found_keyword_list')
+        return redirect('meetagain:keyword_list')
 
     keyword, created = Keyword.objects.get_or_create(user=request.user, word=word)
 
@@ -205,7 +214,8 @@ def keyword_add(request):
     else:
         messages.info(request, f"이미 '{word}' 키워드를 등록하셨습니다.")
 
-    return redirect('meetagain:found_keyword_list')
+    return redirect('meetagain:keyword_list')
+
 
 @require_POST
 def keyword_delete(request, keyword_id):
@@ -215,4 +225,40 @@ def keyword_delete(request, keyword_id):
         keyword.delete()
     else:
         messages.error(request, "해당 키워드를 찾을 수 없습니다.")
-    return redirect('meetagain:found_keyword_list')
+    return redirect('meetagain:keyword_list')
+
+
+# --------------------
+# 알림(Notification) 관련 뷰
+# --------------------
+
+@login_required
+def get_notifications(request):
+    notifications = Notification.objects.filter(user=request.user, read=False).values(
+        'id', 'keyword', 'content_type_id', 'object_id'
+    )
+    return JsonResponse(list(notifications), safe=False)
+
+
+@login_required
+def mark_notification_read_and_redirect(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.read = True
+    notification.save()
+
+    content_type = notification.content_type.model
+    object_id = notification.object_id
+
+    if content_type == 'lostitem':
+        return redirect('meetagain:lost_detail', item_id=object_id)
+    elif content_type == 'founditem':
+        return redirect('meetagain:found_detail', item_id=object_id)
+    else:
+        messages.error(request, "연결된 알림 대상이 없습니다.")
+        return redirect('meetagain:index')
+
+
+@login_required
+def notification_list(request):
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'notifications/notification_list.html', {'notifications': notifications})
