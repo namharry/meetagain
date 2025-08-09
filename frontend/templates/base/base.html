@@ -23,9 +23,12 @@
 
 <body>
 
-  {% if not request.path.startswith('/users/login') and not request.path.startswith('/users/signup') and not
-  request.path.startswith('/users/reset_password') %}
+  {% if not request.path.startswith('/users/login') %}
+  {% if not request.path.startswith('/users/signup') %}
+  {% if not request.path.startswith('/users/reset_password') %}
   {% include 'pages/menu_sidebar.html' %}
+  {% endif %}
+  {% endif %}
   {% endif %}
 
   {% include 'pages/alert_sidebar.html' %}
