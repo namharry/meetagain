@@ -24,7 +24,6 @@
     justify-content: center;
     align-items: center;
     height: calc(100vh - 4rem);
-    /* mt-4 상단 마진 제거 효과 */
   }
 
   .logo {
@@ -100,6 +99,8 @@
 </style>
 {% endblock %}
 
+{% block notification_icon %}{% comment %} 로그인 페이지에서는 알림 아이콘 숨김 {% endcomment %}{% endblock %}
+
 {% block content %}
 <div class="login-page-wrapper">
   <div class="logo">MeetAgain</div>
@@ -117,8 +118,8 @@
 
     <form method="post" action="{% url 'users:login' %}">
       {% csrf_token %}
-      <label for="username">학번</label>
-      <input type="text" id="username" name="username" placeholder="20231234" required>
+      <label for="student_id">학번</label>
+      <input type="text" id="student_id" name="student_id" placeholder="20231234" required>
 
       <label for="password">비밀번호</label>
       <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
