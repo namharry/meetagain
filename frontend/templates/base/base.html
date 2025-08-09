@@ -29,27 +29,22 @@
 <body>
 
   {# 로그인, 회원가입, 비밀번호 재설정 페이지는 메뉴 숨김 처리 #}
-  {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path !=
-  '/users/password_reset/' %}
-  {% include 'pages/menu_sidebar.html' %}
+  {% if request.path not in ['/users/login/', '/users/signup/', '/users/password_reset/'] %}
+    {% include 'pages/menu_sidebar.html' %}
   {% endif %}
 
   {# 알림 사이드바 #}
-  {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path !=
-  '/users/password_reset/' %}
-  {% include 'pages/alert_sidebar.html' %}
+  {% if request.path not in ['/users/login/', '/users/signup/', '/users/password_reset/'] %}
+    {% include 'pages/alert_sidebar.html' %}
   {% endif %}
-
-
-
 
   {# Django 메시지(알림) 영역 출력 #}
   {% if messages %}
-  <div class="container mt-3">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-  </div>
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
   {% endif %}
 
   {# 페이지별 컨텐츠가 들어갈 블록 #}
