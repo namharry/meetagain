@@ -23,16 +23,16 @@
 
 <body>
 
-  {% if not request.path.startswith('/users/login') %}
-  {% if not request.path.startswith('/users/signup') %}
-  {% if not request.path.startswith('/users/reset_password') %}
+  {# 로그인, 회원가입, 비밀번호 재설정 페이지에서는 메뉴 숨기기 #}
+  {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path !=
+  '/users/reset_password/' %}
   {% include 'pages/menu_sidebar.html' %}
   {% endif %}
-  {% endif %}
-  {% endif %}
 
+  {# 알림 사이드바 항상 포함 #}
   {% include 'pages/alert_sidebar.html' %}
 
+  {# 메시지 표시 #}
   {% if messages %}
   <div class="container mt-3">
     {% for message in messages %}
@@ -41,6 +41,7 @@
   </div>
   {% endif %}
 
+  {# 각 페이지 컨텐츠 #}
   {% block content %}{% endblock %}
 
   {% block script %}{% endblock %}
