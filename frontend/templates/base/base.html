@@ -24,7 +24,7 @@
 
   {# 로그인/회원가입/비번재설정 페이지에서는 사이드바/아이콘 숨김 #}
   {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path != '/users/password_reset/' %}
-    {% include "pages/sidebar.html" %}
+    {% include "pages/alert_sidebar.html" %}
   {% endif %}
 
   <!-- 알림 사이드바 (키워드 등록 패널) -->
