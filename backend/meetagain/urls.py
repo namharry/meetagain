@@ -31,7 +31,6 @@ urlpatterns = [
     # 습득물
     path('found/', views.founditem_list),
     path('found/<int:item_id>/', views.founditem_detail, name='found_detail'),
-    path('found/create/', views.founditem_create_view, name='founditem_create'),
     path('found/form/', views.founditem_form_view, name='founditem_form'),
 
     # 분실물

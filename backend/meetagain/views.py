@@ -281,3 +281,25 @@ def mark_notification_read_and_redirect(request, notification_id):
             return redirect('meetagain:notification_list')
 
     return redirect('meetagain:notification_list')
+
+def lostitem_list(request):
+    items = LostItem.objects.all()  # 모든 분실물 항목을 가져옴
+    return render(request, 'meetagain/lostitem_list.html', {'items': items})
+
+def lostitem_detail(request, item_id):
+    # `item_id`에 해당하는 `LostItem` 객체를 가져옴
+    item = get_object_or_404(LostItem, id=item_id)
+    # 해당 항목을 템플릿으로 전달
+    return render(request, 'meetagain/lostitem_detail.html', {'item': item})
+
+@login_required
+def lostitem_create(request):
+    if request.method == 'POST':
+        form = LostItemForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('meetagain:index')  # 분실물 등록 후 메인 페이지로 리디렉션
+    else:
+        form = LostItemForm()  # GET 요청이면 빈 폼을 렌더링
+
+    return render(request, 'meetagain/lostitem_create.html', {'form': form})

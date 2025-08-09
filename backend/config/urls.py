@@ -26,7 +26,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include(('users.urls', 'users'), namespace='users')),
     path('meetagain/', include('meetagain.urls')),
-    path('found/', include(('founditems.urls', 'founditems'), namespace='founditems')),
 ]
 
 if settings.DEBUG:

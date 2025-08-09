@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .forms import SignupForm, PasswordChangeCustomForm, PasswordResetWithCodeForm
-from founditems.models import LostItem, FoundItem
+from meetagain.models import LostItem, FoundItem
 from django.contrib.auth.hashers import make_password
 from .services import send_auth_code, verify_auth_code
 
