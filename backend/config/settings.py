@@ -119,11 +119,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-'''
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-'''
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -170,3 +165,8 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # username 인증
+    # 'users.backends.EmailBackend',              # 이메일 인증 구현 시
+]

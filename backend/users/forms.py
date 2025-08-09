@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class SignupForm(UserCreationForm):
-    student_id = forms.CharField(label='학번', max_length=30, widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    student_id = forms.CharField(label='학번', max_length=20, widget=forms.TextInput(attrs={'readonly': 'readonly'}))
     auth_code = forms.CharField(label='인증번호', max_length=6, required=False)  # ✅ 추가
 
     password1 = forms.CharField(
@@ -44,7 +44,7 @@ class SignupForm(UserCreationForm):
 
 
 class PasswordChangeCustomForm(SetPasswordForm):
-    student_id = forms.CharField(label='학번', max_length=30)
+    student_id = forms.CharField(label='학번', max_length=20)
 
     new_password1 = forms.CharField(
         label="새 비밀번호 입력",
