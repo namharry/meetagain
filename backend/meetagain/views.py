@@ -42,7 +42,6 @@ def lost_register_view(request):
         form = LostItemForm()
     return render(request, 'lost/lost_register.html', {'form': form})
 
-
 @login_required
 def lost_index_view(request):
     items = LostItem.objects.all().order_by('-lost_date')
@@ -77,7 +76,6 @@ def lost_index_view(request):
     }
     return render(request, 'lost/lost_index.html', context)
 
-
 @login_required
 def lost_update_view(request, item_id):
     item = get_object_or_404(LostItem, id=item_id)
@@ -90,7 +88,6 @@ def lost_update_view(request, item_id):
         form = LostItemForm(instance=item)
     return render(request, 'lost/lost_update.html', {'form': form, 'item': item})
 
-
 @login_required
 def lost_delete_view(request, item_id):
     item = get_object_or_404(LostItem, id=item_id)
@@ -98,7 +95,6 @@ def lost_delete_view(request, item_id):
         item.delete()
         return redirect('meetagain:lost_index')
     return render(request, 'lost/confirm_delete.html', {'item': item})
-
 
 @login_required
 def lost_detail_view(request, item_id):
@@ -123,7 +119,6 @@ def found_register_view(request):
     else:
         form = FoundItemForm()
     return render(request, 'found/found_register.html', {'form': form})
-
 
 @login_required
 def found_index_view(request):
@@ -159,7 +154,6 @@ def found_index_view(request):
     }
     return render(request, 'found/found_index.html', context)
 
-
 @login_required
 def found_update_view(request, item_id):
     item = get_object_or_404(FoundItem, id=item_id)
@@ -172,7 +166,6 @@ def found_update_view(request, item_id):
         form = FoundItemForm(instance=item)
     return render(request, 'found/found_update.html', {'form': form, 'item': item})
 
-
 @login_required
 def found_delete_view(request, item_id):
     item = get_object_or_404(FoundItem, id=item_id)
@@ -180,7 +173,6 @@ def found_delete_view(request, item_id):
         item.delete()
         return redirect('meetagain:found_index')
     return render(request, 'found/confirm_delete.html', {'item': item})
-
 
 @login_required
 def found_detail_view(request, item_id):
@@ -198,8 +190,8 @@ def keyword_list(request):
     keywords = Keyword.objects.filter(user=request.user)
     return render(request, 'keywords/keyword_list.html', {'keywords': keywords})
 
-
 @require_POST
+@login_required
 def keyword_add(request):
     word = request.POST.get('word', '').strip()
 
@@ -216,8 +208,8 @@ def keyword_add(request):
 
     return redirect('meetagain:keyword_list')
 
-
 @require_POST
+@login_required
 def keyword_delete(request, keyword_id):
     keyword = Keyword.objects.filter(id=keyword_id, user=request.user).first()
     if keyword:
@@ -233,32 +225,75 @@ def keyword_delete(request, keyword_id):
 # --------------------
 
 @login_required
+def create_notification(request):
+    # 실제 구현은 필요에 따라 작성하세요. 예시로 빈 응답 반환
+    return JsonResponse({'message': 'Notification created (dummy response)'})
+
+
+@login_required
 def get_notifications(request):
-    notifications = Notification.objects.filter(user=request.user, read=False).values(
-        'id', 'keyword', 'content_type_id', 'object_id'
-    )
-    return JsonResponse(list(notifications), safe=False)
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    data = []
+    for n in notifications:
+        data.append({
+            'id': n.id,
+            'keyword': n.keyword,
+            'content_type': n.content_type.model,
+            'object_id': n.object_id,
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
+        })
+    return JsonResponse({'notifications': data})
 
 
 @login_required
 def mark_notification_read_and_redirect(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
-    notification.read = True
+    notification.is_read = True
+    notification.read_at = datetime.now()
     notification.save()
 
-    content_type = notification.content_type.model
-    object_id = notification.object_id
-
-    if content_type == 'lostitem':
-        return redirect('meetagain:lost_detail', item_id=object_id)
-    elif content_type == 'founditem':
-        return redirect('meetagain:found_detail', item_id=object_id)
-    else:
-        messages.error(request, "연결된 알림 대상이 없습니다.")
-        return redirect('meetagain:index')
+    # 알림 클릭 후 이동할 URL 예: 상세 페이지로 이동하도록 수정 가능
+    # 여기서는 임시로 메인 페이지로 리다이렉트
+    return redirect('meetagain:index')
 
 
 @login_required
 def notification_list(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'notifications/notification_list.html', {'notifications': notifications})
+    return render(request, 'pages/notification_list.html', {'notifications': notifications})
+
+
+# --------------------
+# 지도 API (map pins) 관련 뷰
+# --------------------
+
+@login_required
+def map_pins_api(request):
+    # 분실물 + 습득물 위치 좌표 데이터 JSON 반환 예시 (실제 위치 필드명 맞춰서 수정하세요)
+    lost_items = LostItem.objects.all()
+    found_items = FoundItem.objects.all()
+
+    data = []
+
+    for item in lost_items:
+        data.append({
+            'id': item.id,
+            'type': 'lost',
+            'name': item.name,
+            'lat': item.latitude,    # 예: 위도 필드명
+            'lng': item.longitude,   # 예: 경도 필드명
+            'date': item.lost_date.strftime('%Y-%m-%d'),
+        })
+
+    for item in found_items:
+        data.append({
+            'id': item.id,
+            'type': 'found',
+            'name': item.name,
+            'lat': item.latitude,    # 예: 위도 필드명
+            'lng': item.longitude,   # 예: 경도 필드명
+            'date': item.found_date.strftime('%Y-%m-%d'),
+        })
+
+    return JsonResponse({'items': data})
