@@ -1,67 +1,123 @@
-{% extends 'base/base.html' %}
-{% load static %}
-
-{% block title %}메인 페이지{% endblock %}
+{% extends 'base.html' %}
+{% block title %}MeetAgain - 분실물 조회{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container-fluid mt-4 position-relative">
+    <h4 class="text-center mb-4 fw-bold" style="font-size: 24px;">MeetAgain</h4>
 
-  <!-- 제목 -->
-  <h1 class="text-center text-primary">MeetAgain</h1>
-  <p class="text-center">이건 메인 페이지입니다.</p>
-  <hr>
-
-  <!-- 등록하러 가기 버튼 -->
- <a href="{% url 'meetagain:founditem_create' %}" class="btn btn-success d-block mx-auto">등록하러 가기</a>
-
-  <!-- 카드 줄 (2줄 × 2개씩) -->
-  <div class="row mt-5">
-    <div class="col-md-6">
-      <div class="card mb-4">
-        <img src="{% static 'img/sample1.jpg' %}" class="card-img-top" alt="검정 우산">
-        <div class="card-body">
-          <h5 class="card-title">검정 우산</h5>
-          <p class="card-text">도서관 3층에서 분실 (2025-07-01)</p>
-          <a href="#" class="btn btn-outline-primary">자세히 보기</a>
+    <div class="row">
+        <div class="col-md-7">
+            <div class="border p-4 bg-light mb-4">
+                <h5>🔍 분실물 조회</h5>
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label">종류</label>
+                        <select id="typeSelect" class="form-select" onchange="updateSubOptions()">
+                            <option selected disabled>종류 선택</option>
+                            <option>가방</option>
+                            <option>귀금속</option>
+                            <option>의류</option>
+                            <option>전자기기</option>
+                            <option>지갑</option>
+                            <option>컴퓨터</option>
+                            <option>카드</option>
+                            <option>현금</option>
+                            <option>휴대폰</option>
+                            <option>기타</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">세부옵션</label>
+                        <select id="subOptionSelect" class="form-select">
+                            <option selected disabled>세부옵션 선택</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">분실물명</label>
+                        <input type="text" class="form-control" placeholder="예: 파란색 우산">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">분실 기간</label>
+                        <div class="d-flex gap-2">
+                            <input type="date" class="form-control">
+                            <span class="align-self-center">~</span>
+                            <input type="date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">분실 장소</label>
+                        <select class="form-select">
+                            <option selected disabled>장소 선택</option>
+                            <option>난향관</option>
+                            <option>성신관</option>
+                            <option>수정관</option>
+                            <option>중앙도서관</option>
+                            <option>조형1관</option>
+                            <option>조형2관</option>
+                            <option>체육관</option>
+                            <option>프라임관</option>
+                            <option>행정관</option>
+                            <option>학생회관</option>
+                            <option>음악관</option>
+                            <option>기타</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-end mt-3">
+                        <button class="btn btn-primary">검색</button>
+                    </div>
+                </div>
+            </div>
+            <h5 class="mb-3">📋 등록된 분실물 리스트</h5>
+            <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+                <!-- 추후 반복문으로 분실물 카드 표시 -->
+            </div>
         </div>
-      </div>
-    </div>
 
-    <div class="col-md-6">
-      <div class="card mb-4">
-        <img src="{% static 'img/sample2.jpg' %}" class="card-img-top" alt="텀블러">
-        <div class="card-body">
-          <h5 class="card-title">하얀 텀블러</h5>
-          <p class="card-text">학생회관 앞에서 습득 (2025-06-30)</p>
-          <a href="#" class="btn btn-outline-primary">자세히 보기</a>
+        <div class="col-md-5">
+            <div id="map"></div>
+            <div class="map-buttons">
+                <a href="/register" class="btn btn-found px-5 py-5 w-50 flex-fill">
+                    📥 물건을 주웠어요!<br><small>(습득물 등록)</small>
+                </a>
+                <a href="/report" class="btn btn-lost px-5 py-5 w-50 flex-fill">
+                    📤 물건을 잃어버렸어요..<br><small>(분실물 신고)</small>
+                </a>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6">
-      <div class="card mb-4">
-        <img src="{% static 'img/sample3.jpg' %}" class="card-img-top" alt="노란 카드지갑">
-        <div class="card-body">
-          <h5 class="card-title">노란 카드지갑</h5>
-          <p class="card-text">경상대 앞에서 분실 (2025-06-29)</p>
-          <a href="#" class="btn btn-outline-primary">자세히 보기</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card mb-4">
-        <img src="{% static 'img/sample4.jpg' %}" class="card-img-top" alt="아이패드">
-        <div class="card-body">
-          <h5 class="card-title">아이패드</h5>
-          <p class="card-text">공학관 1층에서 습득 (2025-06-28)</p>
-          <a href="#" class="btn btn-outline-primary">자세히 보기</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    const subOptions = {
+        "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
+        "의류": ["모자", "신발", "아우터", "기타의류"],
+        "전자기기": ["태블릿", "스마트워치", "무선이어폰", "카메라", "헤드셋", "기타용품"]
+    };
+    function updateSubOptions() {
+        const type = document.getElementById("typeSelect").value;
+        const subSelect = document.getElementById("subOptionSelect");
+        subSelect.innerHTML = '<option disabled selected>세부옵션 선택</option>';
+        if (subOptions[type]) {
+            subOptions[type].forEach(opt => {
+                const o = document.createElement("option");
+                o.value = o.text = opt;
+                subSelect.appendChild(o);
+            });
+        } else {
+            const o = document.createElement("option");
+            o.text = "해당 없음";
+            subSelect.appendChild(o);
+        }
+    }
+
+    const container = document.getElementById('map');
+    const options = {
+        center: new kakao.maps.LatLng(37.591360, 127.021961),
+        level: 2
+    };
+    const map = new kakao.maps.Map(container, options);
+</script>
 {% endblock %}
