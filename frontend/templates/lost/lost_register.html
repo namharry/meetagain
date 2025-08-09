@@ -1,57 +1,188 @@
-{% extends 'base/base.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>📢 분실물 신고하기</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f4f5f7;
+      padding: 60px 20px;
+    }
+    .register-box {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+    h2 {
+      color: #6f42c1;
+      font-weight: 700;
+      font-size: 2.2rem;
+    }
+    .form-label {
+      font-weight: 600;
+    }
+    .section-title {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
+    }
+    .btn-primary {
+      background-color: #7b3ff2;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #6633cc;
+    }
+    .btn-outline-secondary {
+      display: block;
+      margin: 40px auto 0;
+      padding: 10px 30px;
+      border-radius: 6px;
+      font-weight: 500;
+      max-width: 200px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
 
-{% block title %}분실물 등록 - MeetAgain{% endblock %}
+<div class="register-box">
+  <h2 class="mb-5">📢 분실물 신고하기</h2> <!-- 여백 넓힘 (mb-5) -->
 
-{% block content %}
-<div class="container mt-5">
-  <h2 class="text-center text-primary">📤 분실물 등록</h2>
-  <p class="text-center text-muted">분실한 물건의 정보를 작성해 주세요.</p>
-  <hr>
-
-  <!-- 📦 등록 폼 -->
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-
-    <!-- 물건 이름 -->
-    <div class="mb-3">
-      <label for="{{ form.name.id_for_label }}" class="form-label">물건 이름</label>
-      {{ form.name|add_class:"form-control" }}
+  <form>
+    <!-- 글제목 -->
+    <div class="mb-3 row align-items-center">
+      <label for="title" class="col-sm-2 col-form-label fw-semibold" style="font-size: 1.3rem;">📝 글 제목</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="title" required>
+      </div>
     </div>
 
-    <!-- 상세 설명 -->
-    <div class="mb-3">
-      <label for="{{ form.description.id_for_label }}" class="form-label">상세 설명</label>
-      {{ form.description|add_class:"form-control" }}
+    <!-- 분류 -->
+    <div class="section-title">📂 분류</div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="category" class="form-label">종류</label>
+        <select class="form-select" id="category" required>
+          <option value="">종류 선택</option>
+          <option value="가방">가방</option>
+          <option value="귀금속">귀금속</option>
+          <option value="의류">의류</option>
+          <option value="전자기기">전자기기</option>
+          <option value="지갑">지갑</option>
+          <option value="컴퓨터">컴퓨터</option>
+          <option value="카드">카드</option>
+          <option value="현금">현금</option>
+          <option value="휴대폰">휴대폰</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="subcategory" class="form-label">세부옵션</label>
+        <select class="form-select" id="subcategory">
+          <option value="">세부옵션 선택</option>
+        </select>
+      </div>
     </div>
 
-    <!-- 분실 날짜/시간 -->
+    <!-- 상세내용 -->
+    <div class="section-title">🔍 상세내용</div>
+
     <div class="mb-3">
-      <label for="{{ form.lost_datetime.id_for_label }}" class="form-label">분실 날짜</label>
-      {{ form.lost_datetime|add_class:"form-control" }}
+      <label for="lost_name" class="form-label">분실물명</label>
+      <input type="text" class="form-control" id="lost_name" required>
+    </div>
+
+    <!-- 분실 기간 -->
+    <div class="mb-3">
+      <label class="form-label">분실 기간</label>
+      <div class="d-flex gap-2">
+        <input type="date" class="form-control" id="lost_date_start" required>
+        <span class="px-2">~</span>
+        <input type="date" class="form-control" id="lost_date_end" required>
+      </div>
     </div>
 
     <!-- 분실 장소 -->
     <div class="mb-3">
-      <label for="{{ form.location.id_for_label }}" class="form-label">분실 장소</label>
-      {{ form.location|add_class:"form-control" }}
+      <label for="lost_location" class="form-label">분실 장소 (복수 선택 가능)</label>
+      <select class="form-select" id="lost_location" multiple size="5" required>
+        <option>난향관</option>
+        <option>성신관</option>
+        <option>수정관</option>
+        <option>중앙도서관</option>
+        <option>조형1관</option>
+        <option>조형2관</option>
+        <option>체육관</option>
+        <option>프라임관</option>
+        <option>행정관</option>
+        <option>학생회관</option>
+        <option>음악관</option>
+        <option>기타</option>
+      </select>
+      <small class="text-muted">※ 여러 장소를 선택하려면 Ctrl (또는 Cmd) 키를 누른 채 클릭하세요</small>
     </div>
 
-    <!-- 카테고리 -->
+    <!-- 특징 -->
     <div class="mb-3">
-      <label for="{{ form.category.id_for_label }}" class="form-label">카테고리</label>
-      {{ form.category|add_class:"form-select" }}
+      <label for="lost_description" class="form-label">분실물 특징</label>
+      <textarea class="form-control" id="lost_description" rows="3" placeholder="분실물 특징을 상세히 작성해주세요."></textarea>
     </div>
 
-    <!-- 이미지 -->
-    <div class="mb-3">
-      <label for="{{ form.image.id_for_label }}" class="form-label">물건 사진</label>
-      {{ form.image|add_class:"form-control" }}
+    <!-- 사진 -->
+    <div class="section-title">🖼️ 사진 첨부</div>
+    <div class="mb-4">
+      <input class="form-control" type="file" id="lost_image" accept="image/*">
     </div>
 
-    <!-- 제출 -->
-    <button type="submit" class="btn btn-primary">등록하기</button>
+    <!-- 작성 버튼 -->
+    <div class="d-grid">
+      <button type="submit" class="btn btn-primary">✅ 작성 완료하기</button>
+    </div>
   </form>
 </div>
-{% endblock %}
+
+<!-- 메인으로 돌아가기 -->
+<a href="index.html" class="btn btn-outline-secondary">🏠 메인으로</a>
+
+<!-- JS: 세부옵션 자동 변경 -->
+<script>
+  const subOptions = {
+    "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
+    "의류": ["모자", "신발", "아우터", "기타의류"],
+    "전자기기": ["태블릿", "스마트워치", "무선이어폰", "카메라", "헤드셋", "기타용품"]
+  };
+
+  const categorySelect = document.getElementById("category");
+  const subcategorySelect = document.getElementById("subcategory");
+
+  categorySelect.addEventListener("change", function () {
+    const selected = this.value;
+    subcategorySelect.innerHTML = '<option value="">세부옵션 선택</option>';
+    if (subOptions[selected]) {
+      subOptions[selected].forEach(option => {
+        const opt = document.createElement("option");
+        opt.value = option;
+        opt.textContent = option;
+        subcategorySelect.appendChild(opt);
+      });
+    } else if (selected) {
+      const opt = document.createElement("option");
+      opt.value = "해당 없음";
+      opt.textContent = "해당 없음";
+      subcategorySelect.appendChild(opt);
+    }
+  });
+</script>
+
+</body>
+</html>

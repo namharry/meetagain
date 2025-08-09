@@ -1,18 +1,186 @@
-{% extends 'base/base.html' %}
-{% load static %}
-<a href="{% url 'meetagain:founditem_create' %}" class="btn btn-success d-block mx-auto">습득물 등록하러 가기</a>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>📌 습득물 등록하기</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f4f5f7;
+      padding: 60px 20px;
+    }
+    .register-box {
+      background-color: #ffffff;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+    h2 {
+      color: #6f42c1;
+      font-weight: 700;
+      font-size: 2.2rem;
+    }
+    .form-label {
+      font-weight: 600;
+    }
+    .section-title {
+      margin-top: 30px;
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
+    }
+    .btn-primary {
+      background-color: #7b3ff2;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #6633cc;
+    }
+    .btn-outline-secondary {
+      display: block;
+      margin: 40px auto 0;
+      padding: 10px 30px;
+      border-radius: 6px;
+      font-weight: 500;
+      max-width: 200px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
 
-{% block content %}
-<div class="container mt-4">
-  <h2 class="mb-3">📢 습득물 등록하기</h2>
+<div class="register-box">
+  <h2 class="mb-3">📌 습득물 등록하기</h2>
+  <p class="text-muted mb-4">분실자가 본인의 물건을 찾을 수 있도록, 정확한 정보를 입력해주세요.</p>
 
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+  <form>
+    <!-- 글제목 (가로 정렬 + 크기 키움) -->
+    <div class="mb-3 row align-items-center">
+      <label for="title" class="col-sm-2 col-form-label fw-semibold" style="font-size: 1.3rem;">📝 글 제목</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="title" required>
+      </div>
+    </div>
 
-    <div class="text-end mt-3">
-      <button type="submit" class="btn btn-primary">작성하기</button>
+    <!-- 분류 -->
+    <div class="section-title">📂 분류</div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="category" class="form-label">종류</label>
+        <select class="form-select" id="category" required>
+          <option value="">종류 선택</option>
+          <option value="가방">가방</option>
+          <option value="귀금속">귀금속</option>
+          <option value="의류">의류</option>
+          <option value="전자기기">전자기기</option>
+          <option value="지갑">지갑</option>
+          <option value="컴퓨터">컴퓨터</option>
+          <option value="카드">카드</option>
+          <option value="현금">현금</option>
+          <option value="휴대폰">휴대폰</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="subcategory" class="form-label">세부옵션</label>
+        <select class="form-select" id="subcategory">
+          <option value="">세부옵션 선택</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 상세 내용 -->
+    <div class="section-title">🔍 상세 내용</div>
+    <div class="mb-3">
+      <label for="item_name" class="form-label">습득물명</label>
+      <input type="text" class="form-control" id="item_name" required>
+    </div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="location" class="form-label">습득장소</label>
+        <select class="form-select" id="location" required>
+          <option value="">장소 선택</option>
+          <option>난향관</option>
+          <option>성신관</option>
+          <option>수정관</option>
+          <option>중앙도서관</option>
+          <option>조형1관</option>
+          <option>조형2관</option>
+          <option>체육관</option>
+          <option>프라임관</option>
+          <option>행정관</option>
+          <option>학생회관</option>
+          <option>음악관</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="date" class="form-label">습득일시</label>
+        <input type="date" class="form-control" id="date" required>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="storage" class="form-label">보관장소</label>
+      <input type="text" class="form-control" id="storage">
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">습득물 특징</label>
+      <textarea class="form-control" id="description" rows="3" placeholder="예: 지퍼 옆에 하트 키링이 달려 있어요."></textarea>
+    </div>
+
+    <!-- 사진 -->
+    <div class="section-title">🖼️ 사진 첨부</div>
+    <div class="mb-4">
+      <input class="form-control" type="file" id="image" accept="image/*">
+    </div>
+
+    <!-- 작성 버튼 -->
+    <div class="d-grid">
+      <button type="submit" class="btn btn-primary">✅ 작성 완료하기</button>
     </div>
   </form>
 </div>
-{% endblock %}
+
+<!-- 메인으로 돌아가기 버튼 -->
+<a href="index.html" class="btn btn-outline-secondary">🏠 메인으로</a>
+
+<!-- JS: 종류에 따라 세부옵션 자동 변경 -->
+<script>
+  const subOptions = {
+    "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
+    "의류": ["모자", "신발", "아우터", "기타의류"],
+    "전자기기": ["태블릿", "스마트워치", "무선이어폰", "카메라", "헤드셋", "기타용품"]
+  };
+
+  const categorySelect = document.getElementById("category");
+  const subcategorySelect = document.getElementById("subcategory");
+
+  categorySelect.addEventListener("change", function () {
+    const selected = this.value;
+    subcategorySelect.innerHTML = '<option value="">세부옵션 선택</option>';
+    if (subOptions[selected]) {
+      subOptions[selected].forEach(option => {
+        const opt = document.createElement("option");
+        opt.value = option;
+        opt.textContent = option;
+        subcategorySelect.appendChild(opt);
+      });
+    } else if (selected) {
+      const opt = document.createElement("option");
+      opt.value = "해당 없음";
+      opt.textContent = "해당 없음";
+      subcategorySelect.appendChild(opt);
+    }
+  });
+</script>
+
+</body>
+</html>
