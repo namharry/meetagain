@@ -74,12 +74,12 @@
         </div>
 
         <div class="col-md-5">
-            <div id="map"></div>
-            <div class="map-buttons">
-                <a href="/register" class="btn btn-found px-5 py-5 w-50 flex-fill">
+            <div id="map" style="width:100%; height:350px; background:#eee;"></div>
+            <div class="map-buttons d-flex gap-2 mt-3">
+                <a href="/found/register" class="btn btn-found px-5 py-5 w-50 flex-fill">
                     📥 물건을 주웠어요!<br><small>(습득물 등록)</small>
                 </a>
-                <a href="/report" class="btn btn-lost px-5 py-5 w-50 flex-fill">
+                <a href="/lost/report" class="btn btn-lost px-5 py-5 w-50 flex-fill">
                     📤 물건을 잃어버렸어요..<br><small>(분실물 신고)</small>
                 </a>
             </div>
@@ -88,17 +88,59 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-{{ block.super }}
+{% block extra_scripts %}
 <script>
+    // ====== 종 아이콘 사이드바 토글 ======
+    // (base.html에 이미 있으면 이 블록은 생략해도 OK)
+    window.toggleSidebar = window.toggleSidebar || function () {
+        const el = document.getElementById('alertSidebar');
+        if (!el) return;
+        const isOpen = el.dataset.open === '1';
+        el.style.right = isOpen ? '-400px' : '0';
+        el.dataset.open = isOpen ? '0' : '1';
+    };
+
+    // 키워드 입력 영역 토글
+    window.toggleKeywordInput = window.toggleKeywordInput || function () {
+        const g = document.getElementById('keywordInputGroup');
+        if (!g) return;
+        g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
+    };
+
+    // 키워드 추가 (간단 버전: 화면에만 추가)
+    window.addKeyword = window.addKeyword || function () {
+        const input = document.getElementById('keywordInput');
+        const list = document.getElementById('keywordList');
+        if (!input || !list) return;
+
+        const text = (input.value || '').trim();
+        if (!text) return;
+
+        const pill = document.createElement('span');
+        pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
+        pill.textContent = text;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = () => pill.remove();
+
+        pill.appendChild(removeBtn);
+        list.appendChild(pill);
+        input.value = '';
+    };
+
+    // ====== 폼 세부옵션 채우기 ======
     const subOptions = {
         "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
         "의류": ["모자", "신발", "아우터", "기타의류"],
         "전자기기": ["태블릿", "스마트워치", "무선이어폰", "카메라", "헤드셋", "기타용품"]
     };
-    function updateSubOptions() {
-        const type = document.getElementById("typeSelect").value;
+    window.updateSubOptions = function () {
+        const type = document.getElementById("typeSelect")?.value;
         const subSelect = document.getElementById("subOptionSelect");
+        if (!subSelect) return;
         subSelect.innerHTML = '<option disabled selected>세부옵션 선택</option>';
         if (subOptions[type]) {
             subOptions[type].forEach(opt => {
@@ -106,18 +148,22 @@
                 o.value = o.text = opt;
                 subSelect.appendChild(o);
             });
-        } else {
+        } else if (type) {
             const o = document.createElement("option");
             o.text = "해당 없음";
             subSelect.appendChild(o);
         }
-    }
-
-    const container = document.getElementById('map');
-    const options = {
-        center: new kakao.maps.LatLng(37.591360, 127.021961),
-        level: 2
     };
-    const map = new kakao.maps.Map(container, options);
+
+    // ====== Kakao Map ======
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('map');
+        if (!container || typeof kakao === 'undefined' || !kakao.maps) return;
+
+        const map = new kakao.maps.Map(container, {
+            center: new kakao.maps.LatLng(37.591360, 127.021961),
+            level: 2
+        });
+    });
 </script>
 {% endblock %}

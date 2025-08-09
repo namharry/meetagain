@@ -1,20 +1,42 @@
 {% extends 'base/base.html' %}
+
+{% block title %}계정 탈퇴 | MeetAgain{% endblock %}
+
+{% block extra_head %}
+<style>
+  .btn-purple {
+    background-color: #7b2cbf;
+    color: #fff;
+    border: none;
+  }
+
+  .btn-purple:hover {
+    filter: brightness(0.95);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5 mb-5" style="max-width: 600px;">
-  <h2>계정 탈퇴</h2>
-  <div class="card">
+  <h2 class="mb-4">계정 탈퇴</h2>
+  <div class="card p-4">
 
-    <p class="mb-4">
+    <p class="mb-3">
       계정을 탈퇴하면 다음과 같은 정보가 <strong>영구적으로 삭제</strong>됩니다:
     </p>
-    <ul>
+    <ul class="mb-4">
       <li>등록한 분실물/습득물 게시글 및 댓글</li>
       <li>로그인 정보 및 개인 식별 정보</li>
     </ul>
 
-    <form method="post" action="{% url 'quit_account' %}">
+    <div class="alert alert-warning small mb-4" role="alert">
+      탈퇴 후에는 데이터를 복구할 수 없습니다.
+    </div>
+
+    <form method="post" action="{% url 'quit_account' %}" id="quitForm">
       {% csrf_token %}
-      <div class="form-check mt-4">
+
+      <div class="form-check mt-1">
         <input class="form-check-input" type="checkbox" id="agreeCheck" name="agree">
         <label class="form-check-label" for="agreeCheck">
           위 내용을 모두 이해하였으며, 계정을 탈퇴하겠습니다.
@@ -23,14 +45,42 @@
 
       <div class="mt-4">
         <label for="passwordInput" class="form-label">비밀번호 확인</label>
-        <input type="password" class="form-control" name="password" id="passwordInput" placeholder="비밀번호를 입력해주세요" required>
+        <input type="password" class="form-control" name="password" id="passwordInput" placeholder="비밀번호를 입력해주세요"
+          required>
       </div>
 
       <div class="mt-5 d-flex justify-content-between">
         <a href="{% url 'mypage' %}" class="btn btn-outline-secondary">돌아가기</a>
-        <button type="submit" class="btn btn-purple">탈퇴하기</button>
+        <button type="submit" id="quitBtn" class="btn btn-purple" disabled>탈퇴하기</button>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const agree = document.getElementById('agreeCheck');
+    const pwd = document.getElementById('passwordInput');
+    const btn = document.getElementById('quitBtn');
+    const form = document.getElementById('quitForm');
+
+    function toggleBtn() {
+      btn.disabled = !(agree.checked && pwd.value.trim().length > 0);
+    }
+
+    agree.addEventListener('change', toggleBtn);
+    pwd.addEventListener('input', toggleBtn);
+
+    form.addEventListener('submit', (e) => {
+      if (btn.disabled) {
+        e.preventDefault();
+        return;
+      }
+      const ok = confirm('정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.');
+      if (!ok) e.preventDefault();
+    });
+  });
+</script>
 {% endblock %}

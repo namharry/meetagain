@@ -5,15 +5,18 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h2 class="mb-4">📦 분실물 상세 정보</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">📦 분실물 상세 정보</h2>
+    <a href="/items" class="btn btn-outline-secondary btn-sm">← 목록으로</a>
+  </div>
 
   <div class="row g-4">
     <!-- 이미지 영역 -->
     <div class="col-md-5">
       {% if lost_item.image %}
-        <img src="{{ lost_item.image.url }}" class="img-fluid rounded border" alt="분실물 사진">
+      <img src="{{ lost_item.image.url }}" class="img-fluid rounded border" alt="{{ lost_item.name|default:'분실물 사진' }}">
       {% else %}
-        <img src="https://via.placeholder.com/400x300?text=Lost+Item" class="img-fluid rounded border" alt="분실물 사진">
+      <img src="https://via.placeholder.com/400x300?text=Lost+Item" class="img-fluid rounded border" alt="분실물 사진">
       {% endif %}
     </div>
 
@@ -29,19 +32,27 @@
         <li class="list-group-item d-flex justify-content-between">
           <strong>분실장소</strong> <span>{{ lost_item.location }}</span>
         </li>
+        {% if lost_item.lost_datetime %}
         <li class="list-group-item d-flex justify-content-between">
           <strong>분실일시</strong> <span>{{ lost_item.lost_datetime|date:"Y년 n월 j일 H:i" }}</span>
         </li>
+        {% endif %}
+        {% if lost_item.description %}
         <li class="list-group-item">
           <strong>특징</strong><br>
-          {{ lost_item.description }}
+          {{ lost_item.description|linebreaksbr }}
         </li>
+        {% endif %}
       </ul>
 
       <div class="mt-4">
-        <button class="btn btn-outline-primary" disabled>
-          📍 지도에서 위치 보기 (준비중)
-        </button>
+        {% if lost_item.latitude and lost_item.longitude %}
+        <a class="btn btn-outline-primary" href="/map?lat={{ lost_item.latitude }}&lng={{ lost_item.longitude }}">
+          📍 지도에서 위치 보기
+        </a>
+        {% else %}
+        <button class="btn btn-outline-primary" disabled>📍 지도에서 위치 보기 (준비중)</button>
+        {% endif %}
       </div>
     </div>
   </div>

@@ -1,60 +1,66 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>📌 습득물 등록하기</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background-color: #f4f5f7;
-      padding: 60px 20px;
-    }
-    .register-box {
-      background-color: #ffffff;
-      border-radius: 16px;
-      padding: 40px;
-      max-width: 800px;
-      margin: 0 auto;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    }
-    h2 {
-      color: #6f42c1;
-      font-weight: 700;
-      font-size: 2.2rem;
-    }
-    .form-label {
-      font-weight: 600;
-    }
-    .section-title {
-      margin-top: 30px;
-      margin-bottom: 10px;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #333;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 6px;
-    }
-    .btn-primary {
-      background-color: #7b3ff2;
-      border: none;
-    }
-    .btn-primary:hover {
-      background-color: #6633cc;
-    }
-    .btn-outline-secondary {
-      display: block;
-      margin: 40px auto 0;
-      padding: 10px 30px;
-      border-radius: 6px;
-      font-weight: 500;
-      max-width: 200px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
+{% extends 'base/base.html' %}
 
+{% block title %}📌 습득물 등록하기{% endblock %}
+
+{% block extra_head %}
+<style>
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f4f5f7;
+    padding: 60px 20px;
+  }
+
+  .register-box {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  h2 {
+    color: #6f42c1;
+    font-weight: 700;
+    font-size: 2.2rem;
+  }
+
+  .form-label {
+    font-weight: 600;
+  }
+
+  .section-title {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
+  }
+
+  .btn-primary {
+    background-color: #7b3ff2;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background-color: #6633cc;
+  }
+
+  .btn-outline-secondary {
+    display: block;
+    margin: 40px auto 0;
+    padding: 10px 30px;
+    border-radius: 6px;
+    font-weight: 500;
+    max-width: 200px;
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
 <div class="register-box">
   <h2 class="mb-3">📌 습득물 등록하기</h2>
   <p class="text-muted mb-4">분실자가 본인의 물건을 찾을 수 있도록, 정확한 정보를 입력해주세요.</p>
@@ -151,8 +157,9 @@
 
 <!-- 메인으로 돌아가기 버튼 -->
 <a href="index.html" class="btn btn-outline-secondary">🏠 메인으로</a>
+{% endblock %}
 
-<!-- JS: 종류에 따라 세부옵션 자동 변경 -->
+{% block extra_scripts %}
 <script>
   const subOptions = {
     "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
@@ -181,6 +188,4 @@
     }
   });
 </script>
-
-</body>
-</html>
+{% endblock %}

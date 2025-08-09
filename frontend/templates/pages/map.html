@@ -31,28 +31,30 @@
 </div>
 {% endblock %}
 
-{% block script %}
-<!-- Kakao Map SDK -->
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_API_KEY&libraries=services"></script>
+{% block extra_scripts %}
 <script>
-  const container = document.getElementById('map');
-  const options = {
-    center: new kakao.maps.LatLng(37.5922, 127.0165),  // 초기 중심 좌표
-    level: 3
-  };
-  const map = new kakao.maps.Map(container, options);
-  const geocoder = new kakao.maps.services.Geocoder();
-  const marker = new kakao.maps.Marker({ map: map });
+  // base.html에서 Kakao SDK가 이미 로드된 상태 가정
+  document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('map');
+    const map = new kakao.maps.Map(container, {
+      center: new kakao.maps.LatLng(37.5922, 127.0165),
+      level: 3
+    });
 
-  // 지도 클릭 시 주소 검색 → input 채우기
-  kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-    const latlng = mouseEvent.latLng;
-    geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result, status) {
-      if (status === kakao.maps.services.Status.OK) {
-        const address = result[0].address.address_name;
-        document.getElementById('id_location').value = address;
-        marker.setPosition(latlng);
-      }
+    const geocoder = new kakao.maps.services.Geocoder();
+    const marker = new kakao.maps.Marker({ map });
+
+    // 지도 클릭 시 주소 → 입력창 채우기
+    kakao.maps.event.addListener(map, 'click', function (e) {
+      const latlng = e.latLng;
+      geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function (result, status) {
+        if (status === kakao.maps.services.Status.OK) {
+          const address = result[0].address.address_name;
+          const locInput = document.getElementById('id_location');
+          if (locInput) locInput.value = address;
+          marker.setPosition(latlng);
+        }
+      });
     });
   });
 </script>
