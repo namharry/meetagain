@@ -1,0 +1,81 @@
+{# 슬라이드 사이드바 + 상단 아이콘 #}
+<style>
+  .top-icons{
+    position:fixed; top:20px; right:20px; font-size:24px; z-index:1001;
+    background:#fff; padding:10px 14px; border-radius:10px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.1); display:flex; gap:16px; align-items:center;
+  }
+  .top-icons i{ color:#000; cursor:pointer; }
+
+  .sidebar{
+    position:fixed; top:0; right:-260px; width:240px; height:100%;
+    background:#fff; box-shadow:-4px 0 12px rgba(0,0,0,0.1);
+    transition:right .3s ease; padding:30px 20px; z-index:1000;
+    border-top-left-radius:10px; border-bottom-left-radius:10px;
+  }
+  .sidebar.active{ right:0; }
+
+  .sidebar ul{ list-style:none; margin:0; padding:0; }
+  .sidebar li{ margin-bottom:18px; font-size:17px; font-weight:500; }
+  .sidebar li>a{ display:block; padding:10px 12px; border-radius:6px; text-decoration:none; color:#333; }
+  .sidebar li>a:hover{ background:#f3edff; color:#7b3ff2; }
+
+  .has-submenu>button{
+    width:100%; text-align:left; border:0; background:transparent; color:#333;
+    padding:10px 12px; border-radius:6px; cursor:pointer;
+  }
+  .has-submenu>button:hover{ background:#f3edff; color:#7b3ff2; }
+
+  .submenu{ display:none; margin-left:10px; }
+  .has-submenu.active .submenu{ display:block; animation:sd .2s ease forwards; }
+  .submenu li a{ font-size:15px; padding:8px 12px; color:#555; display:block; border-radius:6px; }
+  .submenu li a:hover{ background:#f3edff; color:#7b3ff2; }
+  @keyframes sd{ from{opacity:0; transform:translateY(-5px)} to{opacity:1; transform:translateY(0)} }
+
+  .overlay{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.2); z-index:999; }
+  .overlay.active{ display:block; }
+</style>
+
+<!-- 상단 아이콘 (벨/햄버거) -->
+<div class="top-icons">
+  <i class="fa-solid fa-bell" onclick="window.toggleSidebar?.()"></i>
+  <i class="fa-solid fa-bars" onclick="toggleSideMenu()"></i>
+</div>
+
+<!-- 슬라이드 사이드바 -->
+<nav class="sidebar" id="appSidebar" aria-label="Site menu">
+  <ul>
+    <li><a href="{% url 'meetagain:mypage' %}">마이페이지</a></li>
+
+    <li class="has-submenu" id="csMenu">
+      <button type="button" aria-expanded="false" onclick="toggleSubmenu('csMenu')">고객센터</button>
+      <ul class="submenu" id="csMenuSub">
+        <li><a href="{% url 'meetagain:help_faq' %}">FAQ</a></li>
+        <li><a href="{% url 'meetagain:help_inquiry' %}">1:1 문의하기</a></li>
+        <li><a href="{% url 'meetagain:help_myinquiries' %}">나의 문의내역 보기</a></li>
+      </ul>
+    </li>
+
+    <li><a href="{% url 'meetagain:notice_list' %}">공지사항</a></li>
+  </ul>
+</nav>
+
+<!-- 오버레이 -->
+<div class="overlay" id="appOverlay" onclick="toggleSideMenu()"></div>
+
+<script>
+  function toggleSideMenu(){
+    const sb=document.getElementById('appSidebar');
+    const ov=document.getElementById('appOverlay');
+    const open=!sb.classList.contains('active');
+    sb.classList.toggle('active', open);
+    ov.classList.toggle('active', open);
+  }
+  function toggleSubmenu(id){
+    const li=document.getElementById(id);
+    if(!li) return;
+    const btn=li.querySelector('button');
+    li.classList.toggle('active');
+    btn.setAttribute('aria-expanded', li.classList.contains('active') ? 'true':'false');
+  }
+</script>
