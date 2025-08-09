@@ -84,10 +84,11 @@ def verify_reset_code_ajax(request):
 # ------------------------------
 def login_view(request):
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
+        username = request.POST.get('username')  # 로그인 폼 input name에 맞춤
         password = request.POST.get('password')
 
-        user = authenticate(request, student_id=student_id, password=password)
+        # authenticate에 username/password 넘기기
+        user = authenticate(request, username=username, password=password)
 
         if user is not None:
             login(request, user)
@@ -96,6 +97,7 @@ def login_view(request):
             messages.error(request, '학번 또는 비밀번호가 잘못되었습니다.')
 
     return render(request, 'auth/login.html')
+
 
 # ------------------------------
 # 🔐 로그아웃
