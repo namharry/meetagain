@@ -166,6 +166,6 @@ MESSAGE_TAGS = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',  # username 인증
-    # 'users.backends.EmailBackend',              # 이메일 인증 구현 시
+    'users.backends.StudentIDBackend',  # 학번 인증 백엔드 (새로 만든 커스텀 백엔드)
+    'django.contrib.auth.backends.ModelBackend',  # 기본 username 인증 백엔드 (백업용)
 ]
