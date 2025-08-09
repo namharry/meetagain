@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}공지사항 목록{% endblock %}
+
+{% block content %}
+<h2>공지사항</h2>
+<hr>
+{% for notice in notices %}
+<div>
+    <h5>
+        <a href="{% url 'notice_detail' notice.id %}">
+            {{ notice.title }}
+        </a>
+    </h5>
+    <p>{{ notice.created_at|date:"Y-m-d" }}</p>
+    <hr>
+</div>
+{% empty %}
+<p>등록된 공지사항이 없습니다.</p>
+{% endfor %}
+
+{% if user.is_staff %}
+<div class="text-end mt-3">
+    <a href="{% url 'notice_create' %}" class="btn btn-primary">공지 작성</a>
+</div>
+{% endif %}
+{% endblock %}
