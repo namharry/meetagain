@@ -5,29 +5,34 @@
   <meta charset="UTF-8">
   <title>{% block title %}MeetAgain{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <!-- Bootstrap, FontAwesome, Custom CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
   <!-- Kakao Map -->
-  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f387153e7e5f423d38f1a6d392d6bef8"></script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f387153e7e5f423d38f1a6d392d6bef8&libraries=services"></script>
+
   <!-- Alpine.js -->
   <script src="https://unpkg.com/alpinejs" defer></script>
+
   {% block extra_head %}{% endblock %}
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
 
 <!-- 전체 레이아웃 Alpine 컨트롤 -->
 <div x-data="{ menuOpen: false }" class="container-fluid mt-4 position-relative">
 
-  <!-- ✅ 로그인, 회원가입, 비밀번호 재설정 페이지에서는 상단 아이콘 숨기기 -->
-{% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path != '/users/password_reset/' %}
+  <!-- ✅ 로그인/회원가입/비번재설정 페이지에서는 상단 아이콘 숨기기 -->
+  {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path != '/users/password_reset/' %}
   <div class="top-icons d-flex justify-content-end gap-3">
-    <i class="fa-solid fa-bell" onclick="toggleSidebar()"></i>
+    <i class="fa-solid fa-bell" onclick="toggleSidebar()" style="cursor:pointer;"></i>
     <!-- 햄버거 버튼: 클릭 시 menuOpen 토글 -->
     <i class="fa-solid fa-bars" @click="menuOpen = !menuOpen" style="cursor: pointer;"></i>
   </div>
-{% endif %}
+  {% endif %}
 
   <!-- 👉 사이드 메뉴 (슬라이딩) -->
   <div
@@ -40,10 +45,10 @@
     <h5 class="mb-4">📂 메뉴</h5>
     <ul class="list-unstyled">
       <li><a href="{% url 'meetagain:index' %}" class="text-decoration-none d-block py-2">🏠 홈</a></li>
-      <li><a href="{% url 'meetagain:founditem_form' %}" class="d-block py-2">📥 습득물 등록</a></li>
-      <li><a href="{% url 'meetagain:register' %}" class="d-block py-2">🔍 분실물 신고</a></li>
-      <li><a href="{% url 'meetagain:index' %}#items" class="d-block py-2">📄 목록 보기</a></li>
-      <a href="{% url 'meetagain:notification_list' %}" class="d-block py-2">🔔 알림</a></li>
+      <li><a href="{% url 'meetagain:founditem_form' %}" class="text-decoration-none d-block py-2">📥 습득물 등록</a></li>
+      <li><a href="{% url 'meetagain:register' %}" class="text-decoration-none d-block py-2">🔍 분실물 신고</a></li>
+      <li><a href="{% url 'meetagain:index' %}#items" class="text-decoration-none d-block py-2">📄 목록 보기</a></li>
+      <li><a href="{% url 'meetagain:notification_list' %}" class="text-decoration-none d-block py-2">🔔 알림</a></li>
     </ul>
   </div>
 
@@ -64,6 +69,44 @@
 
 </div>
 
+<!-- 공통 스크립트 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+
+<!-- 전역: 알림 사이드바 토글 & 키워드 로직 -->
+<script>
+  window.toggleSidebar = function () {
+    const el = document.getElementById('alertSidebar');
+    if (!el) return;
+    const isOpen = el.dataset.open === '1';
+    el.style.right = isOpen ? '-400px' : '0';
+    el.dataset.open = isOpen ? '0' : '1';
+  };
+  window.toggleKeywordInput = function () {
+    const g = document.getElementById('keywordInputGroup');
+    if (!g) return;
+    g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
+  };
+  window.addKeyword = function () {
+    const input = document.getElementById('keywordInput');
+    const list = document.getElementById('keywordList');
+    if (!input || !list) return;
+    const text = (input.value || '').trim();
+    if (!text) return;
+    const pill = document.createElement('span');
+    pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
+    pill.textContent = text;
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = () => pill.remove();
+    pill.appendChild(removeBtn);
+    list.appendChild(pill);
+    input.value = '';
+  };
+</script>
+
+{% block extra_scripts %}{% endblock %}
 {% block script %}{% endblock %}
 </body>
 </html>
