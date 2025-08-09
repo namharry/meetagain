@@ -23,17 +23,13 @@
 
 <body>
 
-  {# 로그인, 회원가입, 비밀번호 재설정 페이지에서는 메뉴바와 상단 아이콘 숨김 #}
-  {% if not request.path.startswith('/users/login')
-  and not request.path.startswith('/users/signup')
-  and not request.path.startswith('/users/reset_password') %}
+  {% if not request.path.startswith('/users/login') and not request.path.startswith('/users/signup') and not
+  request.path.startswith('/users/reset_password') %}
   {% include 'pages/menu_sidebar.html' %}
   {% endif %}
 
-  {# 알림 사이드바는 모든 페이지에 포함 #}
   {% include 'pages/alert_sidebar.html' %}
 
-  {# 메시지 출력 #}
   {% if messages %}
   <div class="container mt-3">
     {% for message in messages %}
@@ -42,10 +38,8 @@
   </div>
   {% endif %}
 
-  {# 메인 콘텐츠 #}
   {% block content %}{% endblock %}
 
-  {# 추가 스크립트 #}
   {% block script %}{% endblock %}
 </body>
 
