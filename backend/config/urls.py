@@ -25,7 +25,7 @@ urlpatterns = [
     path('', lambda request: redirect('users:login')),  # 루트는 메인으로
     path('admin/', admin.site.urls),
     path('users/', include(('users.urls', 'users'), namespace='users')),
-    path('meetagain/', include('meetagain.urls')),
+    path('meetagain/', include(('meetagain.urls', 'meetagain'), namespace='meetagain')),
 ]
 
 if settings.DEBUG:
