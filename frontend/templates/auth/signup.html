@@ -5,117 +5,49 @@
 
 {% block content %}
 <style>
-  * {
-    box-sizing: border-box;
-    font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
-  }
-  body {
-    background: #f4f5fa;
-  }
-  .logo {
-    font-size: 28px;
-    font-weight: bold;
-    color: #5a35d3;
-    text-align: center;
-    margin-top: 60px;
-  }
-  .signup-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    padding: 32px;
-    width: 360px;
-    margin: 20px auto;
-  }
-  .signup-card h2 {
-    margin-bottom: 24px;
-    font-size: 24px;
-    color: #5a35d3;
-    text-align: center;
-  }
-  label {
-    display: block;
-    margin: 12px 0 4px;
-    font-weight: bold;
-    font-size: 14px;
-  }
-  input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-  #send-code {
-    margin-top: 8px;
-    background-color: #5a35d3;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 6px;
-    width: 100%;
-    cursor: pointer;
-  }
-  #send-code:disabled {
-    background-color: #999;
-    cursor: default;
-  }
-  #send-code:hover:enabled {
-    background-color: #4329a9;
-  }
-  #timer {
-    display: none;
-    margin-top: 8px;
-    color: #888;
-    font-size: 13px;
-  }
-  .auth-code-wrapper {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-  }
-  .auth-code-wrapper input {
-    flex: 1;
-  }
-  #verify-code {
-    background-color: #5a35d3;
-    color: white;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  #verify-result {
-    font-size: 13px;
-    margin-top: 6px;
-  }
-  #signup-btn {
-    margin-top: 16px;
-    background-color: #5a35d3;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 6px;
-    width: 100%;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  #signup-btn:hover {
-    background-color: #4329a9;
-  }
+  * { box-sizing: border-box; font-family: 'Segoe UI', 'Noto Sans KR', sans-serif; }
+  body { background: #f4f5fa; }
+  .logo { font-size: 28px; font-weight: bold; color: #5a35d3; text-align: center; margin-top: 60px; }
+  .signup-card { background: #fff; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); padding: 32px; width: 360px; margin: 20px auto; }
+  .signup-card h2 { margin-bottom: 24px; font-size: 24px; color: #5a35d3; text-align: center; }
+  label { display: block; margin: 12px 0 4px; font-weight: bold; font-size: 14px; }
+  input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+  .email-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; }
+  .email-domain { padding: 10px; border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 6px; font-size: 14px; white-space: nowrap; }
+  #send-code { margin-top: 8px; background-color: #5a35d3; color: white; border: none; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; }
+  #send-code:disabled { background-color: #999; cursor: default; }
+  #send-code:hover:enabled { background-color: #4329a9; }
+  #timer { display: none; margin-top: 8px; color: #888; font-size: 13px; }
+  .auth-code-wrapper { display: flex; gap: 8px; margin-top: 4px; }
+  .auth-code-wrapper input { flex: 1; }
+  #verify-code { background-color: #5a35d3; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+  #verify-result { font-size: 13px; margin-top: 6px; }
+  #signup-btn { margin-top: 16px; background-color: #5a35d3; color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; cursor: pointer; font-weight: bold; }
+  #signup-btn:hover { background-color: #4329a9; }
+  .sr-only-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 </style>
 
 <div class="logo">MeetAgain</div>
 <div class="signup-card">
   <h2>회원가입</h2>
-  <form method="POST" action="{% url 'users:signup' %}">
+  <form method="POST" action="{% url 'users:signup' %}" id="signup-form">
     {% csrf_token %}
     {{ form.non_field_errors }}
-    <label for="{{ form.email.id_for_label }}">학번 (이메일)</label>
-    {{ form.email }}
+
+    <!-- 이메일: 로컬파트만 입력 + 도메인 고정 -->
+    <label for="email_local">학번 (이메일)</label>
+    <div class="email-row">
+      <input type="text" id="email_local" placeholder="학번" autocomplete="username"
+             inputmode="email" maxlength="64" />
+      <div class="email-domain">@sungshin.ac.kr</div>
+    </div>
+    <div class="sr-only-field">
+      {{ form.email }}
+    </div>
+
     <button type="button" id="send-code">인증번호 발송</button>
     <span id="timer">03:00</span>
+
     <div id="auth-code-field" style="display: none;">
       <label for="{{ form.auth_code.id_for_label }}">인증번호</label>
       <div class="auth-code-wrapper">
@@ -124,6 +56,7 @@
       </div>
       <p id="verify-result"></p>
     </div>
+
     <label for="{{ form.student_id.id_for_label }}">학번</label>
     {{ form.student_id }}
 
@@ -131,6 +64,7 @@
     {{ form.password1 }}
     <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
     {{ form.password2 }}
+
     <button type="submit" id="signup-btn">가입하기</button>
   </form>
 </div>
@@ -139,24 +73,56 @@
 {% block script %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const emailInput = document.getElementById("id_email");
+  const DOMAIN = "sungshin.ac.kr";
+
+  const form = document.getElementById("signup-form");
+  const emailLocal = document.getElementById("email_local");
+  const hiddenEmail = document.getElementById("id_email");
   const sendCodeBtn = document.getElementById("send-code");
   const timerDisplay = document.getElementById("timer");
   const authCodeField = document.getElementById("auth-code-field");
   const verifyBtn = document.getElementById("verify-code");
   const resultText = document.getElementById("verify-result");
+  const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-  // 이메일 자동 완성
-  emailInput.addEventListener("blur", () => {
-    const value = emailInput.value.trim();
-    if (value && !value.includes("@")) {
-      emailInput.value = value + "@sungshin.ac.kr";
+  function sanitizeLocalPart(value) {
+    return value.replace(/\s+/g, "").replace(/@/g, "");
+  }
+
+  function buildEmail() {
+    const local = sanitizeLocalPart(emailLocal.value.trim());
+    const email = local ? `${local}@${DOMAIN}` : "";
+    hiddenEmail.value = email;
+    return email;
+  }
+
+  emailLocal.addEventListener("input", () => {
+    const before = emailLocal.value;
+    const after = sanitizeLocalPart(before);
+    if (before !== after) emailLocal.value = after;
+    buildEmail();
+  });
+
+  emailLocal.addEventListener("blur", buildEmail);
+
+  form.addEventListener("submit", (e) => {
+    const email = buildEmail();
+    if (!email) {
+      e.preventDefault();
+      alert("이메일(학번)을 입력해주세요.");
+      return;
+    }
+    const pattern = new RegExp(`^[^@\\s]+@${DOMAIN.replace('.', '\\.')}$`, "i");
+    if (!pattern.test(email)) {
+      e.preventDefault();
+      alert("이메일 형식이 올바르지 않습니다.");
+      return;
     }
   });
 
   function startTimer(duration) {
     let time = duration;
-    timerDisplay.style.display = "block";
+    timerDisplay.style.display = "inline";
     sendCodeBtn.disabled = true;
     const interval = setInterval(() => {
       const minutes = String(Math.floor(time / 60)).padStart(2, "0");
@@ -170,16 +136,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 1000);
   }
 
-  // ✅ 인증번호 전송
   sendCodeBtn.addEventListener("click", () => {
-    const email = emailInput.value.trim();
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-
+    const email = buildEmail();
     if (!email) {
-      alert("이메일을 입력해주세요.");
+      alert("이메일(학번)을 입력해주세요.");
       return;
     }
-
     fetch("/users/send-signup-code/", {
       method: "POST",
       headers: {
@@ -188,10 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       body: new URLSearchParams({ email }),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
+      .then((res) => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
       .then((data) => {
         if (data.success) {
           authCodeField.style.display = "block";
@@ -201,16 +160,12 @@ document.addEventListener("DOMContentLoaded", function () {
           alert("인증번호 전송 실패");
         }
       })
-      .catch((err) => {
-        alert("❌ 인증번호 요청 실패: " + err);
-      });
+      .catch((err) => { alert("❌ 인증번호 요청 실패: " + err); });
   });
 
-  // ✅ 인증번호 확인
   verifyBtn.addEventListener("click", () => {
-    const email = emailInput.value.trim();
+    const email = buildEmail();
     const code = document.getElementById("id_auth_code").value.trim();
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
     if (!email || !code) {
       alert("이메일과 인증번호를 모두 입력해주세요.");
@@ -225,21 +180,18 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       body: new URLSearchParams({ email, code }),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
+      .then((res) => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
       .then((data) => {
         if (data.success) {
           resultText.textContent = "✅ 인증에 성공했습니다.";
           resultText.style.color = "green";
-          // ✅ 이메일에서 학번 추출해서 자동 입력
-          const studentId = email.split("@")[0];
-          document.getElementById("id_student_id").value = studentId
+          document.getElementById("id_auth_code").value = "verified";
+          const local = email.split("@")[0];
+          const sid = document.getElementById("id_student_id");
+          if (sid) sid.value = local;
         } else {
           resultText.textContent = "❌ 인증번호가 올바르지 않거나 만료되었습니다.";
           resultText.style.color = "red";
-          // 실패 시 비워둠
           document.getElementById("id_auth_code").value = "";
         }
       })
@@ -249,6 +201,8 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error(err);
       });
   });
+
+  buildEmail();
 });
 </script>
 {% endblock %}
