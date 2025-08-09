@@ -35,10 +35,12 @@
   {% endif %}
 
   {# 알림 사이드바 #}
-  {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path !=
-  '/users/password_reset/' %}
+  {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path != '/users/password_reset/' %}
   {% include 'pages/alert_sidebar.html' %}
-  {% endif %}
+{% endif %}
+
+
+  
 
   {# Django 메시지(알림) 영역 출력 #}
   {% if messages %}
