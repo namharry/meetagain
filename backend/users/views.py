@@ -224,14 +224,17 @@ def admin_required(view_func):
 def dummy_view(request):
     return HttpResponse("준비 중인 기능입니다.")
 
+@login_required
 def mypage_view(request):
-    dummy_user = {
-        'email': 'sungshin@ac.kr',
-        'name': '김성신',
-        'student_id': '20230001',
-        'profile_pic_url': 'https://via.placeholder.com/100'
-    }
-    return render(request, 'mypage/mypage.html', {'user': dummy_user})
+    if request.method == 'POST':
+        user = request.user
+        # 알림 수신 여부 설정 저장
+        user.allow_notification = 'allow_notification' in request.POST
+        # 위치 정보 제공 여부 설정 저장
+        user.allow_location = 'allow_location' in request.POST
+        user.save()  # 변경 사항 저장
+        return redirect('users:mypage')
+    return render(request, 'mypage/mypage.html')
 
 # ✅ 추가: 설정 업데이트 API (mypage 토글이 호출)
 @login_required
@@ -263,9 +266,6 @@ def update_setting(request):
 def app_settings_view(request): return HttpResponse("앱 설정 - 준비 중입니다.")
 def found_items_view(request): return HttpResponse("습득물 등록 내역 - 준비 중입니다.")
 def lost_items_view(request): return HttpResponse("분실물 등록 내역 - 준비 중입니다.")
-def quit_view(request): return HttpResponse("탈퇴 - 준비 중입니다.")
-def customer_center_view(request): return HttpResponse("고객센터 - 준비 중입니다.")
-
 
 @admin_required
 def admin_lost_list(request):

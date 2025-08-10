@@ -10,8 +10,7 @@
   <div class="card mb-4">
     <div class="card-header">내 정보</div>
     <div class="card-body">
-      <p><strong>이름:</strong> {{ user.username }}</p>
-      <p><strong>학번:</strong> {{ user.profile.student_id }}</p>
+      <p><strong>학번:</strong> {{ user.student_id }}</p>
       <p><strong>이메일:</strong> {{ user.email }}</p>
       <p><strong>가입일:</strong> {{ user.date_joined|date:"Y년 m월 d일" }}</p>
       <a href="{% url 'users:password_change' %}" class="btn btn-outline-dark btn-sm mt-3">비밀번호 재설정</a>
@@ -23,11 +22,11 @@
     <div class="card-header">설정</div>
     <div class="card-body">
       <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" id="toggleNotification" {% if user.profile.allow_notification %}checked{% endif %}>
+        <input class="form-check-input" type="checkbox" id="toggleNotification" {% if user.allow_notification %}checked{% endif %}>
         <label class="form-check-label" for="toggleNotification">알림 수신</label>
       </div>
       <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="toggleLocation" {% if user.profile.allow_location %}checked{% endif %}>
+        <input class="form-check-input" type="checkbox" id="toggleLocation" {% if user.allow_location %}checked{% endif %}>
         <label class="form-check-label" for="toggleLocation">위치 정보 제공</label>
       </div>
     </div>

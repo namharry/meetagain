@@ -32,6 +32,9 @@ class User(AbstractUser):
     student_id = models.CharField(max_length=20, unique=True)
     email = models.EmailField(unique=True)
 
+    allow_notification = models.BooleanField(default=True)  # 알림 수신 여부
+    allow_location = models.BooleanField(default=True)  # 위치 정보 제공 여부
+
     USERNAME_FIELD = 'student_id'
     REQUIRED_FIELDS = ['email']
 
