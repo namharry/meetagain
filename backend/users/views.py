@@ -32,8 +32,11 @@ def signup_view(request):
                 user = form.save(commit=False)
                 user.email = email
                 user.save()
-                print("유저 저장 완료")
+                backend_path = 'django.contrib.auth.backends.ModelBackend'  # 기본 인증 백엔드 경로, settings.py에 따라 다를 수 있음
+                user.backend = backend_path
+
                 login(request, user)
+                print("유저 저장 완료")
                 messages.success(request, '회원가입이 완료되었습니다.')
                 request.session.pop("signup_verified_email", None)
                 return redirect('users:login')
