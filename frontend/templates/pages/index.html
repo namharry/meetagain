@@ -3,167 +3,131 @@
 
 {% block content %}
 <div class="container-fluid mt-4 position-relative">
-    <h4 class="text-center mb-4 fw-bold" style="font-size: 24px;">MeetAgain</h4>
+  <h4 class="text-center mb-4 fw-bold" style="font-size: 24px;">MeetAgain</h4>
 
-    <div class="row">
-        <div class="col-md-7">
-            <div class="border p-4 bg-light mb-4">
-                <h5>🔍 습득물 조회</h5>
-                <div class="row g-2">
-                    <div class="col-md-6">
-                        <label class="form-label">종류</label>
-                        <select id="typeSelect" class="form-select" onchange="updateSubOptions()">
-                            <option selected disabled>종류 선택</option>
-                            <option>가방</option>
-                            <option>귀금속</option>
-                            <option>의류</option>
-                            <option>전자기기</option>
-                            <option>지갑</option>
-                            <option>컴퓨터</option>
-                            <option>카드</option>
-                            <option>현금</option>
-                            <option>휴대폰</option>
-                            <option>기타</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">세부옵션</label>
-                        <select id="subOptionSelect" class="form-select">
-                            <option selected disabled>세부옵션 선택</option>
-                        </select>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">분실물명</label>
-                        <input type="text" class="form-control" placeholder="예: 파란색 우산">
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">분실 기간</label>
-                        <div class="d-flex gap-2">
-                            <input type="date" class="form-control">
-                            <span class="align-self-center">~</span>
-                            <input type="date" class="form-control">
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label">분실 장소</label>
-                        <select class="form-select">
-                            <option selected disabled>장소 선택</option>
-                            <option>난향관</option>
-                            <option>성신관</option>
-                            <option>수정관</option>
-                            <option>중앙도서관</option>
-                            <option>조형1관</option>
-                            <option>조형2관</option>
-                            <option>체육관</option>
-                            <option>프라임관</option>
-                            <option>행정관</option>
-                            <option>학생회관</option>
-                            <option>음악관</option>
-                            <option>기타</option>
-                        </select>
-                    </div>
-                    <div class="col-12 text-end mt-3">
-                        <button class="btn btn-primary">검색</button>
-                    </div>
-                </div>
+  <div class="row">
+    <div class="col-md-7">
+      <div class="border p-4 bg-light mb-4">
+        <h5>🔍 분실물 조회</h5>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label">종류</label>
+            <select id="typeSelect" class="form-select" onchange="updateSubOptions()">
+              <option selected disabled>종류 선택</option>
+              <option>가방</option>
+              <option>귀금속</option>
+              <option>의류</option>
+              <option>전자기기</option>
+              <option>지갑</option>
+              <option>컴퓨터</option>
+              <option>카드</option>
+              <option>현금</option>
+              <option>휴대폰</option>
+              <option>기타</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">세부옵션</label>
+            <select id="subOptionSelect" class="form-select">
+              <option selected disabled>세부옵션 선택</option>
+            </select>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">분실물명</label>
+            <input type="text" class="form-control" placeholder="예: 파란색 우산">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">분실 기간</label>
+            <div class="d-flex gap-2">
+              <input type="date" class="form-control">
+              <span class="align-self-center">~</span>
+              <input type="date" class="form-control">
             </div>
-            <h5 class="mb-3">📋 등록된 분실물 리스트</h5>
-            <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
-                <!-- 추후 반복문으로 분실물 카드 표시 -->
-            </div>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">분실 장소</label>
+            <select class="form-select">
+              <option selected disabled>장소 선택</option>
+              <option>난향관</option>
+              <option>성신관</option>
+              <option>수정관</option>
+              <option>중앙도서관</option>
+              <option>조형1관</option>
+              <option>조형2관</option>
+              <option>체육관</option>
+              <option>프라임관</option>
+              <option>행정관</option>
+              <option>학생회관</option>
+              <option>음악관</option>
+              <option>기타</option>
+            </select>
+          </div>
+          <div class="col-12 text-end mt-3">
+            <a class="btn btn-primary" href="{% url 'meetagain:index' %}#items">검색</a>
+          </div>
         </div>
+      </div>
 
-        <div class="col-md-5">
-            <div id="map" style="width:100%; height:350px; background:#eee;"></div>
-            <div class="map-buttons d-flex gap-2 mt-3">
-                <a href="/meetagain/found/register" class="btn btn-found px-5 py-5 w-50 flex-fill">
-                    📥 물건을 주웠어요!<br><small>(습득물 등록)</small>
-                </a>
-                <a href="/lost/report" class="btn btn-lost px-5 py-5 w-50 flex-fill">
-                    📤 물건을 잃어버렸어요..<br><small>(분실물 신고)</small>
-                </a>
-            </div>
-        </div>
+      <h5 class="mb-3">📋 등록된 분실물 리스트</h5>
+      <div class="row row-cols-1 row-cols-md-3 g-4 mb-4" id="items">
+        <!-- 추후 반복문으로 분실물 카드 표시 -->
+      </div>
     </div>
+
+    <div class="col-md-5">
+      <div id="map" style="width:100%; height:380px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,.06);"></div>
+      <div class="d-flex gap-2 mt-3">
+        <!-- 좌: 습득물 등록 → meetagain:found_register -->
+        <a href="{% url 'meetagain:found_register' %}" class="btn btn-found px-5 py-5 w-50 flex-fill">
+          📥 물건을 주웠어요!<br><small>(습득물 등록)</small>
+        </a>
+        <!-- 우: 분실 신고 → meetagain:lost_register -->
+        <a href="{% url 'meetagain:lost_register' %}" class="btn btn-lost px-5 py-5 w-50 flex-fill">
+          📤 물건을 잃어버렸어요..<br><small>(분실물 신고)</small>
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    // ====== 종 아이콘 사이드바 토글 ======
-    // (base.html에 이미 있으면 이 블록은 생략해도 OK)
-    window.toggleSidebar = window.toggleSidebar || function () {
-        const el = document.getElementById('alertSidebar');
-        if (!el) return;
-        const isOpen = el.dataset.open === '1';
-        el.style.right = isOpen ? '-400px' : '0';
-        el.dataset.open = isOpen ? '0' : '1';
-    };
+  const subOptions = {
+    "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
+    "의류": ["모자", "신발", "아우터", "기타의류"],
+    "전자기기": ["태블릿", "스마트워치", "무선이어폰", "카메라", "헤드셋", "기타용품"]
+  };
+  function updateSubOptions() {
+    const type = document.getElementById("typeSelect").value;
+    const subSelect = document.getElementById("subOptionSelect");
+    subSelect.innerHTML = '<option disabled selected>세부옵션 선택</option>';
+    if (subOptions[type]) {
+      subOptions[type].forEach(opt => {
+        const o = document.createElement("option");
+        o.value = o.text = opt;
+        subSelect.appendChild(o);
+      });
+    } else {
+      const o = document.createElement("option");
+      o.text = "해당 없음";
+      subSelect.appendChild(o);
+    }
+  }
 
-    // 키워드 입력 영역 토글
-    window.toggleKeywordInput = window.toggleKeywordInput || function () {
-        const g = document.getElementById('keywordInputGroup');
-        if (!g) return;
-        g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
-    };
-
-    // 키워드 추가 (간단 버전: 화면에만 추가)
-    window.addKeyword = window.addKeyword || function () {
-        const input = document.getElementById('keywordInput');
-        const list = document.getElementById('keywordList');
-        if (!input || !list) return;
-
-        const text = (input.value || '').trim();
-        if (!text) return;
-
-        const pill = document.createElement('span');
-        pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
-        pill.textContent = text;
-
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
-        removeBtn.textContent = '×';
-        removeBtn.onclick = () => pill.remove();
-
-        pill.appendChild(removeBtn);
-        list.appendChild(pill);
-        input.value = '';
-    };
-
-    // ====== 폼 세부옵션 채우기 ======
-    const subOptions = {
-        "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
-        "의류": ["모자", "신발", "아우터", "기타의류"],
-        "전자기기": ["태블릿", "스마트워치", "무선이어폰", "카메라", "헤드셋", "기타용품"]
-    };
-    window.updateSubOptions = function () {
-        const type = document.getElementById("typeSelect")?.value;
-        const subSelect = document.getElementById("subOptionSelect");
-        if (!subSelect) return;
-        subSelect.innerHTML = '<option disabled selected>세부옵션 선택</option>';
-        if (subOptions[type]) {
-            subOptions[type].forEach(opt => {
-                const o = document.createElement("option");
-                o.value = o.text = opt;
-                subSelect.appendChild(o);
-            });
-        } else if (type) {
-            const o = document.createElement("option");
-            o.text = "해당 없음";
-            subSelect.appendChild(o);
-        }
-    };
-
-    // ====== Kakao Map ======
-    document.addEventListener('DOMContentLoaded', function () {
-        const container = document.getElementById('map');
-        if (!container || typeof kakao === 'undefined' || !kakao.maps) return;
-
-        const map = new kakao.maps.Map(container, {
-            center: new kakao.maps.LatLng(37.591360, 127.021961),
-            level: 2
-        });
+  // Kakao Map
+  window.addEventListener('load', function () {
+    const container = document.getElementById('map');
+    if (!container || !window.kakao || !kakao.maps) return;
+    const map = new kakao.maps.Map(container, {
+      center: new kakao.maps.LatLng(37.591360, 127.021961),
+      level: 2
     });
+    new kakao.maps.Marker({
+      map,
+      position: new kakao.maps.LatLng(37.59136, 127.021961),
+      title: 'MeetAgain'
+    });
+  });
 </script>
 {% endblock %}
