@@ -305,7 +305,7 @@
           if (data.success) {
             resultText.textContent = "✅ 인증에 성공했습니다.";
             resultText.style.color = "green";
-            document.getElementById("id_auth_code").value = "verified";
+            document.getElementById("id_auth_code").value = "";
             const local = email.split("@")[0];
             const sid = document.getElementById("id_student_id");
             if (sid) sid.value = local;
