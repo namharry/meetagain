@@ -12,6 +12,10 @@ from meetagain.models import LostItem, FoundItem
 from django.contrib.auth.hashers import make_password
 from .services import send_auth_code, verify_auth_code
 
+# ✅ 추가: 설정 업데이트용 데코레이터
+from django.views.decorators.http import require_POST
+import json
+
 User = get_user_model()
 
 # ------------------------------
@@ -101,8 +105,6 @@ def login_view(request):
             messages.error(request, '학번 또는 비밀번호가 잘못되었습니다.')
 
     return render(request, 'auth/login.html')
-
-
 
 # ------------------------------
 # 🔐 로그아웃
@@ -229,6 +231,33 @@ def mypage_view(request):
         'profile_pic_url': 'https://via.placeholder.com/100'
     }
     return render(request, 'mypage/mypage.html', {'user': dummy_user})
+
+# ✅ 추가: 설정 업데이트 API (mypage 토글이 호출)
+@login_required
+@require_POST
+def update_setting(request):
+    try:
+        data = json.loads(request.body.decode())
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "invalid json"}, status=400)
+
+    setting = data.get("setting")
+    value = data.get("value")
+
+    # 프로필 모델 연결을 가정 (request.user.profile)
+    profile = getattr(request.user, "profile", None)
+    if profile is None:
+        return JsonResponse({"ok": False, "error": "profile not found"}, status=400)
+
+    if setting == "notification":
+        profile.allow_notification = bool(value)
+    elif setting == "location":
+        profile.allow_location = bool(value)
+    else:
+        return JsonResponse({"ok": False, "error": "invalid setting"}, status=400)
+
+    profile.save()
+    return JsonResponse({"ok": True})
 
 def app_settings_view(request): return HttpResponse("앱 설정 - 준비 중입니다.")
 def found_items_view(request): return HttpResponse("습득물 등록 내역 - 준비 중입니다.")
