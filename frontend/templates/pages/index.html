@@ -70,7 +70,24 @@
 
       <h5 class="mb-3">📋 등록된 분실물 리스트</h5>
       <div class="row row-cols-1 row-cols-md-3 g-4 mb-4" id="items">
-        <!-- 추후 반복문으로 분실물 카드 표시 -->
+        {% for item in items %}
+        <div class="col">
+          <div class="card lost-card">
+            {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.name }}">
+            {% else %}
+            <img src="https://via.placeholder.com/300x160" alt="이미지 없음">
+            {% endif %}
+            <div class="card-body">
+              <p class="text-center fw-bold">{{ item.name }}</p>
+              <p class="text-center text-muted small">{{ item.lost_date|date:"Y-m-d" }}</p>
+              <p class="text-center text-muted small">{{ item.lost_location }}</p>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p>등록된 분실물이 없습니다.</p>
+        {% endfor %}
       </div>
     </div>
 
