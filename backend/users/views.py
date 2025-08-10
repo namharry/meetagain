@@ -264,8 +264,7 @@ def found_items_view(request): return HttpResponse("습득물 등록 내역 - �
 def lost_items_view(request): return HttpResponse("분실물 등록 내역 - 준비 중입니다.")
 def quit_view(request): return HttpResponse("탈퇴 - 준비 중입니다.")
 def customer_center_view(request): return HttpResponse("고객센터 - 준비 중입니다.")
-def inquiry_view(request): return HttpResponse("문의 - 준비 중입니다.")
-def guide_view(request): return HttpResponse("이용안내 - 준비 중입니다.")
+
 
 @admin_required
 def admin_lost_list(request):

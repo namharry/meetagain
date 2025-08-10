@@ -408,3 +408,12 @@ def faq_view(request):
 # --------------------
 def notice_view(request):
     return render(request, "notice/notice_list.html")
+
+# --------------------
+# 공지사항 관련 뷰
+# --------------------
+def inquiry_view(request):
+    return render(request, "help/help_inquiry.html")
+
+def myinquiries_view(request):
+    return render(request, "help/help_myinquiries.html")

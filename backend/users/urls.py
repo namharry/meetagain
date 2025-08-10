@@ -29,8 +29,6 @@ urlpatterns = [
     path("found_items/", views.found_items_view, name="found_items"),
     path("lost_items/", views.lost_items_view, name="lost_items"),
     path("customer_center/", views.customer_center_view, name="customer_center"),
-    path("inquiry/", views.inquiry_view, name="inquiry"),
-    path("guide/", views.guide_view, name="guide"),
     path("admin/lost/", views.admin_lost_list, name="admin_lost_list"),
     path("admin/found/", views.admin_found_list, name="admin_found_list"),
 ]

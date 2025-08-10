@@ -41,9 +41,9 @@
       <div class="submenu">
         <!-- FAQ / 1:1 문의는 users.urls에 존재 -->
         <a href="{% url 'meetagain:faq' %}">FAQ</a>
-        <a href="{% url 'users:inquiry' %}">1:1 문의하기</a>
+        <a href="{% url 'meetagain:inquiry' %}">1:1 문의하기</a>
         <!-- 나의 문의내역: 아직 백엔드에 전용 URL이 없어서 임시로 inquiry로 연결 -->
-        <a href="{% url 'users:inquiry' %}">나의 문의내역 보기</a>
+        <a href="{% url 'meetagain:myinquiries' %}">나의 문의내역 보기</a>
       </div>
     </li>
 

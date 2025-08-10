@@ -49,4 +49,8 @@ urlpatterns = [
 
     # 공지사항 관련
     path('notice/', views.notice_view, name='notice'),
+
+    # 문의사항 관련 
+    path("inquiry/", views.inquiry_view, name="inquiry"),
+    path("myinquiries/", views.myinquiries_view, name="myinquiries"),
 ]
