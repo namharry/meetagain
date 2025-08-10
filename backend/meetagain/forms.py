@@ -1,7 +1,7 @@
 #meetagain/forms.py
 
 from django import forms
-from .models import LostItem, FoundItem, Keyword
+from .models import LostItem, FoundItem, Keyword, Notice
 from django.core.exceptions import ValidationError
 from datetime import date
 
@@ -120,3 +120,12 @@ class FoundItemForm(forms.ModelForm):
         if image and not image.content_type.startswith('image/'):
             raise ValidationError("이미지 파일만 업로드할 수 있습니다.")
         return image
+
+class NoticeForm(forms.ModelForm):
+    class Meta:
+        model = Notice
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
+        }

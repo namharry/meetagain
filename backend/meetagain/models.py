@@ -4,6 +4,7 @@ User = get_user_model()
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+
 from django.conf import settings
 
 
@@ -96,6 +97,7 @@ class Notification(models.Model):
     keyword = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
 
     # Generic relation to LostItem or FoundItem
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -104,6 +106,16 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"🔔 {self.user.username} - '{self.keyword}' 매칭 알림"
+    
+class Notice(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # 작성자, 선택사항
+
+    def __str__(self):
+        return self.title
 
     
     
