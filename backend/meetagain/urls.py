@@ -34,4 +34,8 @@ urlpatterns = [
 
     # 지도 API
     path('api/items/', views.map_pins_api, name='map_pins_api'),
+
+    # 회원 탈퇴 관련 URL 추가
+    path('quit/', views.quit_account_view, name='quit_account'),
+    path('quit/done/', views.quit_done_view, name='quit_done'),
 ]

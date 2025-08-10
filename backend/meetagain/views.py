@@ -5,12 +5,12 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import logout, authenticate
 from datetime import datetime
 import json
 from .models import LostItem, FoundItem, Keyword, Notification
 from .forms import LostItemForm, FoundItemForm
 from users.forms import SignupForm
-
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -297,3 +297,50 @@ def map_pins_api(request):
         })
 
     return JsonResponse({'items': data})
+
+
+# --------------------
+# 회원 탈퇴(quit) 관련 뷰 추가 시작
+# --------------------
+
+@login_required
+def quit_account_view(request):
+    """
+    GET: 탈퇴 동의 및 비밀번호 입력 화면 표시
+    POST: 비밀번호 확인 후 회원 탈퇴 처리
+    """
+    if request.method == 'POST':
+        password = request.POST.get('password', '')
+        agree = request.POST.get('agree')
+
+        if not agree:
+            messages.error(request, "탈퇴 동의에 체크해주세요.")
+            return render(request, 'quit/quit.html')
+
+        user = request.user
+
+        # 비밀번호 확인
+        if not user.check_password(password):
+            messages.error(request, "비밀번호가 올바르지 않습니다.")
+            return render(request, 'quit/quit.html')
+
+        # 회원 탈퇴 처리
+        user.delete()
+
+        # 로그아웃 처리
+        logout(request)
+
+        # 탈퇴 완료 페이지로 이동
+        return redirect('meetagain:quit_done')
+
+    else:
+        return render(request, 'quit/quit.html')
+
+
+@login_required
+def quit_done_view(request):
+    """
+    탈퇴 완료 페이지 표시
+    """
+    return render(request, 'quit/quit_done.html')
+
