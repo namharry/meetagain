@@ -64,13 +64,15 @@
     <div class="accordion-item">
       <h2 class="accordion-header" id="faq{{ forloop.counter }}">
         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-          data-bs-target="#collapse{{ forloop.counter }}">
-          {{ item.question }}
+          data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false"
+          aria-controls="collapse{{ forloop.counter }}">
+          {{ item.question|safe }}
         </button>
       </h2>
-      <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+      <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
+        aria-labelledby="faq{{ forloop.counter }}" data-bs-parent="#faqAccordion">
         <div class="accordion-body">
-          {{ item.answer }}
+          {{ item.answer|safe }}
         </div>
       </div>
     </div>
@@ -79,11 +81,12 @@
     {% if not faq_list %}
     <div class="accordion-item">
       <h2 class="accordion-header" id="faq1">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1"
+          aria-expanded="false" aria-controls="collapse1">
           🔑 비밀번호를 잊어버렸어요
         </button>
       </h2>
-      <div id="collapse1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+      <div id="collapse1" class="accordion-collapse collapse" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
         <div class="accordion-body">
           로그인 페이지 또는 마이페이지에서 '비밀번호 재설정'을 통해 새로운 비밀번호를 설정할 수 있어요.
         </div>
@@ -92,11 +95,12 @@
 
     <div class="accordion-item">
       <h2 class="accordion-header" id="faq2">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2"
+          aria-expanded="false" aria-controls="collapse2">
           📦 내가 등록한 분실물은 어디서 확인하나요?
         </button>
       </h2>
-      <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+      <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
         <div class="accordion-body">
           마이페이지 &gt; 등록한 분실물 메뉴에서 확인할 수 있어요.
         </div>
@@ -105,11 +109,12 @@
 
     <div class="accordion-item">
       <h2 class="accordion-header" id="faq3">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3"
+          aria-expanded="false" aria-controls="collapse3">
           🛑 탈퇴 후에도 정보가 남아있나요?
         </button>
       </h2>
-      <div id="collapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+      <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
         <div class="accordion-body">
           아니요, 탈퇴 시 모든 개인정보는 즉시 삭제되며 복구할 수 없습니다.
         </div>
@@ -118,37 +123,46 @@
 
     <div class="accordion-item">
       <h2 class="accordion-header" id="faq4">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4">
-          <h2 class="accordion-header" id="heading4">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
-              🔔 알림 기능은 어떻게 설정하나요?
-            </button>
-          </h2>
-          <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4"
-            data-bs-parent="#faqAccordion">
-            <div class="accordion-body">
-              마이페이지 &gt; <strong>설정</strong> 메뉴에서 알림 수신 여부를 변경할 수 있습니다.<br>
-              또한, 화면 우측 상단의 <span style="color:black;">🔔</span> 버튼을 눌러 <strong>키워드 알림</strong>을 설정할 수 있습니다.
-            </div>
-          </div>
-
-
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="faq5">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapse5">
-                📍 위치정보는 왜 필요한가요?
-              </button>
-            </h2>
-            <div id="collapse5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-              <div class="accordion-body">
-                위치정보 제공에 동의하시면, 습득물이 등록된 위치가 지도에 표시되어 물건 주인을 찾는 데 도움이 됩니다.
-              </div>
-            </div>
-          </div>
-          {% endif %}
-
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4"
+          aria-expanded="false" aria-controls="collapse4">
+          <!-- 검정색 종 아이콘 (SVG) -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="black" class="me-2" viewBox="0 0 16 16"
+            aria-hidden="true" focusable="false">
+            <path
+              d="M8 16a2 2 0 0 0 1.985-1.75H6.015A2 2 0 0 0 8 16zm.104-14.995a1.5 1.5 0 0 0-2.208 1.292C5.23 2.435 5 3.217 5 4v2.086c0 .21-.045.42-.131.612l-.816 1.794c-.083.182-.128.381-.128.588v.732l-.295.59A1 1 0 0 0 5 12h6a1 1 0 0 0 .87-1.588l-.295-.59v-.732c0-.207-.045-.406-.128-.588l-.816-1.794A1.344 1.344 0 0 1 11 6.086V4c0-.783-.23-1.565-.896-2.703a1.5 1.5 0 0 0-2-.292z" />
+          </svg>
+          알림 기능은 어떻게 설정하나요?
+        </button>
+      </h2>
+      <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="faq4" data-bs-parent="#faqAccordion">
+        <div class="accordion-body">
+          마이페이지 &gt; <strong>설정</strong> 메뉴에서 알림 수신 여부를 변경할 수 있습니다.<br>
+          또한, 화면 우측 상단의
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" style="vertical-align: middle;"
+            aria-hidden="true" focusable="false" viewBox="0 0 16 16">
+            <path
+              d="M8 16a2 2 0 0 0 1.985-1.75H6.015A2 2 0 0 0 8 16zm.104-14.995a1.5 1.5 0 0 0-2.208 1.292C5.23 2.435 5 3.217 5 4v2.086c0 .21-.045.42-.131.612l-.816 1.794c-.083.182-.128.381-.128.588v.732l-.295.59A1 1 0 0 0 5 12h6a1 1 0 0 0 .87-1.588l-.295-.59v-.732c0-.207-.045-.406-.128-.588l-.816-1.794A1.344 1.344 0 0 1 11 6.086V4c0-.783-.23-1.565-.896-2.703a1.5 1.5 0 0 0-2-.292z" />
+          </svg>
+          버튼을 눌러 <strong>키워드 알림</strong>을 설정할 수 있습니다.
+        </div>
+      </div>
     </div>
+
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="faq5">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5"
+          aria-expanded="false" aria-controls="collapse5">
+          📍 위치정보는 왜 필요한가요?
+        </button>
+      </h2>
+      <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="faq5" data-bs-parent="#faqAccordion">
+        <div class="accordion-body">
+          위치정보 제공에 동의하시면, 습득물이 등록된 위치가 지도에 표시되어 물건 주인을 찾는 데 도움이 됩니다.
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
   </div>
-  {% endblock %}
+</div>
+{% endblock %}
