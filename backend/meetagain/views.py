@@ -396,4 +396,3 @@ def quit_done_view(request):
     탈퇴 완료 페이지 표시
     """
     return render(request, 'quit/quit_done.html')
-

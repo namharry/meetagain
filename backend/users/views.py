@@ -221,14 +221,14 @@ def admin_required(view_func):
 def dummy_view(request):
     return HttpResponse("준비 중인 기능입니다.")
 
-def my_account_view(request):
+def mypage_view(request):
     dummy_user = {
         'email': 'sungshin@ac.kr',
         'name': '김성신',
         'student_id': '20230001',
         'profile_pic_url': 'https://via.placeholder.com/100'
     }
-    return render(request, 'users/my_account.html', {'user': dummy_user})
+    return render(request, 'mypage/mypage.html', {'user': dummy_user})
 
 def app_settings_view(request): return HttpResponse("앱 설정 - 준비 중입니다.")
 def found_items_view(request): return HttpResponse("습득물 등록 내역 - 준비 중입니다.")
