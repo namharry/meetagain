@@ -396,3 +396,15 @@ def quit_done_view(request):
     탈퇴 완료 페이지 표시
     """
     return render(request, 'quit/quit_done.html')
+
+# --------------------
+# FAQ 관련 뷰
+# --------------------
+def faq_view(request):
+    return render(request, "help/help_faq.html")
+
+# --------------------
+# 공지사항 관련 뷰
+# --------------------
+def notice_view(request):
+    return render(request, "notice/notice_list.html")

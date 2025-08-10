@@ -43,4 +43,10 @@ urlpatterns = [
     # 회원 탈퇴 관련 URL 추가
     path('quit/', views.quit_account_view, name='quit_account'),
     path('quit/done/', views.quit_done_view, name='quit_done'),
+
+    # FAQ 관련
+    path('faq/', views.faq_view, name='faq'),
+
+    # 공지사항 관련
+    path('notice/', views.notice_view, name='notice'),
 ]
