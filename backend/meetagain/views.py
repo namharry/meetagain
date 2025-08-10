@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import logout, authenticate
 from datetime import datetime
 import json
-from .models import LostItem, FoundItem, Keyword, Notification
+from .models import LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import LostItemForm, FoundItemForm
 from users.forms import SignupForm
 
@@ -74,7 +74,7 @@ def lost_index_view(request):
         'date_to': date_to,
         'category_choices': LostItem.CATEGORY_CHOICES,
     }
-    return render(request, 'lost/lost_index.html', context)
+    return render(request, 'lost/lost_list.html', context)
 
 @login_required
 def lost_update_view(request, item_id):
@@ -185,6 +185,7 @@ def found_detail_view(request, item_id):
 # 키워드 관련 뷰
 # --------------------
 
+# views.py (키워드 관련)
 @login_required
 def keyword_list(request):
     keywords = Keyword.objects.filter(user=request.user)
@@ -194,18 +195,15 @@ def keyword_list(request):
 @login_required
 def keyword_add(request):
     word = request.POST.get('word', '').strip()
-
     if not word:
         messages.error(request, "키워드를 입력해주세요.")
         return redirect('meetagain:keyword_list')
 
     keyword, created = Keyword.objects.get_or_create(user=request.user, word=word)
-
     if created:
         messages.success(request, f"'{word}' 키워드가 등록되었습니다.")
     else:
         messages.info(request, f"이미 '{word}' 키워드를 등록하셨습니다.")
-
     return redirect('meetagain:keyword_list')
 
 @require_POST
@@ -220,8 +218,9 @@ def keyword_delete(request, keyword_id):
     return redirect('meetagain:keyword_list')
 
 
+
 # --------------------
-# 알림(Notification) 관련 뷰
+# 사용자 키워드 알림(Notification) 관련 뷰
 # --------------------
 
 @login_required
@@ -250,7 +249,7 @@ def get_notifications(request):
 def mark_notification_read_and_redirect(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     notification.is_read = True
-    notification.read_at = datetime.now()
+    #notification.read_at = datetime.now()
     notification.save()
 
     # 알림 클릭 후 이동할 URL 예: 상세 페이지로 이동하도록 수정 가능
@@ -262,6 +261,60 @@ def mark_notification_read_and_redirect(request, notification_id):
 def notification_list(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'pages/notification_list.html', {'notifications': notifications})
+
+# --------------------
+# 공지사항 관련 뷰(관리자만 접근 가능)
+# --------------------
+
+def notice_list(request):
+    # 모든 사용자 공지사항 목록 조회, 최신순
+    notices = Notice.objects.order_by('-created_at')
+    return render(request, 'notice/notice_list.html', {'notices': notices})
+
+def notice_detail(request, pk):
+    notice = get_object_or_404(Notice, pk=pk)
+    return render(request, 'notice/notice_detail.html', {'notice': notice})
+
+# 관리자 권한 체크용 데코레이터
+def staff_required(view_func):
+    decorated_view_func = login_required(user_passes_test(lambda u: u.is_staff)(view_func))
+    return decorated_view_func
+
+@staff_required
+def notice_create(request):
+    if request.method == 'POST':
+        form = NoticeForm(request.POST)
+        if form.is_valid():
+            notice = form.save(commit=False)
+            notice.author = request.user
+            notice.save()
+            messages.success(request, '공지사항이 성공적으로 등록되었습니다.')
+            return redirect('notice_detail', pk=notice.pk)
+    else:
+        form = NoticeForm()
+    return render(request, 'notice/notice_form.html', {'form': form})
+
+@staff_required
+def notice_update(request, pk):
+    notice = get_object_or_404(Notice, pk=pk)
+    if request.method == 'POST':
+        form = NoticeForm(request.POST, instance=notice)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '공지사항이 성공적으로 수정되었습니다.')
+            return redirect('notice_detail', pk=notice.pk)
+    else:
+        form = NoticeForm(instance=notice)
+    return render(request, 'notice/notice_form.html', {'form': form})
+
+@staff_required
+def notice_delete(request, pk):
+    notice = get_object_or_404(Notice, pk=pk)
+    if request.method == 'POST':
+        notice.delete()
+        messages.success(request, '공지사항이 삭제되었습니다.')
+        return redirect('notice_list')
+    return render(request, 'notice/notice_confirm_delete.html', {'notice': notice})
 
 
 # --------------------

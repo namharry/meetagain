@@ -19,13 +19,18 @@ urlpatterns = [
     path('keywords/delete/<int:keyword_id>/', views.keyword_delete, name='delete_keyword'),
     path('keywords/', views.keyword_list, name='keyword_list'),
 
-    # ✅ 알림 관련 API
-    path('notifications/create/', views.create_notification, name='create_notification'),
-    path('notifications/', views.get_notifications, name='get_notifications'),
+    # ✅ 사용자별 키워드 알림 관련 API
+    path('notifications/', views.get_notifications, name='get_notifications'),  # JSON API - 프론트에서 알림 목록 불러올 때
     path('notifications/read/<int:notification_id>/', views.mark_notification_read_and_redirect, name='read_notification'),
+    path('notifications/page/', views.notification_list, name='notification_list'),  # 알림 전체보기 페이지
 
-    # ✅ 알림 웹 페이지
-    path('notifications/page/', views.notification_list, name='notification_list'),
+    # ✅ 공지사항 관련 URL
+    path('notice/', views.notice_list, name='notice_list'),
+    path('notice/<int:pk>/', views.notice_detail, name='notice_detail'),
+    path('notice/create/', views.notice_create, name='notice_create'),
+    path('notice/<int:pk>/update/', views.notice_update, name='notice_update'),
+    path('notice/<int:pk>/delete/', views.notice_delete, name='notice_delete'),
+
 
     # 습득물 관련 URL
     path('found/register/', views.found_register_view, name='found_register'),

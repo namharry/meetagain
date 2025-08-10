@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import LostItem, FoundItem
+from .models import LostItem, FoundItem, Notice
 
 admin.site.register(LostItem)
 
@@ -12,3 +12,9 @@ class FoundItemAdmin(admin.ModelAdmin):
     list_editable = ('status',)
     list_filter = ('status', 'found_date')
     search_fields = ('name', 'found_location')
+
+@admin.register(Notice)
+class NoticeAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'created_at', 'updated_at')
+    search_fields = ('title', 'content', 'author__username')
+    list_filter = ('created_at', 'updated_at')
