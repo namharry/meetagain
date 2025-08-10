@@ -62,8 +62,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # === DB ===
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'meetagain'),
+        'USER': os.getenv('DB_USER', 'meetagain'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'meetagainpw'),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),  # 같은 PC면 이대로, 팀원이면 DB 띄운 PC의 IP
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
