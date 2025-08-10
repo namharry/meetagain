@@ -112,7 +112,8 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.success(request, "로그아웃되었습니다.")
-    return redirect('login')
+    return redirect('users:login')
+
 
 # ------------------------------
 # 🔐 비밀번호 변경 (로그인 상태)
