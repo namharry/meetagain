@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -32,10 +33,11 @@ def signup_view(request):
                 user = form.save(commit=False)
                 user.email = email
                 user.save()
-                backend_path = 'django.contrib.auth.backends.ModelBackend'  # 기본 인증 백엔드 경로, settings.py에 따라 다를 수 있음
-                user.backend = backend_path
+                backend_path = settings.AUTHENTICATION_BACKENDS[0]  # settings.py 첫 번째 인증 백엔드 가져오기
+                user.backend = backend_path  # user 객체에 backend 속성 추가
 
-                login(request, user)
+                login(request, user, backend=backend_path)  # login() 함수 호출 시 backend 인자도 넘김
+
                 print("유저 저장 완료")
                 messages.success(request, '회원가입이 완료되었습니다.')
                 request.session.pop("signup_verified_email", None)
