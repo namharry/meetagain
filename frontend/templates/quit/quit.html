@@ -33,7 +33,7 @@
       탈퇴 후에는 데이터를 복구할 수 없습니다.
     </div>
 
-    <form method="post" action="{% url 'quit_account' %}" id="quitForm">
+    <form method="post" action="{% url 'meetagain:quit_account' %}" id="quitForm">
       {% csrf_token %}
 
       <div class="form-check mt-1">
@@ -50,7 +50,7 @@
       </div>
 
       <div class="mt-5 d-flex justify-content-between">
-        <a href="{% url 'mypage' %}" class="btn btn-outline-secondary">돌아가기</a>
+        <a href="{% url 'users:mypage' %}" class="btn btn-outline-secondary">돌아가기</a>
         <button type="submit" id="quitBtn" class="btn btn-purple" disabled>탈퇴하기</button>
       </div>
     </form>
