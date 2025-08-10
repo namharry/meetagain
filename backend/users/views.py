@@ -84,14 +84,10 @@ def verify_reset_code_ajax(request):
 # ------------------------------
 def login_view(request):
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
+        student_id = request.POST.get('student_id')  # 로그인 폼 input name에 맞게
         password = request.POST.get('password')
 
-        print("입력한 학번:", student_id)
-        print("입력한 비밀번호:", password)
-
         user = authenticate(request, student_id=student_id, password=password)
-        print("인증 결과:", user)
 
         if user is not None:
             login(request, user)
