@@ -35,6 +35,13 @@ class LostItem(models.Model):
     lost_date = models.DateField()
 
     is_claimed = models.BooleanField(default=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='lost_items',
+        null=True, blank=True,
+    )
+    
     image = models.ImageField(upload_to='lost_items/', blank=True, null=True)
 
     def __str__(self):
@@ -65,6 +72,13 @@ class FoundItem(models.Model):
 
     found_location = models.CharField(max_length=200)
     found_date = models.DateField()
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='found_items',
+        null=True, blank=True
+    )
 
     is_returned = models.BooleanField(default=False)
     image = models.ImageField(upload_to='found_items/', blank=True, null=True)

@@ -12,6 +12,7 @@ from .forms import SignupForm, PasswordChangeCustomForm, PasswordResetWithCodeFo
 from meetagain.models import LostItem, FoundItem
 from django.contrib.auth.hashers import make_password
 from .services import send_auth_code, verify_auth_code
+from django.core.paginator import Paginator
 
 # ✅ 추가: 설정 업데이트용 데코레이터
 from django.views.decorators.http import require_POST
@@ -258,13 +259,36 @@ def dummy_view(request):
 def mypage_view(request):
     if request.method == 'POST':
         user = request.user
-        # 알림 수신 여부 설정 저장
         user.allow_notification = 'allow_notification' in request.POST
-        # 위치 정보 제공 여부 설정 저장
         user.allow_location = 'allow_location' in request.POST
-        user.save()  # 변경 사항 저장
+        user.save(update_fields=['allow_notification', 'allow_location'])
         return redirect('users:mypage')
-    return render(request, 'mypage/mypage.html')
+
+    # ✅ 내가 습득한 물건
+    f_qs = FoundItem.objects.filter(user=request.user).order_by('-id')
+    f_page = Paginator(f_qs, 10).get_page(request.GET.get('page'))
+    f_items = list(f_page.object_list)
+    for obj in f_items:
+        if not getattr(obj, "title", None):
+            obj.title = obj.name
+
+    # (선택) 내가 분실한 물건도 같이 보여줄 거면 아래 주석 해제
+    # l_qs = LostItem.objects.filter(user=request.user).order_by('-id')
+    # l_page = Paginator(l_qs, 10).get_page(request.GET.get('lost_page'))
+    # l_items = list(l_page.object_list)
+    # for obj in l_items:
+    #     if not getattr(obj, "title", None):
+    #         obj.title = obj.name
+
+    return render(request, 'mypage/mypage.html', {
+        'found_items': f_items,
+        'page_obj': f_page,        # 템플릿에서 페이지네이션 쓰면 그대로 동작
+        'found_count': f_qs.count(),
+        'tab': 'found',            # 템플릿에 탭 조건 있으면 유지
+        # 'lost_items': l_items,
+        # 'lost_page_obj': l_page,
+        # 'lost_count': l_qs.count(),
+    })
 
 # ✅ 수정 완료: 설정 업데이트 API (mypage 토글이 호출)
 @login_required
