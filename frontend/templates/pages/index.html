@@ -1,6 +1,25 @@
 {% extends 'base/base.html' %}
 {% block title %}MeetAgain - 습득물 조회{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* 카드 썸네일 고정 사이즈 */
+  .lost-card .thumb {
+    width: 100%;
+    height: 180px;         /* 필요한 고정 높이로 조절 가능 */
+    object-fit: cover;     /* 비율 유지하며 영역 꽉 채움 */
+    display: block;
+    border-top-left-radius: .5rem;
+    border-top-right-radius: .5rem;
+    background: #f6f6f6;   /* 빈 이미지일 때 배경 */
+  }
+  /* 카드 본문 최소 높이(제목/텍스트 길이 달라도 줄맞춤) */
+  .lost-card .card-body {
+    min-height: 96px;      /* 필요시 조절 */
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid mt-4 position-relative">
   <h4 class="text-center mb-4 fw-bold" style="font-size: 24px;">MeetAgain</h4>
@@ -75,11 +94,11 @@
         {% for item in items %}
         <div class="col">
           <a class="text-decoration-none" href="{% url 'meetagain:found_detail' item_id=item.id %}">
-            <div class="card lost-card">
+            <div class="card lost-card h-100">
               {% if item.image %}
-                <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="thumb">
               {% else %}
-                <img src="https://via.placeholder.com/300x160" alt="이미지 없음">
+                <img src="https://via.placeholder.com/600x400?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" alt="이미지 없음" class="thumb">
               {% endif %}
               <div class="card-body">
                 <p class="text-center fw-bold text-dark mb-1">{{ item.name }}</p>
