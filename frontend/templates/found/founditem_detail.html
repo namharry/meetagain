@@ -4,113 +4,151 @@
 
 {% block extra_head %}
 <style>
-    body {
-        font-family: 'Noto Sans KR', sans-serif;
-        background-color: #f5f3fa;
-        color: #333;
-    }
-
-    .container {
-        max-width: 900px;
-        background-color: #fff;
-        padding: 40px;
-        margin: 60px auto;
-        border-radius: 12px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-    }
-
-    h2 {
-        font-weight: 700;
-        font-size: 1.8rem;
-        color: #5e3dc6;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .img-box {
-        width: 100%;
-        border-radius: 8px;
-        object-fit: cover;
-        margin-bottom: 20px;
-        border: 1px solid #e0e0e0;
-    }
-
-    .list-group-item {
-        border: none;
-        background-color: #f9f8fc;
-        margin-bottom: 10px;
-        border-radius: 8px;
-        padding: 12px 16px;
-    }
-
-    .label {
-        font-weight: 600;
-        color: #5e3dc6;
-        margin-right: 10px;
-        display: inline-block;
-        width: 120px;
-    }
-
-    .btn-primary {
-        background-color: #7B3FF2;
-        border: none;
-    }
-
-    .btn-primary:hover {
-        background-color: #6931d4;
-    }
-
-    .btn-outline {
-        border: 1px solid #ccc;
-        color: #333;
-    }
-
-    .btn-outline:hover {
-        background-color: #f0eef9;
-        color: #5e3dc6;
-    }
-
-    .detail-text {
-        background-color: #f8f7fb;
-        padding: 16px;
-        border-radius: 8px;
-        margin-top: 15px;
-        font-size: 0.95rem;
-    }
-{% extends 'base.html' %}
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f5f3fa;
+    color: #333;
+  }
+  .container {
+    max-width: 900px;
+    background-color: #fff;
+    padding: 40px;
+    margin: 60px auto;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  }
+  h2 {
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: #5e3dc6;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .img-box {
+    width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+  }
+  .list-group-item {
+    border: none;
+    background-color: #f9f8fc;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .label {
+    font-weight: 600;
+    color: #5e3dc6;
+    margin-right: 10px;
+    display: inline-block;
+    width: 120px;
+  }
+  .btn-primary {
+    background-color: #7B3FF2; border: none;
+  }
+  .btn-primary:hover { background-color: #6931d4; }
+  .btn-outline { border: 1px solid #ccc; color: #333; }
+  .btn-outline:hover { background-color: #f0eef9; color: #5e3dc6; }
+  .detail-text {
+    background-color: #f8f7fb;
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.95rem;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h2>습득물 상세 정보</h2>
+  <h2>습득물 상세 정보</h2>
 
-    <div class="row">
-        <div class="col-md-4">
-            {% if item.image %}
-                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-box">
-            {% else %}
-                <img src="/static/img/default.jpg" alt="이미지 없음" class="img-box">
-            {% endif %}
-            <button class="btn btn-outline w-100">지도에서 위치 보기</button>
-        </div>
+  <div class="row">
+    <div class="col-md-4">
+      {% if item.image %}
+        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-box">
+      {% else %}
+        <img src="https://via.placeholder.com/600x400" alt="이미지 없음" class="img-box">
+      {% endif %}
 
-        <div class="col-md-8">
-            <ul class="list-group">
-                <li class="list-group-item"><span class="label">습득물명</span> {{ item.name }}</li>
-                <li class="list-group-item"><span class="label">관리번호</span> {{ item.id }}</li>
-                <li class="list-group-item"><span class="label">종류</span> {{ item.get_category_display }}</li>
-                <li class="list-group-item"><span class="label">습득일</span> {{ item.found_date }}</li>
-                <li class="list-group-item"><span class="label">습득장소</span> {{ item.found_location }}</li>
-                <li class="list-group-item"><span class="label">유실물 상태</span> {{ item.get_status_display }}</li>
-                <li class="list-group-item"><span class="label">보관장소</span> {{ item.storage_location }}</li>
-            </ul>
-
-            <div class="detail-text mt-3">
-                <strong>상세 내용:</strong><br>
-                {{ item.description|linebreaks }}
-            </div>
-
-            <a href="{% url 'meetagain:found_index' %}" class="btn btn-primary mt-4">🏠 메인페이지로</a>
-        </div>
+      {% if item.lat and item.lng %}
+        <button class="btn btn-outline w-100" type="button" onclick="toggleDetailMap()">
+          지도에서 위치 보기
+        </button>
+      {% endif %}
     </div>
+
+    <div class="col-md-8">
+      <ul class="list-group">
+        <li class="list-group-item"><span class="label">습득물명</span> {{ item.name }}</li>
+        <li class="list-group-item"><span class="label">관리번호</span> {{ item.id }}</li>
+        <li class="list-group-item"><span class="label">종류</span> {{ item.get_category_display }}</li>
+        <li class="list-group-item"><span class="label">습득일</span> {{ item.found_date|date:"Y-m-d" }}</li>
+        <li class="list-group-item"><span class="label">습득장소</span> {{ item.found_location }}</li>
+        <li class="list-group-item">
+          <span class="label">처리 상태</span>
+          {% if item.status %}{{ item.get_status_display }}
+          {% else %}{% if item.is_returned %}소유자 반환{% else %}보관 중{% endif %}{% endif %}
+        </li>
+        {% if item.lat and item.lng %}
+          <li class="list-group-item"><span class="label">좌표</span> {{ item.lat }}, {{ item.lng }}</li>
+        {% endif %}
+      </ul>
+
+      <div class="detail-text mt-3">
+        <strong>상세 내용:</strong><br>
+        {{ item.description|default:"(설명 없음)"|linebreaks }}
+      </div>
+
+      <a href="{% url 'meetagain:index' %}" class="btn btn-primary mt-4">🏠 메인페이지로</a>
+    </div>
+  </div>
+
+  {% if item.lat and item.lng %}
+  <div id="detailMapWrap" class="mt-4" style="display:none;">
+    <!-- 좌표를 data-속성으로 전달 -->
+    <div
+      id="detailMap"
+      data-lat="{{ item.lat }}"
+      data-lng="{{ item.lng }}"
+      style="width:100%; height:360px; border-radius:10px; border:1px solid #eee;">
+    </div>
+  </div>
+  {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if item.lat and item.lng %}
+<script>
+  function toggleDetailMap() {
+    const wrap = document.getElementById('detailMapWrap');
+    if (!wrap) return;
+    const show = (wrap.style.display === 'none' || wrap.style.display === '');
+    wrap.style.display = show ? 'block' : 'none';
+    if (show) initDetailMap(); // 처음 펼칠 때만 초기화
+  }
+
+  let _detailMapInited = false;
+  function initDetailMap() {
+    if (_detailMapInited) return;
+
+    const el = document.getElementById('detailMap');
+    if (!el || !window.kakao || !kakao.maps) return;
+
+    // data-에서 안전하게 읽어 숫자로 변환
+    const lat = parseFloat(el.dataset.lat);
+    const lng = parseFloat(el.dataset.lng);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    const pos = new kakao.maps.LatLng(lat, lng);
+    const map = new kakao.maps.Map(el, { center: pos, level: 3 });
+    new kakao.maps.Marker({ position: pos, map: map });
+
+    _detailMapInited = true;
+  }
+</script>
+{% endif %}
 {% endblock %}
