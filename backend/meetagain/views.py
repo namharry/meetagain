@@ -127,8 +127,11 @@ def found_register_view(request):
             raw = request.POST.get('is_returned', '')
             obj.is_returned = (str(raw).lower() in ('true', '1', 'on', 'yes'))
             obj.save()
-            return redirect('meetagain:found_detail', item_id=obj.id)
+            print("저장완료", obj)  # 디버깅용 로그
+            #등록되었습니다 메세지
+            return render(request, 'found/found_register_success.html')
         else:
+            print("폼 유효성 검사 실패", form.errors)
             return render(request, 'found/found_register.html', {'form': form})
     else:
         form = FoundItemForm()
@@ -431,4 +434,46 @@ def inquiry_view(request):
 
 
 def myinquiries_view(request):
-    return render(request, "help/help_myinquiries.html")
+    inquiries = Inquiry.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, "help/help_myinquiries.html", {'inquiries': inquiries})
+
+@login_required
+def inquiry_detail_view(request, pk):
+    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만 접근
+    return render(request, "help/help_myinquiries_detail.html", {"inquiry": inquiry})
+
+@login_required
+def inquiry_edit_view(request, pk):
+    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만
+
+    if request.method == 'POST':
+        form = InquiryForm(request.POST, instance=inquiry)  # ★ instance 지정
+        if form.is_valid():
+            form.save()  # user는 이미 설정돼 있으므로 다시 덮어쓸 필요 없음
+            messages.success(request, '문의가 수정되었습니다.')
+            return redirect('meetagain:inquiry_detail', pk=inquiry.pk)
+    else:
+        form = InquiryForm(instance=inquiry)
+
+    return render(request, "help/help_inquiry.html", {"form": form, "inquiry": inquiry})
+
+
+# --------------------
+# 관리자용 문의사항 관련 뷰
+# --------------------
+
+@login_required
+def inquiry_create(request):
+    if request.method == 'POST':
+        form = InquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.user = request.user
+            inquiry.save()
+            return redirect('inquiry_success')  # 성공 페이지 또는 목록 등으로 리다이렉트
+    else:
+        form = InquiryForm()
+    return render(request, 'meetagain/inquiry_form.html', {'form': form})
+
+def inquiry_success(request):
+    return render(request, 'meetagain/inquiry_success.html')

@@ -2,25 +2,93 @@
 
 {% block title %}공지사항 상세{% endblock %}
 
+{% block extra_head %}
+<style>
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f8f9fa;
+  }
+
+  .detail-page.container {
+    max-width: 820px;
+    margin-top: 60px;
+  }
+
+  .detail-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #6A5ACD;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .detail-meta {
+    text-align: center;
+    color: #6c757d;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+  }
+
+  .detail-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    padding: 22px;
+  }
+
+  /* 본문 가독성 보정 */
+  .detail-content p { margin-bottom: 1rem; }
+  .detail-content img { max-width: 100%; height: auto; border-radius: 6px; }
+  .detail-content ul, .detail-content ol { padding-left: 1.2rem; }
+
+  /* 버튼 톤 맞추기 */
+  .detail-page .btn-primary {
+    background-color: #6A5ACD;
+    border-color: #6A5ACD;
+    border-radius: 999px;
+    padding: 10px 18px;
+  }
+  .detail-page .btn-primary:hover {
+    background-color: #5c4bc4;
+    border-color: #5c4bc4;
+  }
+  .detail-page .btn-secondary {
+    border-radius: 999px;
+    padding: 10px 18px;
+  }
+  .detail-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  .detail-actions.admin {
+    justify-content: flex-end;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4" style="max-width: 820px;">
-    <h2 class="mb-1">{{ notice.title }}</h2>
-    <p class="text-muted">{{ notice.created_at|date:"Y-m-d H:i" }}</p>
-    <hr>
-    <div>
-        {{ notice.content|linebreaks }}
+<div class="container detail-page">
+  <h2 class="detail-title">{{ notice.title }}</h2>
+  <div class="detail-meta">{{ notice.created_at|date:"Y-m-d H:i" }}</div>
+
+  <article class="detail-card">
+    <div class="detail-content">
+      {{ notice.content|linebreaks }}
     </div>
 
     {% if user.is_staff %}
-    <div class="mt-3 d-flex gap-2">
+      <div class="detail-actions admin">
         <a href="{% url 'meetagain:notice_update' notice.id %}" class="btn btn-warning">수정</a>
         <a href="{% url 'meetagain:notice_delete' notice.id %}" class="btn btn-danger"
-            onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
-    </div>
+           onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+      </div>
     {% endif %}
+  </article>
 
-    <div class="mt-3">
-        <a href="{% url 'meetagain:notice_list' %}" class="btn btn-secondary">목록</a>
-    </div>
+  <div class="detail-actions" style="justify-content: flex-start;">
+    <a href="{% url 'meetagain:notice_list' %}" class="btn btn-secondary">목록</a>
+  </div>
 </div>
 {% endblock %}

@@ -39,13 +39,11 @@
   </div>
 
   <div class="d-flex gap-2">
-    <!-- 네임스페이스 포함 -->
-    <a href="{% url 'meetagain:myinquiries' %}" class="btn btn-secondary">목록</a>
+  <a href="{% url 'meetagain:myinquiries' %}" class="btn btn-secondary">목록</a>
 
-    {% if user.is_authenticated and user.id == inquiry.user_id %}
-      <!-- edit를 같은 작성 폼으로 보낼 경우 pk를 쿼리로 전달 -->
-      <a href="{% url 'meetagain:inquiry' %}?edit={{ inquiry.pk }}" class="btn btn-warning">수정</a>
-    {% endif %}
-  </div>
+  {% if user.is_authenticated and user.id == inquiry.user_id %}
+    <a href="{% url 'meetagain:inquiry_edit' inquiry.pk %}" class="btn btn-warning">수정</a>
+  {% endif %}
 </div>
+
 {% endblock %}

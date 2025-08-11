@@ -5,16 +5,20 @@
 
 {% block content %}
 <div class="container" style="max-width: 700px; margin-top: 60px;">
-  <h2 class="text-center mb-4" style="color: #6A5ACD; font-weight: 700;">1:1 문의하기</h2>
+  <h2 class="text-center mb-4" style="color: #6A5ACD; font-weight: 700;">
+    {% if inquiry %}문의 수정{% else %}1:1 문의하기{% endif %}
+  </h2>
 
-  <form method="post" action="{% url 'meetagain:inquiry' %}">
+  <form method="post"
+        action="{% if inquiry %}{% url 'meetagain:inquiry_edit' inquiry.id %}{% else %}{% url 'meetagain:inquiry' %}{% endif %}">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
     <div class="mb-3">
-      <label for="title" class="form-label">제목</label>
-      <input type="text" class="form-control" id="subject" name="subject" value="{{ form.title.value|default_if_none:'' }}"
-        placeholder="예: 알림 기능이 작동하지 않아요" required>
+      <label for="subject" class="form-label">제목</label>
+      <input type="text" class="form-control" id="subject" name="subject"
+             value="{{ form.subject.value|default_if_none:'' }}"
+             placeholder="예: 알림 기능이 작동하지 않아요" required>
     </div>
 
     <div class="mb-3">
@@ -30,12 +34,14 @@
 
     <div class="mb-3">
       <label for="content" class="form-label">문의 내용</label>
-      <textarea class="form-control" id="content" name="content" rows="6" placeholder="자세한 내용을 입력해주세요."
-        required>{{ form.content.value|default_if_none:'' }}</textarea>
+      <textarea class="form-control" id="content" name="content" rows="6"
+                placeholder="자세한 내용을 입력해주세요." required>{{ form.content.value|default_if_none:'' }}</textarea>
     </div>
 
     <div class="text-end">
-      <button type="submit" class="btn btn-primary" style="background-color: #6A5ACD;">문의하기</button>
+      <button type="submit" class="btn btn-primary" style="background-color: #6A5ACD;">
+        {% if inquiry %}수정 저장{% else %}문의하기{% endif %}
+      </button>
     </div>
   </form>
 </div>
