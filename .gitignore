@@ -15,14 +15,6 @@ __pycache__/
 db.sqlite3
 db.sqlite3-journal
 
-# 마이그레이션
-**/migrations/
-!**/migrations/__init__.py
-
-# 템플릿 태그 필터
-**/templatetags/
-!**/templatetags/__init__.py
-
 # 업로드 미디어 파일
 media/
 media/post_images/
@@ -33,6 +25,7 @@ media/post_images/
 
 # 환경설정 및 시크릿
 .env
+.env.*
 local_settings.py
 
 # OS 관련 파일
