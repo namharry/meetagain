@@ -22,5 +22,75 @@
 
   <div id="keywordList" class="mb-3"></div>
   <hr>
-  <div id="alertList" style="max-height: 300px; overflow-y:auto;"></div>
+  <div id="alertList" style="max-height: 300px; overflow-y:auto;">
+    {% if notifications %}
+      <ul>
+        {% for n in notifications %}
+          <li>
+            [{{ n.created_at|date:"Y-m-d H:i" }}] 키워드 '{{ n.keyword }}' 관련 알림
+            {% if n.is_read %}(읽음){% else %}(읽지 않음){% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>받은 알림이 없습니다.</p>
+    {% endif %}
+  </div>
 </div>
+
+<script>
+  // 서버에서 키워드 목록 받아서 뿌리기
+  function loadKeywords() {
+    fetch('/keywords/')
+      .then(res => res.json())
+      .then(data => {
+        const keywordList = document.getElementById('keywordList');
+        keywordList.innerHTML = '';
+        if (!data.keywords || data.keywords.length === 0) {
+          keywordList.innerHTML = '<p>등록된 키워드가 없습니다.</p>';
+          return;
+        }
+        const ul = document.createElement('ul');
+        data.keywords.forEach(word => {
+          const li = document.createElement('li');
+          li.textContent = word;
+          ul.appendChild(li);
+        });
+        keywordList.appendChild(ul);
+      })
+      .catch(console.error);
+  }
+
+  // 서버에서 알림 목록 받아서 뿌리기
+  function loadNotifications() {
+    fetch('/notifications/')
+      .then(res => res.json())
+      .then(data => {
+        const alertList = document.getElementById('alertList');
+        alertList.innerHTML = '';
+        if (!data.notifications || data.notifications.length === 0) {
+          alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
+          return;
+        }
+        const ul = document.createElement('ul');
+        data.notifications.forEach(n => {
+          const li = document.createElement('li');
+          li.textContent = `[${n.created_at}] 키워드 '${n.keyword}' 관련 알림 ${n.is_read ? '(읽음)' : '(읽지 않음)'}`;
+          ul.appendChild(li);
+        });
+        alertList.appendChild(ul);
+      })
+      .catch(console.error);
+  }
+
+  // 사이드바가 열릴 때 키워드와 알림 목록 같이 불러오기
+  const originalToggleSidebar = window.toggleSidebar;
+  window.toggleSidebar = function() {
+    originalToggleSidebar();
+    const sidebar = document.getElementById('alertSidebar');
+    if (sidebar && sidebar.dataset.open === '1') {  // 열린 상태일 때만 로드
+      loadKeywords();
+      loadNotifications();
+    }
+  }
+</script>

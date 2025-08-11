@@ -212,8 +212,9 @@ def found_detail_view(request, item_id):
 
 @login_required
 def keyword_list(request):
-    keywords = Keyword.objects.filter(user=request.user)
-    return render(request, 'keywords/keyword_list.html', {'keywords': keywords})
+    keywords = Keyword.objects.filter(user=request.user).values_list('word', flat=True)
+    return JsonResponse({'keywords': list(keywords)})
+
 
 
 @require_POST
