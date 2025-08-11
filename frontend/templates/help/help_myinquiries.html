@@ -22,16 +22,16 @@
 
       <div class="text-muted small">
         {{ inquiry.created_at|date:"Y-m-d" }} ·
-        {% if inquiry.answer %}
+        {% if inquiry.response %}
           <span class="text-success">답변 완료</span>
         {% else %}
           <span class="text-warning">답변 대기 중</span>
         {% endif %}
       </div>
 
-      {% if inquiry.answer %}
+      {% if inquiry.response %}
       <div class="bg-light p-2 mt-2 rounded" style="font-size: 0.95rem;">
-        {{ inquiry.answer|truncatechars:120 }}
+        {{ inquiry.response|truncatechars:120 }}
       </div>
       {% endif %}
 

@@ -27,9 +27,9 @@
 
   <div class="mb-4">
     <h6 class="text-muted mb-2">답변</h6>
-    {% if inquiry.answer %}
+    {% if inquiry.response %}
       <div class="p-3 border rounded bg-white">
-        {{ inquiry.answer|linebreaks }}
+        {{ inquiry.response|linebreaks }}
       </div>
     {% else %}
       <div class="p-3 border rounded bg-white">
