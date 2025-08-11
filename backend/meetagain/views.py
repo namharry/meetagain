@@ -13,7 +13,8 @@ import json
 from .models import LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import LostItemForm, FoundItemForm, NoticeForm
 from users.forms import SignupForm
-
+from django.contrib.auth.decorators import login_required
+from .models import Notification
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -140,7 +141,7 @@ def found_register_view(request):
                         content_type=content_type,
                         object_id=obj.id,
                     )
-                    
+
             return render(request, 'found/found_register_success.html')
         else:
             print("폼 유효성 검사 실패", form.errors)
@@ -296,6 +297,24 @@ def notification_list(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'pages/alert_sidebar.html', {'notifications': notifications})
 
+@login_required
+def notifications_api(request):
+    # 현재 로그인한 사용자(user)의 알림(Notification) 데이터를 최신순으로 20개 가져옴
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:20]
+
+    data = []
+    for n in notifications:
+        # 각 알림에 대해 필요한 정보들을 딕셔너리 형태로 정리
+        data.append({
+            'id': n.id,                         # 알림 고유 번호
+            'keyword': n.keyword,               # 알림이 연관된 키워드
+            'is_read': n.is_read,               # 읽었는지 여부 (True/False)
+            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),  # 생성일 (보기 좋게 문자열로 변환)
+            'item_name': str(n.item),           # 연결된 물건 이름 (습득물 또는 분실물)
+        })
+
+    # JSON 형식으로 알림 데이터 보내기
+    return JsonResponse({'notifications': data})
 
 # --------------------
 # 공지사항 관련 뷰(관리자만 접근 가능)
