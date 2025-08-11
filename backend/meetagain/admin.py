@@ -1,24 +1,25 @@
 from django.contrib import admin
-from .models import LostItem, FoundItem, Notice, Inquiry
+from .models import LostItem, FoundItem, Notice, Inquiry, Keyword, Notification
 
+# LostItem
 admin.site.register(LostItem)
 
-#관리자 계정 아이디: 12345678 비번: 123456 이메일: test@example.com
-# http://127.0.0.1:8000/admin/ 에서 로그인 후 LostItem, FoundItem 모델을 생성, 수정 가능.
-
+# FoundItem
 @admin.register(FoundItem)
 class FoundItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name','status', 'found_location', 'found_date')
+    list_display = ('id', 'name', 'status', 'found_location', 'found_date')
     list_editable = ('status',)
     list_filter = ('status', 'found_date')
     search_fields = ('name', 'found_location')
 
+# Notice
 @admin.register(Notice)
 class NoticeAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'created_at', 'updated_at')
     search_fields = ('title', 'content', 'author__username')
     list_filter = ('created_at', 'updated_at')
 
+# Inquiry
 @admin.register(Inquiry)
 class InquiryAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'subject', 'created_at', 'status', 'response')
@@ -33,4 +34,16 @@ class InquiryAdmin(admin.ModelAdmin):
             obj.status = 'answered'  # 답변이 있으면 상태 자동 변경
         super().save_model(request, obj, form, change)
 
+# Keyword
+@admin.register(Keyword)
+class KeywordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'word')
+    search_fields = ('word', 'user__username')
+    list_filter = ('user',)
 
+# Notification
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'keyword', 'is_read', 'created_at')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('keyword', 'user__username')
