@@ -1,3 +1,4 @@
+# backend/users/views.py
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
@@ -236,7 +237,7 @@ def mypage_view(request):
         return redirect('users:mypage')
     return render(request, 'mypage/mypage.html')
 
-# ✅ 추가: 설정 업데이트 API (mypage 토글이 호출)
+# ✅ 수정 완료: 설정 업데이트 API (mypage 토글이 호출)
 @login_required
 @require_POST
 def update_setting(request):
@@ -246,22 +247,29 @@ def update_setting(request):
         return JsonResponse({"ok": False, "error": "invalid json"}, status=400)
 
     setting = data.get("setting")
-    value = data.get("value")
+    value = bool(data.get("value"))
 
-    # 프로필 모델 연결을 가정 (request.user.profile)
-    profile = getattr(request.user, "profile", None)
-    if profile is None:
-        return JsonResponse({"ok": False, "error": "profile not found"}, status=400)
-
-    if setting == "notification":
-        profile.allow_notification = bool(value)
-    elif setting == "location":
-        profile.allow_location = bool(value)
-    else:
+    # 프론트에서 오는 키 -> User 모델 필드 매핑
+    mapping = {
+        "notification": "allow_notification",
+        "location": "allow_location",
+    }
+    field = mapping.get(setting)
+    if not field:
         return JsonResponse({"ok": False, "error": "invalid setting"}, status=400)
 
-    profile.save()
-    return JsonResponse({"ok": True})
+    # 실제 User 모델에 필드가 있는지 확인
+    if not hasattr(request.user, field):
+        return JsonResponse({"ok": False, "error": f"missing field {field}"}, status=400)
+
+    setattr(request.user, field, value)
+    request.user.save(update_fields=[field])
+
+    return JsonResponse({
+        "ok": True,
+        "field": field,
+        "value": getattr(request.user, field),
+    })
 
 def app_settings_view(request): return HttpResponse("앱 설정 - 준비 중입니다.")
 def found_items_view(request): return HttpResponse("습득물 등록 내역 - 준비 중입니다.")
