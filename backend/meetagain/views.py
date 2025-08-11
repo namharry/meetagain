@@ -10,7 +10,7 @@ from django.contrib.auth import logout, authenticate
 from datetime import datetime
 import json
 
-from .models import LostItem, FoundItem, Keyword, Notification, Notice, Inquiry
+from .models import LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import LostItemForm, FoundItemForm, NoticeForm
 from users.forms import SignupForm
 
@@ -129,6 +129,18 @@ def found_register_view(request):
             obj.save()
             print("저장완료", obj)  # 디버깅용 로그
             #등록되었습니다 메세지
+            keywords = Keyword.objects.filter(user=request.user)
+            content_type = ContentType.objects.get_for_model(obj)
+
+            for keyword in keywords:
+                if keyword.word in obj.name:
+                    Notification.objects.create(
+                        user=request.user,
+                        keyword=keyword.word,
+                        content_type=content_type,
+                        object_id=obj.id,
+                    )
+                    
             return render(request, 'found/found_register_success.html')
         else:
             print("폼 유효성 검사 실패", form.errors)
@@ -214,7 +226,6 @@ def found_detail_view(request, item_id):
 def keyword_list(request):
     keywords = Keyword.objects.filter(user=request.user).values_list('word', flat=True)
     return JsonResponse({'keywords': list(keywords)})
-
 
 
 @require_POST
