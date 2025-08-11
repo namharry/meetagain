@@ -1,4 +1,4 @@
-<!-- 알림 사이드바 -->
+<!-- alert_sidebar.html -->
 <div id="alertSidebar"
      data-open="0"
      style="
@@ -39,7 +39,23 @@
 </div>
 
 <script>
-  // 서버에서 키워드 목록 받아서 뿌리기
+  // CSRF 토큰 쿠키에서 읽기 (Django CSRF 보호용)
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // 서버에서 키워드 목록 불러오기
   function loadKeywords() {
     fetch('/keywords/')
       .then(res => res.json())
@@ -61,7 +77,39 @@
       .catch(console.error);
   }
 
-  // 서버에서 알림 목록 받아서 뿌리기
+  // 키워드 등록 요청
+  function addKeyword() {
+    const input = document.getElementById('keywordInput');
+    const word = input.value.trim();
+    if (!word) {
+      alert('키워드를 입력해주세요.');
+      return;
+    }
+
+    fetch('/keywords/add/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: new URLSearchParams({ word: word }),
+    })
+    .then(response => {
+      if (response.ok) {
+        input.value = '';
+        loadKeywords();
+        alert(`'${word}' 키워드가 등록되었습니다.`);
+      } else {
+        alert('키워드 등록 실패');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('키워드 등록 중 오류가 발생했습니다.');
+    });
+  }
+
+  // 서버에서 알림 목록 불러오기
   function loadNotifications() {
     fetch('/notifications/')
       .then(res => res.json())
@@ -83,7 +131,7 @@
       .catch(console.error);
   }
 
-  // 사이드바가 열릴 때 키워드와 알림 목록 같이 불러오기
+  // 사이드바 열릴 때 키워드와 알림 목록 로드
   const originalToggleSidebar = window.toggleSidebar;
   window.toggleSidebar = function() {
     originalToggleSidebar();
@@ -92,5 +140,5 @@
       loadKeywords();
       loadNotifications();
     }
-  }
+  };
 </script>
