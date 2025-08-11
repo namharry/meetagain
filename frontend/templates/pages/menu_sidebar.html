@@ -30,6 +30,11 @@
   </style>
 
   <ul class="menu-list">
+    <!-- 홈: users.mypage 으로 연결 -->
+     <li class="menu-item">
+      <a href="{% url 'meetagain:index'%}"><i class="fa-solid fa-house" aria-hidden="true"></i><span>홈</span></a>
+     </li>
+
     <!-- 마이페이지: users.mypage 으로 연결 -->
     <li class="menu-item">
       <a href="{% url 'users:mypage' %}"><i class="fa-regular fa-user"></i> 마이페이지</a>
