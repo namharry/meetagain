@@ -1,7 +1,7 @@
 #meetagain/forms.py
 
 from django import forms
-from .models import LostItem, FoundItem, Keyword, Notice
+from .models import LostItem, FoundItem, Keyword, Notice, Inquiry
 from django.core.exceptions import ValidationError
 from datetime import date
 
@@ -128,4 +128,14 @@ class NoticeForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
+        }
+
+class InquiryForm(forms.ModelForm):
+    class Meta:
+        model = Inquiry
+        fields = ['subject', 'category', 'content']
+        widgets = {
+            'subject': forms.TextInput(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'content': forms.Textarea(attrs={'class': 'form-control'}),
         }
