@@ -63,34 +63,41 @@
 {% block content %}
 <div class="register-box">
   <h2 class="mb-3">📌 습득물 등록하기</h2>
-  <p class="text-muted mb-4">분실자가 본인의 물건을 찾을 수 있도록, 정확한 정보를 입력해주세요.</p>
+  <p class="text-muted mb-4">지도를 클릭해 습득 위치를 지정해 주세요.</p>
 
-  <form>
-    <!-- 글제목 (가로 정렬 + 크기 키움) -->
-    <div class="mb-3 row align-items-center">
-      <label for="title" class="col-sm-2 col-form-label fw-semibold" style="font-size: 1.3rem;">📝 글 제목</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control" id="title" required>
-      </div>
-    </div>
+  <!-- ✅ 서버에 제출되도록 action/POST/enctype/csrf 적용 -->
+  <form action="{% url 'meetagain:found_register' %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
 
     <!-- 분류 -->
     <div class="section-title">📂 분류</div>
     <div class="row mb-3">
       <div class="col-md-6">
         <label for="category" class="form-label">종류</label>
-        <select class="form-select" id="category" required>
+        <!-- ✅ name 매칭 -->
+        <select class="form-select" id="category" name="category" required>
           <option value="">종류 선택</option>
-          <option value="가방">가방</option>
-          <option value="귀금속">귀금속</option>
-          <option value="의류">의류</option>
-          <option value="전자기기">전자기기</option>
-          <option value="지갑">지갑</option>
-          <option value="컴퓨터">컴퓨터</option>
-          <option value="카드">카드</option>
-          <option value="현금">현금</option>
-          <option value="휴대폰">휴대폰</option>
-          <option value="기타">기타</option>
+          {% if form and form.category %}
+            {% for v,l in form.category.field.choices %}
+              {% if v %}<option value="{{ v }}">{{ l }}</option>{% endif %}
+            {% endfor %}
+          {% else %}
+            <!-- 폼이 없을 때를 대비한 fallback (모델 choices와 동일) -->
+            <option value="카드">카드</option>
+            <option value="지갑">지갑</option>
+            <option value="전자기기">전자기기</option>
+            <option value="의류">의류</option>
+            <option value="가방">가방</option>
+            <option value="신발">신발</option>
+            <option value="문서/서류">문서/서류</option>
+            <option value="귀금속">귀금속</option>
+            <option value="악기">악기</option>
+            <option value="책/노트">책/노트</option>
+            <option value="스포츠 용품">스포츠 용품</option>
+            <option value="신분증">신분증</option>
+            <option value="현금">현금</option>
+            <option value="기타">기타</option>
+          {% endif %}
         </select>
       </div>
       <div class="col-md-6">
@@ -105,12 +112,15 @@
     <div class="section-title">🔍 상세 내용</div>
     <div class="mb-3">
       <label for="item_name" class="form-label">습득물명</label>
-      <input type="text" class="form-control" id="item_name" required>
+      <!-- ✅ name="name" -->
+      <input type="text" class="form-control" id="item_name" name="name" required>
     </div>
+
     <div class="row mb-3">
       <div class="col-md-6">
         <label for="location" class="form-label">습득장소</label>
-        <select class="form-select" id="location" required>
+        <!-- ✅ name="found_location" -->
+        <select class="form-select" id="location" name="found_location" required>
           <option value="">장소 선택</option>
           <option>난향관</option>
           <option>성신관</option>
@@ -128,29 +138,47 @@
       </div>
       <div class="col-md-6">
         <label for="date" class="form-label">습득일시</label>
-        <input type="date" class="form-control" id="date" required>
+        <!-- ✅ name="found_date" -->
+        <input type="date" class="form-control" id="date" name="found_date" required>
       </div>
     </div>
 
     <div class="mb-3">
-      <label for="storage" class="form-label">보관장소</label>
-      <input type="text" class="form-control" id="storage">
+      <label for="description" class="form-label">습득물 특징</label>
+      <!-- ✅ name="description" -->
+      <textarea class="form-control" id="description" name="description" rows="3"
+        placeholder="예: 지퍼 옆에 하트 키링이 달려 있어요."></textarea>
     </div>
 
+    <!-- 처리 상태 -->
     <div class="mb-3">
-      <label for="description" class="form-label">습득물 특징</label>
-      <textarea class="form-control" id="description" rows="3" placeholder="예: 지퍼 옆에 하트 키링이 달려 있어요."></textarea>
+      <label class="form-label">처리 상태</label>
+      <!-- ✅ name="is_returned" (뷰에서 true/false 처리 가능) -->
+      <select class="form-select" name="is_returned" id="is_returned">
+        <option value="false" selected>보관 중</option>
+        <option value="true">소유자 반환</option>
+      </select>
     </div>
+
+    <!-- 🛰️ 좌표(hidden) -->
+    <input type="hidden" id="lat" name="lat">
+    <input type="hidden" id="lng" name="lng">
+
+    <!-- 🗺️ 지도 -->
+    <div class="section-title">🗺️ 지도에서 위치 지정</div>
+    <div id="map" style="width:100%; height:360px; border-radius:12px; border:1px solid #ddd;"></div>
+    <small class="text-muted">지도를 클릭하면 핀이 찍히고, 그 좌표가 자동으로 저장됩니다.</small>
 
     <!-- 사진 -->
-    <div class="section-title">🖼️ 사진 첨부</div>
+    <div class="section-title mt-4">🖼️ 사진 첨부</div>
     <div class="mb-4">
-      <input class="form-control" type="file" id="image" accept="image/*">
+      <!-- ✅ name="image" -->
+      <input class="form-control" type="file" id="image" name="image" accept="image/*">
     </div>
 
     <!-- 작성 버튼 -->
     <div class="d-grid">
-      <button type="submit" class="btn btn-primary">✅ 작성 완료하기</button>
+      <button type="submit" class="btn btn-primary" id="submitBtn">✅ 작성 완료하기</button>
     </div>
   </form>
 </div>
@@ -161,6 +189,7 @@
 
 {% block extra_scripts %}
 <script>
+  // 세부옵션 채우기 (UI용)
   const subOptions = {
     "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
     "의류": ["모자", "신발", "아우터", "기타의류"],
@@ -170,22 +199,64 @@
   const categorySelect = document.getElementById("category");
   const subcategorySelect = document.getElementById("subcategory");
 
-  categorySelect.addEventListener("change", function () {
-    const selected = this.value;
-    subcategorySelect.innerHTML = '<option value="">세부옵션 선택</option>';
-    if (subOptions[selected]) {
-      subOptions[selected].forEach(option => {
+  if (categorySelect) {
+    categorySelect.addEventListener("change", function () {
+      const selected = this.value;
+      subcategorySelect.innerHTML = '<option value="">세부옵션 선택</option>';
+      if (subOptions[selected]) {
+        subOptions[selected].forEach(option => {
+          const opt = document.createElement("option");
+          opt.value = option;
+          opt.textContent = option;
+          subcategorySelect.appendChild(opt);
+        });
+      } else if (selected) {
         const opt = document.createElement("option");
-        opt.value = option;
-        opt.textContent = option;
+        opt.value = "해당 없음";
+        opt.textContent = "해당 없음";
         subcategorySelect.appendChild(opt);
-      });
-    } else if (selected) {
-      const opt = document.createElement("option");
-      opt.value = "해당 없음";
-      opt.textContent = "해당 없음";
-      subcategorySelect.appendChild(opt);
-    }
-  });
+      }
+    });
+  }
+
+  // ====== 카카오맵: 클릭하면 마커 찍고 hidden(lat,lng) 채우기 ======
+  (function(){
+    const latInput = document.getElementById('lat');
+    const lngInput = document.getElementById('lng');
+
+    // 캠퍼스 중심 임시 좌표 (원하면 변경 OK)
+    const DEFAULT_CENTER = new kakao.maps.LatLng(37.5909, 127.0205);
+
+    const map = new kakao.maps.Map(document.getElementById('map'), {
+      center: DEFAULT_CENTER,
+      level: 4
+    });
+
+    let marker = new kakao.maps.Marker({
+      position: DEFAULT_CENTER,
+      draggable: false
+    });
+
+    // 초기엔 마커 숨김 (좌표 미선택 구분)
+    marker.setMap(null);
+
+    // 지도 클릭 시: 마커 표시/이동 + hidden 값 채우기
+    kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+      const latlng = mouseEvent.latLng;
+      marker.setPosition(latlng);
+      marker.setMap(map);
+
+      latInput.value = latlng.getLat().toFixed(6);
+      lngInput.value = latlng.getLng().toFixed(6);
+    });
+
+    // 제출 전 좌표 선택 여부 확인
+    document.getElementById('submitBtn').addEventListener('click', function(e){
+      if (!latInput.value || !lngInput.value) {
+        e.preventDefault();
+        alert('지도를 클릭해 위치(핀)를 먼저 지정해 주세요.');
+      }
+    });
+  })();
 </script>
 {% endblock %}
