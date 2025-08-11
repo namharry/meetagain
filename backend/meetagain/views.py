@@ -10,9 +10,10 @@ from django.contrib.auth import logout, authenticate
 from datetime import datetime
 import json
 
-from .models import LostItem, FoundItem, Keyword, Notification, Notice
+from .models import LostItem, FoundItem, Keyword, Notification, Notice, Inquiry
 from .forms import LostItemForm, FoundItemForm, NoticeForm
 from users.forms import SignupForm
+from .forms import InquiryForm
 
 
 # staff_member_required를 직접 정의
@@ -423,12 +424,6 @@ def faq_view(request):
 def notice_view(request):
     return render(request, "notice/notice_list.html")
 
-<<<<<<< HEAD
-
-def inquiry_view(request):
-    return render(request, "help/help_inquiry.html")
-
-=======
 # --------------------
 # 문의사항 관련 뷰
 # --------------------
@@ -445,13 +440,9 @@ def inquiry_view(request):
     else:
         form = InquiryForm()
     return render(request, "help/help_inquiry.html", {'form': form})
->>>>>>> 54f4a88d15c6c3dacc1ece0d7979d301df0f6835
 
 @login_required
 def myinquiries_view(request):
-<<<<<<< HEAD
-    return render(request, "help/help_myinquiries.html")
-=======
     inquiries = Inquiry.objects.filter(user=request.user).order_by('-created_at')
     return render(request, "help/help_myinquiries.html", {'inquiries': inquiries})
 
@@ -479,4 +470,3 @@ def inquiry_create(request):
 
 def inquiry_success(request):
     return render(request, 'meetagain/inquiry_success.html')
->>>>>>> 54f4a88d15c6c3dacc1ece0d7979d301df0f6835
