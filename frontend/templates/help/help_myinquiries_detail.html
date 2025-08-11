@@ -1,0 +1,51 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}문의 상세 - MeetAgain{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 820px; margin-top: 60px;">
+  <h2 class="mb-2" style="color:#6A5ACD; font-weight: 800;">{{ inquiry.subject }}</h2>
+
+  <p class="text-muted mb-3">
+    카테고리:
+    <strong>{% if inquiry.get_category_display %}{{ inquiry.get_category_display }}{% else %}{{ inquiry.category }}{% endif %}</strong>
+    · 작성일: {{ inquiry.created_at|date:"Y-m-d H:i" }}
+    {% if inquiry.updated_at and inquiry.updated_at != inquiry.created_at %}
+      · 수정: {{ inquiry.updated_at|date:"Y-m-d H:i" }}
+    {% endif %}
+  </p>
+
+  <hr>
+
+  <div class="mb-4">
+    <h6 class="text-muted mb-2">문의 내용</h6>
+    <div class="p-3 border rounded" style="background:#faf9ff;">
+      {{ inquiry.content|linebreaks }}
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <h6 class="text-muted mb-2">답변</h6>
+    {% if inquiry.answer %}
+      <div class="p-3 border rounded bg-white">
+        {{ inquiry.answer|linebreaks }}
+      </div>
+    {% else %}
+      <div class="p-3 border rounded bg-white">
+        <span class="text-muted">아직 답변이 등록되지 않았습니다.</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="d-flex gap-2">
+    <!-- 네임스페이스 포함 -->
+    <a href="{% url 'meetagain:myinquiries' %}" class="btn btn-secondary">목록</a>
+
+    {% if user.is_authenticated and user.id == inquiry.user_id %}
+      <!-- edit를 같은 작성 폼으로 보낼 경우 pk를 쿼리로 전달 -->
+      <a href="{% url 'meetagain:inquiry' %}?edit={{ inquiry.pk }}" class="btn btn-warning">수정</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

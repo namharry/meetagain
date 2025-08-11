@@ -122,19 +122,34 @@ class Notice(models.Model):
         return self.title
 
 class Inquiry(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=200)
-    category = models.CharField(max_length=20, choices=[
+    STATUS_CHOICES = [
+        ('pending', '대기 중'),
+        ('answered', '답변 완료'),
+        ('closed', '종료'),
+    ]
+
+    CATEGORY_CHOICES = [
         ('login', '로그인 문제'),
         ('lost', '분실물 등록/조회'),
         ('account', '계정 관련'),
         ('other', '기타'),
-    ],
-    default='other'
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200)
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default='other'
     )
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, default='pending')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    response = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user} - {self.subject}"

@@ -423,10 +423,60 @@ def faq_view(request):
 def notice_view(request):
     return render(request, "notice/notice_list.html")
 
+<<<<<<< HEAD
 
 def inquiry_view(request):
     return render(request, "help/help_inquiry.html")
 
+=======
+# --------------------
+# 문의사항 관련 뷰
+# --------------------
+@login_required
+def inquiry_view(request):
+    if request.method == 'POST':
+        form = InquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.user = request.user
+            inquiry.save()
+            messages.success(request, '문의가 등록되었습니다.')
+            return redirect('meetagain:myinquiries')
+    else:
+        form = InquiryForm()
+    return render(request, "help/help_inquiry.html", {'form': form})
+>>>>>>> 54f4a88d15c6c3dacc1ece0d7979d301df0f6835
 
+@login_required
 def myinquiries_view(request):
+<<<<<<< HEAD
     return render(request, "help/help_myinquiries.html")
+=======
+    inquiries = Inquiry.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, "help/help_myinquiries.html", {'inquiries': inquiries})
+
+@login_required
+def inquiry_detail_view(request, pk):
+    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만 접근
+    return render(request, "help/help_myinquiries_detail.html", {"inquiry": inquiry})
+
+# --------------------
+# 관리자용 문의사항 관련 뷰
+# --------------------
+
+@login_required
+def inquiry_create(request):
+    if request.method == 'POST':
+        form = InquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.user = request.user
+            inquiry.save()
+            return redirect('inquiry_success')  # 성공 페이지 또는 목록 등으로 리다이렉트
+    else:
+        form = InquiryForm()
+    return render(request, 'meetagain/inquiry_form.html', {'form': form})
+
+def inquiry_success(request):
+    return render(request, 'meetagain/inquiry_success.html')
+>>>>>>> 54f4a88d15c6c3dacc1ece0d7979d301df0f6835

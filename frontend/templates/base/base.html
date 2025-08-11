@@ -1,4 +1,4 @@
- {% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -14,6 +14,28 @@
   <!-- Kakao Map -->
   <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f387153e7e5f423d38f1a6d392d6bef8&libraries=services"></script>
 
+  <style>
+    .btn-found {
+      background-color: #ebf0ff; /* 아주 연한 연파랑+흰색 */
+      color: #000000; /* 검정 텍스트 */
+      border: none;
+    }
+    .btn-found:hover {
+      background-color: #d4dbff; /* 호버 시 약간 진해짐 */
+      color: #000000;
+    }
+
+    .btn-lost {
+      background-color: #f5ebff; /* 아주 연한 연보라+흰색 */
+      color: #000000; /* 검정 텍스트 */
+      border: none;
+    }
+    .btn-lost:hover {
+      background-color: #ddc4ff; /* 호버 시 약간 진해짐 */
+      color: #000000;
+    }
+  </style>
+
   {% block extra_head %}{% endblock %}
   {% block extra_css %}{% endblock %}
 </head>
@@ -21,23 +43,16 @@
 
 <div class="container-fluid mt-4 position-relative">
 
-  <!-- ✅ 로그인/회원가입/비번재설정 페이지에서는 상단 아이콘 숨기기 -->
   {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path != '/users/password_reset/' %}
-  <div class="top-icons d-flex justify-content-end gap-3" style="position: fixed; top: 20px; right: 20px; font-size: 20px; z-index: 1100;">
-    <!-- 알림(오른쪽에서 슬라이드) -->
+  <div id="topIcons" class="top-icons d-flex justify-content-end gap-3" style="position: fixed; top: 20px; right: 20px; font-size: 20px; z-index: 1100;">
     <i class="fa-solid fa-bell" onclick="toggleSidebar()" style="cursor:pointer;"></i>
-    <!-- 메뉴(왼쪽에서 슬라이드) -->
     <i class="fa-solid fa-bars" onclick="toggleMenuSidebar()" style="cursor:pointer;"></i>
   </div>
   {% endif %}
 
-  <!-- 📂 메뉴 사이드바 (왼쪽 슬라이드) -->
   {% include "pages/menu_sidebar.html" %}
-
-  <!-- 🔔 알림 사이드바 (오른쪽 슬라이드) -->
   {% include "pages/alert_sidebar.html" %}
 
-  <!-- Django messages -->
   {% if messages %}
     <div class="container mt-3">
       {% for message in messages %}
@@ -46,31 +61,38 @@
     </div>
   {% endif %}
 
-  <!-- 메인 콘텐츠 -->
   {% block content %}{% endblock %}
 </div>
 
-<!-- 공통 스크립트 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 
-<!-- 전역: 알림/메뉴 사이드바 토글 & 키워드 로직 -->
 <script>
-  // 🔔 알림 사이드바 토글 (오른쪽)
+  // 알림 사이드바 토글 (오른쪽)
   window.toggleSidebar = function () {
     const el = document.getElementById('alertSidebar');
-    if (!el) return;
+    const icons = document.getElementById('topIcons');
+    if (!el || !icons) return;
+
     const isOpen = el.dataset.open === '1';
-    el.style.right = isOpen ? '-400px' : '0';
-    el.dataset.open = isOpen ? '0' : '1';
+    const newOpenState = isOpen ? '0' : '1';
+    el.style.right = newOpenState === '1' ? '0' : '-400px';
+    el.dataset.open = newOpenState;
+
+    icons.style.setProperty('display', newOpenState === '1' ? 'none' : 'flex', 'important');
   };
 
-  // 📂 메뉴 사이드바 토글 (왼쪽)
+  // 메뉴 사이드바 토글 (오른쪽)
   window.toggleMenuSidebar = function () {
     const el = document.getElementById('menuSidebar');
-    if (!el) return;
+    const icons = document.getElementById('topIcons');
+    if (!el || !icons) return;
+
     const isOpen = el.dataset.open === '1';
-    el.style.left = isOpen ? '-300px' : '0';
-    el.dataset.open = isOpen ? '0' : '1';
+    const newOpenState = isOpen ? '0' : '1';
+    el.style.right = newOpenState === '1' ? '0' : '-300px';
+    el.dataset.open = newOpenState;
+
+    icons.style.setProperty('display', newOpenState === '1' ? 'none' : 'flex', 'important');
   };
 
   // 알림 사이드바 내 키워드 입력 토글
