@@ -53,4 +53,10 @@ urlpatterns = [
     # 문의사항 관련 
     path("inquiry/", views.inquiry_view, name="inquiry"),
     path("myinquiries/", views.myinquiries_view, name="myinquiries"),
+
+    # 관리자 페이지 문의사항 관련
+    path('inquiry/', views.inquiry_create, name='inquiry_create'),
+    path('inquiry/success/', views.inquiry_success, name='inquiry_success'),
+    
+
 ]

@@ -121,5 +121,22 @@ class Notice(models.Model):
     def __str__(self):
         return self.title
 
-    
+class Inquiry(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=200)
+    category = models.CharField(max_length=20, choices=[
+        ('login', '로그인 문제'),
+        ('lost', '분실물 등록/조회'),
+        ('account', '계정 관련'),
+        ('other', '기타'),
+    ],
+    default='other'
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='pending')
+
+    def __str__(self):
+        return f"{self.user} - {self.subject}"
+
     

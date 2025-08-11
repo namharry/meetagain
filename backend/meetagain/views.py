@@ -8,9 +8,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import logout, authenticate
 from datetime import datetime
 import json
-from .models import LostItem, FoundItem, Keyword, Notification, Notice
-from .forms import LostItemForm, FoundItemForm
+from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
+from .forms import LostItemForm, FoundItemForm, InquiryForm
 from users.forms import SignupForm
+from django.shortcuts import render, redirect
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -410,10 +411,40 @@ def notice_view(request):
     return render(request, "notice/notice_list.html")
 
 # --------------------
-# 공지사항 관련 뷰
+# 문의사항 관련 뷰
 # --------------------
 def inquiry_view(request):
-    return render(request, "help/help_inquiry.html")
+    if request.method == 'POST':
+        form = InquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.user = request.user  # 로그인한 사용자 연결
+            inquiry.save()
+            return redirect('meetagain:myinquiries')  # 저장 후 내 문의 내역으로 이동
+    else:
+        form = InquiryForm()
+    return render(request, "help/help_inquiry.html", {'form': form})
 
 def myinquiries_view(request):
-    return render(request, "help/help_myinquiries.html")
+    inquiries = Inquiry.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, "help/help_myinquiries.html", {'inquiries': inquiries})
+
+# --------------------
+# 관리자용 문의사항 관련 뷰
+# --------------------
+
+@login_required
+def inquiry_create(request):
+    if request.method == 'POST':
+        form = InquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.user = request.user
+            inquiry.save()
+            return redirect('inquiry_success')  # 성공 페이지 또는 목록 등으로 리다이렉트
+    else:
+        form = InquiryForm()
+    return render(request, 'meetagain/inquiry_form.html', {'form': form})
+
+def inquiry_success(request):
+    return render(request, 'meetagain/inquiry_success.html')

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import LostItem, FoundItem, Notice
+from .models import LostItem, FoundItem, Notice, Inquiry
 
 admin.site.register(LostItem)
 
@@ -18,3 +18,12 @@ class NoticeAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'created_at', 'updated_at')
     search_fields = ('title', 'content', 'author__username')
     list_filter = ('created_at', 'updated_at')
+
+from django.contrib import admin
+from .models import Inquiry  # Inquiry 모델 import
+
+@admin.register(Inquiry)
+class InquiryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'subject', 'created_at', 'status')
+    list_filter = ('status', 'created_at')
+    search_fields = ('subject', 'content', 'user__username')
