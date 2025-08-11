@@ -77,8 +77,7 @@
         margin-top: 15px;
         font-size: 0.95rem;
     }
-</style>
-{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
 <div class="container">
@@ -86,26 +85,31 @@
 
     <div class="row">
         <div class="col-md-4">
-            <img src="img/bag.jpg" alt="검정색 가방" class="img-box">
+            {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-box">
+            {% else %}
+                <img src="/static/img/default.jpg" alt="이미지 없음" class="img-box">
+            {% endif %}
             <button class="btn btn-outline w-100">지도에서 위치 보기</button>
         </div>
+
         <div class="col-md-8">
             <ul class="list-group">
-                <li class="list-group-item"><span class="label">습득물명</span>검정색 가방</li>
-                <li class="list-group-item"><span class="label">관리번호</span>2025080801</li>
-                <li class="list-group-item"><span class="label">종류</span>가방</li>
-                <li class="list-group-item"><span class="label">습득일</span>2025-08-07</li>
-                <li class="list-group-item"><span class="label">습득장소</span>중앙도서관</li>
-                <li class="list-group-item"><span class="label">유실물 상태</span>보관 중</li>
-                <li class="list-group-item"><span class="label">보관장소</span>1층 분실물 센터</li>
+                <li class="list-group-item"><span class="label">습득물명</span> {{ item.name }}</li>
+                <li class="list-group-item"><span class="label">관리번호</span> {{ item.id }}</li>
+                <li class="list-group-item"><span class="label">종류</span> {{ item.get_category_display }}</li>
+                <li class="list-group-item"><span class="label">습득일</span> {{ item.found_date }}</li>
+                <li class="list-group-item"><span class="label">습득장소</span> {{ item.found_location }}</li>
+                <li class="list-group-item"><span class="label">유실물 상태</span> {{ item.get_status_display }}</li>
+                <li class="list-group-item"><span class="label">보관장소</span> {{ item.storage_location }}</li>
             </ul>
 
             <div class="detail-text mt-3">
                 <strong>상세 내용:</strong><br>
-                가방 안에 노트북과 책이 들어있습니다. 검정색 천 가방입니다.
+                {{ item.description|linebreaks }}
             </div>
 
-            <a href="lost_list.html" class="btn btn-primary mt-4">🏠 메인페이지로</a>
+            <a href="{% url 'meetagain:found_index' %}" class="btn btn-primary mt-4">🏠 메인페이지로</a>
         </div>
     </div>
 </div>

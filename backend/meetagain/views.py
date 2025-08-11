@@ -126,8 +126,11 @@ def found_register_view(request):
             raw = request.POST.get('is_returned', '')
             obj.is_returned = (str(raw).lower() in ('true', '1', 'on', 'yes'))
             obj.save()
-            return redirect('meetagain:found_detail', item_id=obj.id)
+            print("저장완료", obj)  # 디버깅용 로그
+            #등록되었습니다 메세지
+            return render(request, 'found/found_register_success.html')
         else:
+            print("폼 유효성 검사 실패", form.errors)
             return render(request, 'found/found_register.html', {'form': form})
     else:
         form = FoundItemForm()
