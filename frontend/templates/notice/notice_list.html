@@ -9,7 +9,7 @@
     {% for notice in notices %}
     <div class="mb-3">
         <h5>
-            <a href="{% url 'notice_detail' notice.id %}">
+            <a href="{% url 'meetagain:notice_detail' notice.id %}">
                 {{ notice.title }}
             </a>
         </h5>
@@ -22,7 +22,7 @@
 
     {% if user.is_staff %}
     <div class="text-end mt-3">
-        <a href="{% url 'notice_create' %}" class="btn btn-primary">공지 작성</a>
+        <a href="{% url 'meetagain:notice_create' %}" class="btn btn-primary">공지 작성</a>
     </div>
     {% endif %}
 </div>
