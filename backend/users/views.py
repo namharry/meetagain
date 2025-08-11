@@ -86,6 +86,7 @@ def verify_reset_code_ajax(request):
         code = request.POST.get('code')
         if verify_auth_code(email, code, purpose='reset'):
             request.session['reset_verified_email'] = email
+            request.session['reset_step'] = 'password'
             return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
@@ -143,72 +144,100 @@ class CustomPasswordChangeView(PasswordChangeView):
 # 🔐 비밀번호 재설정 (이메일 인증 기반)
 # ------------------------------
 def custom_password_reset_view(request):
+    """
+    비밀번호 재설정(이메일 → 코드 → 새 비번) 뷰.
+    - GET 진입 시 단계 초기화(항상 email 단계부터 시작)
+    - 코드 검증은 AJAX 또는 폼 submit 모두 지원
+    - 비번 변경 후에는 authenticate() → login() 순으로 자동 로그인
+    """
+    # 0) GET으로 들어오면 항상 초기화 (원치 않으면 이 블록 제거)
+    if request.method == 'GET':
+        for k in ('reset_step', 'reset_email', 'reset_verified_email'):
+            request.session.pop(k, None)
+
     step = request.session.get('reset_step', 'email')
-    verified_email = request.session.get('reset_verified_email')
 
-    # 1단계: 이메일 입력 및 인증번호 전송
-    if 'send_code' in request.POST:
-        form = PasswordResetWithCodeForm(request.POST, step='email')
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            if not User.objects.filter(email=email).exists():
-                form.add_error('email', "등록되지 않은 이메일입니다.")
+    if request.method == 'POST':
+        # 1) 인증번호 전송
+        if 'send_code' in request.POST:
+            form = PasswordResetWithCodeForm(request.POST, step='email')
+            if form.is_valid():
+                email = form.cleaned_data['email'].strip().lower()
+                if not User.objects.filter(email=email).exists():
+                    form.add_error('email', "등록되지 않은 이메일입니다.")
+                    step = 'email'
+                else:
+                    send_auth_code(email, purpose="reset")
+                    request.session['reset_email'] = email
+                    request.session['reset_step'] = 'code'
+                    step = 'code'
+                    messages.info(request, "인증번호가 이메일로 전송되었습니다.")
+            else:
                 step = 'email'
-            else:
-                send_auth_code(email, purpose="reset")
-                request.session['reset_step'] = 'code'
-                request.session['reset_email'] = email
-                step = 'code'
-                messages.info(request, "인증번호가 이메일로 전송되었습니다.")
-        else:
-            step = 'email'
 
-    # 2단계: 인증번호 확인
-    elif 'verify_code' in request.POST:
-        form = PasswordResetWithCodeForm(request.POST, step='code')
-        email = request.session.get('reset_email')
-        if form.is_valid():
-            code = form.cleaned_data['auth_code']
-            if email and verify_auth_code(email, code, purpose="reset"):
-                request.session['reset_step'] = 'password'
-                request.session['reset_verified_email'] = email
-                step = 'password'
-                messages.success(request, "인증이 완료되었습니다. 새 비밀번호를 입력하세요.")
+        # 2) (옵션) 폼 submit으로 코드 검증하는 흐름
+        elif 'verify_code' in request.POST:
+            form = PasswordResetWithCodeForm(request.POST, step='code')
+            email = request.session.get('reset_email')
+            if form.is_valid():
+                code = form.cleaned_data['auth_code']
+                if email and verify_auth_code(email, code, purpose="reset"):
+                    request.session['reset_verified_email'] = email
+                    request.session['reset_step'] = 'password'
+                    step = 'password'
+                    messages.success(request, "인증이 완료되었습니다. 새 비밀번호를 입력하세요.")
+                else:
+                    form.add_error('auth_code', "인증번호가 올바르지 않거나 만료되었습니다.")
+                    step = 'code'
             else:
-                form.add_error('auth_code', "인증번호가 올바르지 않거나 만료되었습니다.")
                 step = 'code'
-        else:
-            step = 'code'
 
-    # 3단계: 새 비밀번호 설정 + 자동 로그인
-    elif 'reset_password' in request.POST:
-        form = PasswordResetWithCodeForm(request.POST, step='password')
-        if form.is_valid():
-            new_password = form.cleaned_data['new_password']
-            email = verified_email  # 세션에 저장된 인증된 이메일만 사용
-            if not email:
-                messages.error(request, "인증 절차를 먼저 완료해주세요.")
-                return redirect('users:password_reset')
-            try:
-                user = User.objects.get(email=email)
+        # 3) 새 비밀번호 설정
+        elif 'reset_password' in request.POST:
+            form = PasswordResetWithCodeForm(request.POST, step='password')
+            email = request.session.get('reset_verified_email')
+            if form.is_valid():
+                if not email:
+                    messages.error(request, "인증 절차를 먼저 완료해주세요.")
+                    return redirect('users:password_reset')
+                try:
+                    user = User.objects.get(email=email)
+                except User.DoesNotExist:
+                    messages.error(request, "등록되지 않은 이메일입니다.")
+                    return redirect('users:password_reset')
+
+                new_password = form.cleaned_data['new_password']
                 user.set_password(new_password)
                 user.save()
-                # 인증 완료 후 자동 로그인
-                login(request, user)
-                messages.success(request, "비밀번호가 재설정되었습니다.")
-                # 비밀번호 변경 완료 후 세션 정리
-                request.session.pop('reset_email', None)
-                request.session.pop('reset_verified_email', None)
-                request.session.pop('reset_step', None)
-                return redirect('users:login') 
-            except User.DoesNotExist:
-                form.add_error('email', "등록되지 않은 이메일입니다.")
-                step = 'password'
-        else:
-            step = 'password'
 
-    # GET 요청 또는 초기 화면
+                # ✅ 여러 인증 백엔드 대응: 가능한 조합으로 차례대로 시도
+                auth_user = (
+                    authenticate(request, student_id=getattr(user, 'student_id', None), password=new_password)
+                    or authenticate(request, username=getattr(user, 'student_id', None), password=new_password)
+                    or authenticate(request, email=user.email, password=new_password)
+                )
+
+                if auth_user is not None:
+                    login(request, auth_user)
+                else:
+                    messages.warning(request, "비밀번호는 변경됐지만 자동 로그인에 실패했습니다. 다시 로그인해 주세요.")
+                    for k in ('reset_email', 'reset_verified_email', 'reset_step'):
+                        request.session.pop(k, None)
+                    return redirect('users:login')
+
+                messages.success(request, "비밀번호가 재설정되었습니다.")
+                for k in ('reset_email', 'reset_verified_email', 'reset_step'):
+                    request.session.pop(k, None)
+                return redirect('users:login')  
+            else:
+                step = 'password'
+
+        else:
+            # 알 수 없는 submit → 현재 단계 폼으로 재표시
+            form = PasswordResetWithCodeForm(step=step)
+
     else:
+        # GET: 현재 단계 폼
         form = PasswordResetWithCodeForm(step=step)
 
     return render(request, 'auth/reset_password.html', {
