@@ -281,7 +281,7 @@ def mark_notification_read_and_redirect(request, notification_id):
 @login_required
 def notification_list(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'pages/notification_list.html', {'notifications': notifications})
+    return render(request, 'pages/alert_sidebar.html', {'notifications': notifications})
 
 
 # --------------------
