@@ -13,7 +13,6 @@
       <p><strong>학번:</strong> {{ user.student_id }}</p>
       <p><strong>이메일:</strong> {{ user.email }}</p>
       <p><strong>가입일:</strong> {{ user.date_joined|date:"Y년 m월 d일" }}</p>
-      <a href="{% url 'users:password_change' %}" class="btn btn-outline-dark btn-sm mt-3">비밀번호 재설정</a>
     </div>
   </div>
 

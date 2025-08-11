@@ -1,7 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}MeetAgain{% endblock %}</title>
@@ -13,133 +12,118 @@
   <link href="{% static 'css/style.css' %}" rel="stylesheet">
 
   <!-- Kakao Map -->
-  <script
-    src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f387153e7e5f423d38f1a6d392d6bef8&libraries=services"></script>
+  <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f387153e7e5f423d38f1a6d392d6bef8&libraries=services"></script>
 
   <style>
-    /* 메뉴 사이드바를 오른쪽에서 나오도록 수정 */
-    #menuSidebar {
-      position: fixed;
-      top: 0;
-      right: -300px;
-      /* 숨김 상태 */
-      width: 300px;
-      height: 100%;
-      background: white;
-      z-index: 2000;
-      transition: right 0.3s ease;
+    .btn-found {
+      background-color: #ebf0ff; /* 아주 연한 연파랑+흰색 */
+      color: #000000; /* 검정 텍스트 */
+      border: none;
+    }
+    .btn-found:hover {
+      background-color: #d4dbff; /* 호버 시 약간 진해짐 */
+      color: #000000;
     }
 
-    /* 알림 사이드바 */
-    #alertSidebar {
-      position: fixed;
-      top: 0;
-      right: -400px;
-      /* 숨김 상태 */
-      width: 400px;
-      height: 100%;
-      background: white;
-      z-index: 2000;
-      transition: right 0.3s ease;
+    .btn-lost {
+      background-color: #f5ebff; /* 아주 연한 연보라+흰색 */
+      color: #000000; /* 검정 텍스트 */
+      border: none;
+    }
+    .btn-lost:hover {
+      background-color: #ddc4ff; /* 호버 시 약간 진해짐 */
+      color: #000000;
     }
   </style>
 
   {% block extra_head %}{% endblock %}
   {% block extra_css %}{% endblock %}
 </head>
-
 <body>
 
-  <div class="container-fluid mt-4 position-relative">
+<div class="container-fluid mt-4 position-relative">
 
-    <!-- ✅ 로그인/회원가입/비번재설정 페이지에서는 상단 아이콘 숨기기 -->
-    {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path !=
-    '/users/password_reset/' %}
-    <div class="top-icons d-flex justify-content-end gap-3"
-      style="position: fixed; top: 20px; right: 20px; font-size: 20px; z-index: 2100;">
-      <!-- 알림(오른쪽에서 슬라이드) -->
-      <i class="fa-solid fa-bell" onclick="toggleSidebar()" style="cursor:pointer;"></i>
-      <!-- 메뉴(오른쪽에서 슬라이드) -->
-      <i class="fa-solid fa-bars" onclick="toggleMenuSidebar()" style="cursor:pointer;"></i>
-    </div>
-    {% endif %}
+  {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path != '/users/password_reset/' %}
+  <div id="topIcons" class="top-icons d-flex justify-content-end gap-3" style="position: fixed; top: 20px; right: 20px; font-size: 20px; z-index: 1100;">
+    <i class="fa-solid fa-bell" onclick="toggleSidebar()" style="cursor:pointer;"></i>
+    <i class="fa-solid fa-bars" onclick="toggleMenuSidebar()" style="cursor:pointer;"></i>
+  </div>
+  {% endif %}
 
-    <!-- 📂 메뉴 사이드바 (오른쪽 슬라이드로 변경) -->
-    {% include "pages/menu_sidebar.html" %}
+  {% include "pages/menu_sidebar.html" %}
+  {% include "pages/alert_sidebar.html" %}
 
-    <!-- 🔔 알림 사이드바 (오른쪽 슬라이드) -->
-    {% include "pages/alert_sidebar.html" %}
-
-    <!-- Django messages -->
-    {% if messages %}
+  {% if messages %}
     <div class="container mt-3">
       {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
       {% endfor %}
     </div>
-    {% endif %}
+  {% endif %}
 
-    <!-- 메인 콘텐츠 -->
-    {% block content %}{% endblock %}
-  </div>
+  {% block content %}{% endblock %}
+</div>
 
-  <!-- 공통 스크립트 -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 
-  <!-- 전역: 알림/메뉴 사이드바 토글 & 키워드 로직 -->
-  <script>
-    // 🔔 알림 사이드바 토글 (오른쪽)
-    window.toggleSidebar = function () {
-      const el = document.getElementById('alertSidebar');
-      const icons = document.querySelector('.top-icons');
-      if (!el) return;
-      const isOpen = el.dataset.open === '1';
-      el.style.right = isOpen ? '-400px' : '0';
-      el.dataset.open = isOpen ? '0' : '1';
-      if (icons) icons.style.display = isOpen ? 'flex' : 'none'; // 아이콘 숨기기/보이기
-    };
+<script>
+  // 알림 사이드바 토글 (오른쪽)
+  window.toggleSidebar = function () {
+    const el = document.getElementById('alertSidebar');
+    const icons = document.getElementById('topIcons');
+    if (!el || !icons) return;
 
-    // 📂 메뉴 사이드바 토글 (오른쪽으로 변경)
-    window.toggleMenuSidebar = function () {
-      const el = document.getElementById('menuSidebar');
-      const icons = document.querySelector('.top-icons');
-      if (!el) return;
-      const isOpen = el.dataset.open === '1';
-      el.style.right = isOpen ? '-300px' : '0';
-      el.dataset.open = isOpen ? '0' : '1';
-      if (icons) icons.style.display = isOpen ? 'flex' : 'none'; // 아이콘 숨기기/보이기
-    };
+    const isOpen = el.dataset.open === '1';
+    const newOpenState = isOpen ? '0' : '1';
+    el.style.right = newOpenState === '1' ? '0' : '-400px';
+    el.dataset.open = newOpenState;
 
-    // 알림 사이드바 내 키워드 입력 토글
-    window.toggleKeywordInput = function () {
-      const g = document.getElementById('keywordInputGroup');
-      if (!g) return;
-      g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
-    };
+    icons.style.setProperty('display', newOpenState === '1' ? 'none' : 'flex', 'important');
+  };
 
-    // 알림 사이드바 키워드 추가(pill 형태)
-    window.addKeyword = function () {
-      const input = document.getElementById('keywordInput');
-      const list = document.getElementById('keywordList');
-      if (!input || !list) return;
-      const text = (input.value || '').trim();
-      if (!text) return;
-      const pill = document.createElement('span');
-      pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
-      pill.textContent = text;
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
-      removeBtn.textContent = '×';
-      removeBtn.onclick = () => pill.remove();
-      pill.appendChild(removeBtn);
-      list.appendChild(pill);
-      input.value = '';
-    };
-  </script>
+  // 메뉴 사이드바 토글 (오른쪽)
+  window.toggleMenuSidebar = function () {
+    const el = document.getElementById('menuSidebar');
+    const icons = document.getElementById('topIcons');
+    if (!el || !icons) return;
 
-  {% block extra_scripts %}{% endblock %}
-  {% block script %}{% endblock %}
+    const isOpen = el.dataset.open === '1';
+    const newOpenState = isOpen ? '0' : '1';
+    el.style.right = newOpenState === '1' ? '0' : '-300px';
+    el.dataset.open = newOpenState;
+
+    icons.style.setProperty('display', newOpenState === '1' ? 'none' : 'flex', 'important');
+  };
+
+  // 알림 사이드바 내 키워드 입력 토글
+  window.toggleKeywordInput = function () {
+    const g = document.getElementById('keywordInputGroup');
+    if (!g) return;
+    g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
+  };
+
+  // 알림 사이드바 키워드 추가(pill 형태)
+  window.addKeyword = function () {
+    const input = document.getElementById('keywordInput');
+    const list = document.getElementById('keywordList');
+    if (!input || !list) return;
+    const text = (input.value || '').trim();
+    if (!text) return;
+    const pill = document.createElement('span');
+    pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
+    pill.textContent = text;
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = () => pill.remove();
+    pill.appendChild(removeBtn);
+    list.appendChild(pill);
+    input.value = '';
+  };
+</script>
+
+{% block extra_scripts %}{% endblock %}
+{% block script %}{% endblock %}
 </body>
-
 </html>
