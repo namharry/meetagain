@@ -50,9 +50,10 @@ urlpatterns = [
     # 공지사항 관련
     path('notice/', views.notice_view, name='notice'),
 
-    # 문의사항 관련 
-    path("inquiry/", views.inquiry_view, name="inquiry"),
-    path("myinquiries/", views.myinquiries_view, name="myinquiries"),
+    # 문의사항 관련
+    path("inquiry/", views.inquiry_view, name="inquiry"),                 # 작성
+    path("myinquiries/", views.myinquiries_view, name="myinquiries"),     # 목록
+    path("myinquiries/<int:pk>/", views.inquiry_detail_view, name="inquiry_detail"),  # 상세
 
     # 관리자 페이지 문의사항 관련
     path('inquiry/', views.inquiry_create, name='inquiry_create'),

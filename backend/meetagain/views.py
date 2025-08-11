@@ -413,21 +413,29 @@ def notice_view(request):
 # --------------------
 # 문의사항 관련 뷰
 # --------------------
+@login_required
 def inquiry_view(request):
     if request.method == 'POST':
         form = InquiryForm(request.POST)
         if form.is_valid():
             inquiry = form.save(commit=False)
-            inquiry.user = request.user  # 로그인한 사용자 연결
+            inquiry.user = request.user
             inquiry.save()
-            return redirect('meetagain:myinquiries')  # 저장 후 내 문의 내역으로 이동
+            messages.success(request, '문의가 등록되었습니다.')
+            return redirect('meetagain:myinquiries')
     else:
         form = InquiryForm()
     return render(request, "help/help_inquiry.html", {'form': form})
 
+@login_required
 def myinquiries_view(request):
     inquiries = Inquiry.objects.filter(user=request.user).order_by('-created_at')
     return render(request, "help/help_myinquiries.html", {'inquiries': inquiries})
+
+@login_required
+def inquiry_detail_view(request, pk):
+    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만 접근
+    return render(request, "help/help_myinquiries_detail.html", {"inquiry": inquiry})
 
 # --------------------
 # 관리자용 문의사항 관련 뷰
