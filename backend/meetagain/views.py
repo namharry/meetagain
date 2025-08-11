@@ -451,6 +451,22 @@ def inquiry_detail_view(request, pk):
     inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만 접근
     return render(request, "help/help_myinquiries_detail.html", {"inquiry": inquiry})
 
+@login_required
+def inquiry_edit_view(request, pk):
+    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만
+
+    if request.method == 'POST':
+        form = InquiryForm(request.POST, instance=inquiry)  # ★ instance 지정
+        if form.is_valid():
+            form.save()  # user는 이미 설정돼 있으므로 다시 덮어쓸 필요 없음
+            messages.success(request, '문의가 수정되었습니다.')
+            return redirect('meetagain:inquiry_detail', pk=inquiry.pk)
+    else:
+        form = InquiryForm(instance=inquiry)
+
+    return render(request, "help/help_inquiry.html", {"form": form, "inquiry": inquiry})
+
+
 # --------------------
 # 관리자용 문의사항 관련 뷰
 # --------------------
