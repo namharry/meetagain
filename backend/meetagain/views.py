@@ -10,10 +10,9 @@ from django.contrib.auth import logout, authenticate
 from datetime import datetime
 import json
 
-from .models import LostItem, FoundItem, Keyword, Notification, Notice, Inquiry
+from .models import LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import LostItemForm, FoundItemForm, NoticeForm
 from users.forms import SignupForm
-from .forms import InquiryForm
 
 
 # staff_member_required를 직접 정의
@@ -26,7 +25,9 @@ def staff_member_required(view_func):
 
 # 메인 홈 화면용 뷰
 def index_view(request):
-    return render(request, 'pages/index.html')
+    # 메인에서 사용될 최신 습득물 6개
+    items = FoundItem.objects.all().order_by('-found_date')[:6]
+    return render(request, 'pages/index.html', {'items': items})
 
 
 # --------------------
@@ -198,7 +199,7 @@ def found_delete_view(request, item_id):
 def found_detail_view(request, item_id):
     item = get_object_or_404(FoundItem, id=item_id)
     context = {'item': item}
-    # ✅ 템플릿 경로 수정: founditem_detail.html 사용
+    # 템플릿 경로: founditem_detail.html 사용
     return render(request, 'found/founditem_detail.html', context)
 
 
@@ -424,49 +425,10 @@ def faq_view(request):
 def notice_view(request):
     return render(request, "notice/notice_list.html")
 
-# --------------------
-# 문의사항 관련 뷰
-# --------------------
-@login_required
+
 def inquiry_view(request):
-    if request.method == 'POST':
-        form = InquiryForm(request.POST)
-        if form.is_valid():
-            inquiry = form.save(commit=False)
-            inquiry.user = request.user
-            inquiry.save()
-            messages.success(request, '문의가 등록되었습니다.')
-            return redirect('meetagain:myinquiries')
-    else:
-        form = InquiryForm()
-    return render(request, "help/help_inquiry.html", {'form': form})
+    return render(request, "help/help_inquiry.html")
 
-@login_required
+
 def myinquiries_view(request):
-    inquiries = Inquiry.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, "help/help_myinquiries.html", {'inquiries': inquiries})
-
-@login_required
-def inquiry_detail_view(request, pk):
-    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만 접근
-    return render(request, "help/help_myinquiries_detail.html", {"inquiry": inquiry})
-
-# --------------------
-# 관리자용 문의사항 관련 뷰
-# --------------------
-
-@login_required
-def inquiry_create(request):
-    if request.method == 'POST':
-        form = InquiryForm(request.POST)
-        if form.is_valid():
-            inquiry = form.save(commit=False)
-            inquiry.user = request.user
-            inquiry.save()
-            return redirect('inquiry_success')  # 성공 페이지 또는 목록 등으로 리다이렉트
-    else:
-        form = InquiryForm()
-    return render(request, 'meetagain/inquiry_form.html', {'form': form})
-
-def inquiry_success(request):
-    return render(request, 'meetagain/inquiry_success.html')
+    return render(request, "help/help_myinquiries.html")
