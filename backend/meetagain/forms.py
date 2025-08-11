@@ -99,7 +99,6 @@ class FoundItemForm(forms.ModelForm):
             'description',
             'category',
             'found_location',
-            'image',
             'lat',
             'lng'
         ]

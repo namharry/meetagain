@@ -113,8 +113,15 @@
     <div class="mb-3">
       <label for="item_name" class="form-label">습득물명</label>
       <!-- ✅ name="name" -->
-      <input type="text" class="form-control" id="item_name" name="name" required>
-    </div>
+      <input type="text" class="form-control" id="item_name" name="name" 
+            value="{{ form.name.value|default_if_none:'' }}" required>
+      {% if form.name.errors %}
+        <div class="text-danger small mt-1">
+          {% for error in form.name.errors %}{{ error }}<br>{% endfor %}
+        </div>
+      {% endif %}
+      </div>
+
 
     <div class="row mb-3">
       <div class="col-md-6">
@@ -139,15 +146,26 @@
       <div class="col-md-6">
         <label for="date" class="form-label">습득일시</label>
         <!-- ✅ name="found_date" -->
-        <input type="date" class="form-control" id="date" name="found_date" required>
+        <input type="date" class="form-control" id="date" name="found_date" 
+              value="{{ form.found_date.value|default_if_none:'' }}" required>
+        {% if form.found_date.errors %}
+          <div class="text-danger small mt-1">
+            {% for error in form.found_date.errors %}{{ error }}<br>{% endfor %}
+          </div>
+        {% endif %}
+
       </div>
     </div>
 
     <div class="mb-3">
       <label for="description" class="form-label">습득물 특징</label>
       <!-- ✅ name="description" -->
-      <textarea class="form-control" id="description" name="description" rows="3"
-        placeholder="예: 지퍼 옆에 하트 키링이 달려 있어요."></textarea>
+      <textarea class="form-control" id="description" name="description" rows="3" placeholder="예: 지퍼 옆에 하트 키링이 달려 있어요.">{{ form.description.value|default_if_none:'' }}</textarea>
+      {% if form.description.errors %}
+        <div class="text-danger small mt-1">
+          {% for error in form.description.errors %}{{ error }}<br>{% endfor %}
+        </div>
+      {% endif %}
     </div>
 
     <!-- 처리 상태 -->
@@ -161,8 +179,9 @@
     </div>
 
     <!-- 🛰️ 좌표(hidden) -->
-    <input type="hidden" id="lat" name="lat">
-    <input type="hidden" id="lng" name="lng">
+    <input type="hidden" id="lat" name="lat" value="{{ form.lat.value|default_if_none:'' }}">
+    <input type="hidden" id="lng" name="lng" value="{{ form.lng.value|default_if_none:'' }}">
+
 
     <!-- 🗺️ 지도 -->
     <div class="section-title">🗺️ 지도에서 위치 지정</div>
@@ -174,6 +193,12 @@
     <div class="mb-4">
       <!-- ✅ name="image" -->
       <input class="form-control" type="file" id="image" name="image" accept="image/*">
+      {% if form.image.errors %}
+        <div class="text-danger small mt-1">
+          {% for error in form.image.errors %}{{ error }}<br>{% endfor %}
+        </div>
+      {% endif %}
+
     </div>
 
     <!-- 작성 버튼 -->
