@@ -92,9 +92,7 @@
           {% if item.status %}{{ item.get_status_display }}
           {% else %}{% if item.is_returned %}소유자 반환{% else %}보관 중{% endif %}{% endif %}
         </li>
-        {% if item.lat and item.lng %}
-          <li class="list-group-item"><span class="label">좌표</span> {{ item.lat }}, {{ item.lng }}</li>
-        {% endif %}
+        {# 좌표 숫자 노출은 제거했습니다. 지도 버튼/지도는 유지 #}
       </ul>
 
       <div class="detail-text mt-3">
