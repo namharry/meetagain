@@ -19,11 +19,18 @@ class NoticeAdmin(admin.ModelAdmin):
     search_fields = ('title', 'content', 'author__username')
     list_filter = ('created_at', 'updated_at')
 
-from django.contrib import admin
-from .models import Inquiry  # Inquiry 모델 import
-
 @admin.register(Inquiry)
 class InquiryAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'subject', 'created_at', 'status')
+    list_display = ('id', 'user', 'subject', 'created_at', 'status', 'response')
+    list_display_links = ('subject',)  # subject 필드 클릭 가능하도록 설정
     list_filter = ('status', 'created_at')
     search_fields = ('subject', 'content', 'user__username')
+    fields = ('user', 'subject', 'category', 'content', 'created_at', 'status', 'response')
+    readonly_fields = ('created_at',)
+
+    def save_model(self, request, obj, form, change):
+        if obj.response and obj.status != 'answered':
+            obj.status = 'answered'  # 답변이 있으면 상태 자동 변경
+        super().save_model(request, obj, form, change)
+
+
