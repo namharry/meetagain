@@ -225,11 +225,11 @@
     const lngInput = document.getElementById('lng');
 
     // 캠퍼스 중심 임시 좌표 (원하면 변경 OK)
-    const DEFAULT_CENTER = new kakao.maps.LatLng(37.5909, 127.0205);
+    const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
 
     const map = new kakao.maps.Map(document.getElementById('map'), {
       center: DEFAULT_CENTER,
-      level: 4
+      level: 1
     });
 
     let marker = new kakao.maps.Marker({
