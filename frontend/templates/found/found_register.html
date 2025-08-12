@@ -1,5 +1,7 @@
 {% extends 'base/base.html' %}
 
+{% load static %}
+
 {% block title %}📌 습득물 등록하기{% endblock %}
 
 {% block extra_head %}
@@ -65,24 +67,22 @@
   <h2 class="mb-3">📌 습득물 등록하기</h2>
   <p class="text-muted mb-4">지도를 클릭해 습득 위치를 지정해 주세요.</p>
 
-  <!-- ✅ 서버에 제출되도록 action/POST/enctype/csrf 적용 -->
   <form action="{% url 'meetagain:found_register' %}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <!-- 분류 -->
     <div class="section-title">📂 분류</div>
     <div class="row mb-3">
       <div class="col-md-6">
         <label for="category" class="form-label">종류</label>
-        <!-- ✅ name 매칭 -->
         <select class="form-select" id="category" name="category" required>
           <option value="">종류 선택</option>
           {% if form and form.category %}
             {% for v,l in form.category.field.choices %}
-              {% if v %}<option value="{{ v }}">{{ l }}</option>{% endif %}
+              {% if v %}
+                <option value="{{ v }}" {% if form.category.value == v %}selected{% endif %}>{{ l }}</option>
+              {% endif %}
             {% endfor %}
           {% else %}
-            <!-- 폼이 없을 때를 대비한 fallback (모델 choices와 동일) -->
             <option value="카드">카드</option>
             <option value="지갑">지갑</option>
             <option value="전자기기">전자기기</option>
@@ -102,64 +102,57 @@
       </div>
       <div class="col-md-6">
         <label for="subcategory" class="form-label">세부옵션</label>
-        <select class="form-select" id="subcategory">
+        <select class="form-select" id="subcategory" name="subcategory">
           <option value="">세부옵션 선택</option>
         </select>
       </div>
     </div>
 
-    <!-- 상세 내용 -->
     <div class="section-title">🔍 상세 내용</div>
     <div class="mb-3">
       <label for="item_name" class="form-label">습득물명</label>
-      <!-- ✅ name="name" -->
       <input type="text" class="form-control" id="item_name" name="name" 
-            value="{{ form.name.value|default_if_none:'' }}" required>
+             value="{{ form.name.value|default_if_none:'' }}" required>
       {% if form.name.errors %}
         <div class="text-danger small mt-1">
           {% for error in form.name.errors %}{{ error }}<br>{% endfor %}
         </div>
       {% endif %}
-      </div>
-
+    </div>
 
     <div class="row mb-3">
       <div class="col-md-6">
         <label for="location" class="form-label">습득장소</label>
-        <!-- ✅ name="found_location" -->
         <select class="form-select" id="location" name="found_location" required>
           <option value="">장소 선택</option>
-          <option>난향관</option>
-          <option>성신관</option>
-          <option>수정관</option>
-          <option>중앙도서관</option>
-          <option>조형1관</option>
-          <option>조형2관</option>
-          <option>체육관</option>
-          <option>프라임관</option>
-          <option>행정관</option>
-          <option>학생회관</option>
-          <option>음악관</option>
-          <option>기타</option>
+          <option {% if form.found_location.value == '난향관' %}selected{% endif %}>난향관</option>
+          <option {% if form.found_location.value == '성신관' %}selected{% endif %}>성신관</option>
+          <option {% if form.found_location.value == '수정관' %}selected{% endif %}>수정관</option>
+          <option {% if form.found_location.value == '중앙도서관' %}selected{% endif %}>중앙도서관</option>
+          <option {% if form.found_location.value == '조형1관' %}selected{% endif %}>조형1관</option>
+          <option {% if form.found_location.value == '조형2관' %}selected{% endif %}>조형2관</option>
+          <option {% if form.found_location.value == '체육관' %}selected{% endif %}>체육관</option>
+          <option {% if form.found_location.value == '프라임관' %}selected{% endif %}>프라임관</option>
+          <option {% if form.found_location.value == '행정관' %}selected{% endif %}>행정관</option>
+          <option {% if form.found_location.value == '학생회관' %}selected{% endif %}>학생회관</option>
+          <option {% if form.found_location.value == '음악관' %}selected{% endif %}>음악관</option>
+          <option {% if form.found_location.value == '기타' %}selected{% endif %}>기타</option>
         </select>
       </div>
       <div class="col-md-6">
         <label for="date" class="form-label">습득일시</label>
-        <!-- ✅ name="found_date" -->
         <input type="date" class="form-control" id="date" name="found_date" 
-              value="{{ form.found_date.value|default_if_none:'' }}" required>
+               value="{{ form.found_date.value|date:'Y-m-d' }}" required>
         {% if form.found_date.errors %}
           <div class="text-danger small mt-1">
             {% for error in form.found_date.errors %}{{ error }}<br>{% endfor %}
           </div>
         {% endif %}
-
       </div>
     </div>
 
     <div class="mb-3">
       <label for="description" class="form-label">습득물 특징</label>
-      <!-- ✅ name="description" -->
       <textarea class="form-control" id="description" name="description" rows="3" placeholder="예: 지퍼 옆에 하트 키링이 달려 있어요.">{{ form.description.value|default_if_none:'' }}</textarea>
       {% if form.description.errors %}
         <div class="text-danger small mt-1">
@@ -168,53 +161,42 @@
       {% endif %}
     </div>
 
-    <!-- 처리 상태 -->
     <div class="mb-3">
       <label class="form-label">처리 상태</label>
-      <!-- ✅ name="is_returned" (뷰에서 true/false 처리 가능) -->
       <select class="form-select" name="is_returned" id="is_returned">
-        <option value="false" selected>보관 중</option>
-        <option value="true">소유자 반환</option>
+        <option value="false" {% if form.is_returned.value == False %}selected{% endif %}>보관 중</option>
+        <option value="true" {% if form.is_returned.value == True %}selected{% endif %}>소유자 반환</option>
       </select>
     </div>
 
-    <!-- 🛰️ 좌표(hidden) -->
     <input type="hidden" id="lat" name="lat" value="{{ form.lat.value|default_if_none:'' }}">
     <input type="hidden" id="lng" name="lng" value="{{ form.lng.value|default_if_none:'' }}">
 
-
-    <!-- 🗺️ 지도 -->
     <div class="section-title">🗺️ 지도에서 위치 지정</div>
     <div id="map" style="width:100%; height:360px; border-radius:12px; border:1px solid #ddd;"></div>
     <small class="text-muted">지도를 클릭하면 핀이 찍히고, 그 좌표가 자동으로 저장됩니다.</small>
 
-    <!-- 사진 -->
     <div class="section-title mt-4">🖼️ 사진 첨부</div>
     <div class="mb-4">
-      <!-- ✅ name="image" -->
       <input class="form-control" type="file" id="image" name="image" accept="image/*">
       {% if form.image.errors %}
         <div class="text-danger small mt-1">
           {% for error in form.image.errors %}{{ error }}<br>{% endfor %}
         </div>
       {% endif %}
-
     </div>
 
-    <!-- 작성 버튼 -->
     <div class="d-grid">
       <button type="submit" class="btn btn-primary" id="submitBtn">✅ 작성 완료하기</button>
     </div>
   </form>
 </div>
 
-<!-- 메인으로 돌아가기 버튼 -->
 <a href="{% url 'meetagain:index' %}" class="btn btn-outline-secondary">🏠 메인으로</a>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  // 세부옵션 채우기 (UI용)
   const subOptions = {
     "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
     "의류": ["모자", "신발", "아우터", "기타의류"],
@@ -223,6 +205,9 @@
 
   const categorySelect = document.getElementById("category");
   const subcategorySelect = document.getElementById("subcategory");
+
+  // 기존 선택된 세부옵션 값 (초기값)
+  const initialSubcategory = "{{ form.subcategory.value|default:'' }}";
 
   if (categorySelect) {
     categorySelect.addEventListener("change", function () {
@@ -241,15 +226,28 @@
         opt.textContent = "해당 없음";
         subcategorySelect.appendChild(opt);
       }
+      // 선택된 세부옵션 유지
+      if (initialSubcategory) {
+        for (let option of subcategorySelect.options) {
+          if (option.value === initialSubcategory) {
+            option.selected = true;
+            break;
+          }
+        }
+      }
     });
+
+    // 페이지 로드 시 카테고리 선택되어 있다면, change 이벤트 트리거해서 서브카테고리 셋팅 및 선택 유지
+    if (categorySelect.value) {
+      const event = new Event('change');
+      categorySelect.dispatchEvent(event);
+    }
   }
 
-  // ====== 카카오맵: 클릭하면 마커 찍고 hidden(lat,lng) 채우기 ======
   (function(){
     const latInput = document.getElementById('lat');
     const lngInput = document.getElementById('lng');
 
-    // 캠퍼스 중심 임시 좌표 (원하면 변경 OK)
     const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
 
     const map = new kakao.maps.Map(document.getElementById('map'), {
@@ -263,10 +261,16 @@
       draggable: false
     });
 
-    // 초기엔 마커 숨김 (좌표 미선택 구분)
-    marker.setMap(null);
+    // 기존 위도경도 값이 있으면 지도 중심과 마커 위치로 설정
+    if (latInput.value && lngInput.value) {
+      const pos = new kakao.maps.LatLng(parseFloat(latInput.value), parseFloat(lngInput.value));
+      marker.setPosition(pos);
+      marker.setMap(map);
+      map.setCenter(pos);
+    } else {
+      marker.setMap(null);
+    }
 
-    // 지도 클릭 시: 마커 표시/이동 + hidden 값 채우기
     kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
       const latlng = mouseEvent.latLng;
       marker.setPosition(latlng);
@@ -276,7 +280,6 @@
       lngInput.value = latlng.getLng().toFixed(6);
     });
 
-    // 제출 전 좌표 선택 여부 확인
     document.getElementById('submitBtn').addEventListener('click', function(e){
       if (!latInput.value || !lngInput.value) {
         e.preventDefault();

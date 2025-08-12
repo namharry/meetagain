@@ -62,57 +62,14 @@ def lost_register_view(request):
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES)
         if form.is_valid():
-            item = form.save(commit=False)
-            item.user = request.user  # 작성자 저장 (원하면)
-            item.save()
-            return render(request, 'lost/lost_register_success.html')  # ✅ 홈 URL name에 맞게
+            form.save()
+            # ✅ 성공 페이지로 이동
+            return render(request, 'lost/lost_register_success.html')
         else:
             return render(request, 'lost/lost_register.html', {'form': form})
     else:
         form = LostItemForm()
-    return render(request, 'lost/lost_register.html', {'form': form})
-
-
-@login_required
-def lost_index_view(request):
-    items = LostItem.objects.all()
-
-    q = request.GET.get('q', '')
-    location = request.GET.get('location', '')
-    category = request.GET.get('category', '')
-    date_from = request.GET.get('date_from', '')
-    date_to = request.GET.get('date_to', '')
-
-    if q:
-        items = items.filter(name__icontains=q)
-    if location:
-        items = items.filter(lost_location__icontains=location)
-    if category and category != 'all':
-        items = items.filter(category=category)
-    # 날짜 필터: 사용자가 기간을 주면 "겹치는" 데이터만 보여주기
-    # (date_from <= item.lost_date_end) AND (date_to >= item.lost_date_start)
-    if date_from and date_to:
-        items = items.filter(
-            Q(lost_date_end__gte=date_from) & Q(lost_date_start__lte=date_to)
-        )
-    elif date_from:
-        items = items.filter(lost_date_end__gte=date_from)
-    elif date_to:
-        items = items.filter(lost_date_start__lte=date_to)
-
-    items = items.order_by('-lost_date_end')[:6]
-
-    context = {
-        'items': items,
-        'q': q,
-        'location': location,
-        'category': category,
-        'date_from': date_from,
-        'date_to': date_to,
-        'category_choices': LostItem.CATEGORY_CHOICES,
-    }
-    return render(request, 'lost/lost_list.html', context)
-
+    return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
 
 @login_required
 def lost_update_view(request, item_id):
@@ -222,10 +179,10 @@ def found_update_view(request, item_id):
             raw = request.POST.get('is_returned', '')
             obj.is_returned = (str(raw).lower() in ('true', '1', 'on', 'yes'))
             obj.save()
-            return redirect('meetagain:found_detail', item_id=item.id)
+            return redirect('meetagain:found_detail', item_id=obj.id)
     else:
         form = FoundItemForm(instance=item)
-    return render(request, 'found/found_update.html', {'form': form, 'item': item})
+    return render(request, 'found/found_register.html', {'form': form, 'item': item})
 
 
 @login_required
@@ -295,6 +252,19 @@ def found_list_api(request):
         'has_next': page_obj.has_next(),
     })
 
+    @login_required
+    def found_edit(request, pk):
+        found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
+        if request.method == 'POST':
+            form = FoundItemForm(request.POST, request.FILES, instance=found_item)
+            if form.is_valid():
+                form.save()
+                return redirect('found_detail', pk=found_item.pk)
+        else:
+            form = FoundItemForm(instance=found_item)
+        return render(request, 'found/found_register.html', {'form': form, 'edit_mode': True})
+
+
 
 # --------------------
 # 키워드 관련 뷰
@@ -350,6 +320,7 @@ def get_notifications(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     data = []
     for n in notifications:
+        item_name = str(n.item).replace('[습득물] ', '')
         data.append({
             'id': n.id,
             'keyword': n.keyword,
@@ -357,8 +328,10 @@ def get_notifications(request):
             'object_id': n.object_id,
             'is_read': n.is_read,
             'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
+            'item_name': item_name,
         })
     return JsonResponse({'notifications': data})
+
 
 
 @login_required
@@ -373,21 +346,6 @@ def mark_notification_read_and_redirect(request, notification_id):
 def notification_list(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'pages/alert_sidebar.html', {'notifications': notifications})
-
-@login_required
-def notifications_api(request):
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:20]
-    data = []
-    for n in notifications:
-        data.append({
-            'id': n.id,
-            'keyword': n.keyword,
-            'is_read': n.is_read,
-            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
-            'item_name': str(n.item),
-        })
-    return JsonResponse({'notifications': data})
-
 
 # --------------------
 # 공지사항 관련 뷰(관리자만 접근 가능)
@@ -570,19 +528,20 @@ def inquiry_edit_view(request, pk):
 # --------------------
 # 관리자용 문의사항 관련 뷰
 # --------------------
-
+@staff_member_required
 @login_required
-def inquiry_create(request):
+def admin_inquiry_create(request):
     if request.method == 'POST':
         form = InquiryForm(request.POST)
         if form.is_valid():
             inquiry = form.save(commit=False)
             inquiry.user = request.user
             inquiry.save()
-            return redirect('inquiry_success')
+            return redirect('meetagain:admin_inquiry_success')
     else:
         form = InquiryForm()
     return render(request, 'meetagain/inquiry_form.html', {'form': form})
 
-def inquiry_success(request):
-    return render(request, 'meetagain/inquiry_success.html')
+@staff_member_required
+def admin_inquiry_success(request):
+    return render('meetagain:admin_inquiry_success')
