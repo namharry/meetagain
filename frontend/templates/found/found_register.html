@@ -254,7 +254,8 @@
 
     const map = new kakao.maps.Map(document.getElementById('map'), {
       center: DEFAULT_CENTER,
-      level: 1
+      level: 1,
+      maxLevel: 4
     });
 
     let marker = new kakao.maps.Marker({
