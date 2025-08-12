@@ -582,19 +582,20 @@ def inquiry_edit_view(request, pk):
 # --------------------
 # 관리자용 문의사항 관련 뷰
 # --------------------
-
+@staff_member_required
 @login_required
-def inquiry_create(request):
+def admin_inquiry_create(request):
     if request.method == 'POST':
         form = InquiryForm(request.POST)
         if form.is_valid():
             inquiry = form.save(commit=False)
             inquiry.user = request.user
             inquiry.save()
-            return redirect('inquiry_success')
+            return redirect('meetagain:admin_inquiry_success')
     else:
         form = InquiryForm()
     return render(request, 'meetagain/inquiry_form.html', {'form': form})
 
-def inquiry_success(request):
-    return render(request, 'meetagain/inquiry_success.html')
+@staff_member_required
+def admin_inquiry_success(request):
+    return render('meetagain:admin_inquiry_success')

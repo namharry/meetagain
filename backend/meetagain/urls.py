@@ -61,6 +61,6 @@ urlpatterns = [
     path("myinquiries/<int:pk>/edit/", views.inquiry_edit_view, name="inquiry_edit"),
 
     # 관리자 페이지 문의사항 관련
-    path('inquiry/', views.inquiry_create, name='inquiry_create'),
-    path('inquiry/success/', views.inquiry_success, name='inquiry_success'),
+    path('admin/inquiry/', views.admin_inquiry_create, name='admin_inquiry_create'),
+    path('admin/inquiry/success/', views.admin_inquiry_success, name='admin_inquiry_success'),
 ]
