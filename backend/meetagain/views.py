@@ -69,14 +69,15 @@ def lost_register_view(request):
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            # ✅ 성공 페이지로 이동
+            obj = form.save(commit=False)  
+            obj.user = request.user      
+            obj.save()   
             return render(request, 'lost/lost_register_success.html')
         else:
             return render(request, 'lost/lost_register.html', {'form': form})
     else:
         form = LostItemForm()
-    return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
+    return render(request, 'lost/lost_register.html', {'form': form})
 
 @login_required
 def lost_edit_view(request, item_id):
@@ -272,8 +273,6 @@ def found_edit(request, pk):
         else:
             form = FoundItemForm(instance=found_item)
         return render(request, 'found/found_register.html', {'form': form, 'edit_mode': True})
-
-
 
 # --------------------
 # 키워드 관련 뷰
