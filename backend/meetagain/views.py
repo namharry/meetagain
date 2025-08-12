@@ -6,15 +6,9 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth import logout, authenticate
-from datetime import datetime
-import json
-
+from django.contrib.auth import logout
 from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import InquiryForm, LostItemForm, FoundItemForm, NoticeForm
-from users.forms import SignupForm
-from django.contrib.auth.decorators import login_required
-from .models import Notification
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
