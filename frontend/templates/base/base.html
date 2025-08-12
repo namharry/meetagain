@@ -109,24 +109,36 @@
   };
 
   // 알림 사이드바 키워드 추가(pill 형태)
-  window.addKeyword = function () {
-    const input = document.getElementById('keywordInput');
-    const list = document.getElementById('keywordList');
-    if (!input || !list) return;
-    const text = (input.value || '').trim();
-    if (!text) return;
-    const pill = document.createElement('span');
-    pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
-    pill.textContent = text;
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
-    removeBtn.textContent = '×';
-    removeBtn.onclick = () => pill.remove();
-    pill.appendChild(removeBtn);
-    list.appendChild(pill);
-    input.value = '';
-  };
+window.addKeyword = function () {
+  const input = document.getElementById('keywordInput');
+  const list = document.getElementById('keywordList');
+  if (!input || !list) return;
+
+  const text = (input.value || '').trim();
+  if (!text) return;
+
+  // 키워드 pill 역할을 하는 span 생성
+  const pill = document.createElement('span');
+  pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';  // pill 스타일
+  pill.textContent = text;
+
+  // ×(삭제) 버튼 생성
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
+  removeBtn.textContent = '×';
+  removeBtn.onclick = () => pill.remove();  // 클릭 시 pill 삭제
+
+  // pill 안에 삭제 버튼 추가
+  pill.appendChild(removeBtn);
+
+  // 키워드 리스트에 pill 추가
+  list.appendChild(pill);
+
+  // 입력창 초기화
+  input.value = '';
+};
+
 </script>
 
 {% block extra_scripts %}{% endblock %}

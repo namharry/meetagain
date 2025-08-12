@@ -57,33 +57,47 @@
   }
 
   // 서버에서 키워드 목록 불러오기
-function loadKeywords() {
-  console.log("loadKeywords() 실행됨");
-  fetch('/meetagain/keywords/')
-    .then(res => {
-      console.log("키워드 목록 응답 상태:", res.status);
-      return res.json();
-    })
-    .then(data => {
-      console.log("받은 키워드 데이터:", data);
-      const keywordList = document.getElementById('keywordList');
-      keywordList.innerHTML = '';
-      if (!data.keywords || data.keywords.length === 0) {
-        keywordList.innerHTML = '<p>등록된 키워드가 없습니다.</p>';
-        return;
-      }
-      const ul = document.createElement('ul');
-      data.keywords.forEach(word => {
-        const li = document.createElement('li');
-        li.textContent = word;
-        ul.appendChild(li);
+  function loadKeywords() {
+    console.log("loadKeywords() 실행됨");
+    fetch('/meetagain/keywords/')
+      .then(res => {
+        console.log("키워드 목록 응답 상태:", res.status);
+        return res.json();
+      })
+      .then(data => {
+        console.log("받은 키워드 데이터:", data);
+        const keywordList = document.getElementById('keywordList');
+        keywordList.innerHTML = '';
+        if (!data.keywords || data.keywords.length === 0) {
+          keywordList.innerHTML = '<p>등록된 키워드가 없습니다.</p>';
+          return;
+        }
+        data.keywords.forEach(word => {
+          const pill = document.createElement('span');
+          pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
+          pill.textContent = word;
+
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
+          removeBtn.textContent = '×';
+
+          // 삭제 버튼 클릭 시 키워드 삭제 함수 호출
+          removeBtn.onclick = () => {
+            // 서버에 삭제 요청 보내고 성공하면 pill 제거하는 로직 추가 필요
+            deleteKeywordFromDB(word);
+            pill.remove();
+          };
+
+          pill.appendChild(removeBtn);
+          keywordList.appendChild(pill);
+        });
+      })
+      .catch(error => {
+        console.error("키워드 목록 불러오기 오류:", error);
       });
-      keywordList.appendChild(ul);
-    })
-    .catch(error => {
-      console.error("키워드 목록 불러오기 오류:", error);
-    });
-}
+  }
+
 
 
   // 키워드 등록 요청
