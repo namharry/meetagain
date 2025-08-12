@@ -2,7 +2,7 @@
 venv/
 myvenv/
 
-# IDE/에디터 설정 파일 (추가 권장)
+# IDE/에디터 설정 파일
 .vscode/
 .idea/
 
@@ -15,8 +15,10 @@ __pycache__/
 db.sqlite3
 db.sqlite3-journal
 
-# 업로드 미디어 파일
+# 업로드 미디어 파일 (루트/백엔드 모두)
 media/
+backend/media/
+**/media/**
 media/post_images/
 
 # 로그 및 번역
