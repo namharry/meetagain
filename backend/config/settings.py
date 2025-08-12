@@ -1,10 +1,11 @@
-""" 
+"""
 Django settings for config project.
 """
 
 from pathlib import Path
 from django.contrib.messages import constants as messages
 import os
+import cloudinary  # ← 추가
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -36,14 +37,14 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR.parent / 'frontend' / 'templates',  # ← (OK) frontend 템플릿
-            BASE_DIR / 'templates',                      # ← (필요 없으면 지워도 무방)
+            BASE_DIR.parent / 'frontend' / 'templates',
+            BASE_DIR / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',  # ← base.html의 request.path 위해 필수
+                'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -87,30 +88,45 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # === i18n ===
 LANGUAGE_CODE = 'ko-kr'
-TIME_ZONE = 'Asia/Seoul'   # ← 변경
+TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_TZ = True
 
 # === 정적/미디어 ===
-STATIC_URL = '/static/'    # ← 슬래시 포함
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR.parent / 'frontend' / 'static',  # ← frontend/static 사용
+    BASE_DIR.parent / 'frontend' / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# ✅ Cloudinary 저장소 설정
+# ✅ Cloudinary 저장소 설정 (django-cloudinary-storage용)
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dr4kqw4vg',
     'API_KEY': '679437386832466',
-    'API_SECRET': 'LxageC_itSH7aeezXmSP3shxyWg'
+    'API_SECRET': 'LxageC_itSH7aeezXmSP3shxyWg',
 }
 
+# ✅ Django 5 권장 방식(STORAGES) + 하위호환(DEFAULT_FILE_STORAGE) 동시에 지정
+STORAGES = {
+    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'  # Cloudinary 사용 시 실사용 안 함. 헷갈리면 주석 유지
+
+# ✅ cloudinary-python에도 명시적으로 구성 값 주입 (쉘에서 cloudinary.config().cloud_name=None 문제 방지)
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+    secure=True,
+)
 
 # === 사용자/인증 ===
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'  # ← 중복 정리
-AUTH_USER_MODEL = 'users.User'                        # ← 중복 정리
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'users.User'
 
 AUTHENTICATION_BACKENDS = [
     'users.backends.StudentIDBackend',
@@ -130,11 +146,11 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
-# === 이메일 (개발용: 환경변수로 분리 권장) ===
+# === 이메일 ===
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'meetagain.noreply@gmail.com'
-EMAIL_HOST_PASSWORD = 'urxa itwv vwji swpl'  # ← 앱 비밀번호: 환경변수로 빼는 걸 강력 권장
+EMAIL_HOST_PASSWORD = 'urxa itwv vwji swpl'  # 실제로는 환경변수로 분리 권장
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
