@@ -58,14 +58,9 @@
 
   // 서버에서 키워드 목록 불러오기
   function loadKeywords() {
-    console.log("loadKeywords() 실행됨");
     fetch('/meetagain/keywords/')
-      .then(res => {
-        console.log("키워드 목록 응답 상태:", res.status);
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
-        console.log("받은 키워드 데이터:", data);
         const keywordList = document.getElementById('keywordList');
         keywordList.innerHTML = '';
         if (!data.keywords || data.keywords.length === 0) {
@@ -84,27 +79,39 @@
 
           // 삭제 버튼 클릭 시 키워드 삭제 함수 호출
           removeBtn.onclick = () => {
-            // 서버에 삭제 요청 보내고 성공하면 pill 제거하는 로직 추가 필요
             deleteKeywordFromDB(word);
-            pill.remove();
           };
 
           pill.appendChild(removeBtn);
           keywordList.appendChild(pill);
         });
       })
-      .catch(error => {
-        console.error("키워드 목록 불러오기 오류:", error);
-      });
+  }
+
+  function deleteKeywordFromDB(word, pill) {
+    fetch(`/meetagain/keywords/${encodeURIComponent(word)}/delete/`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        pill.remove();  // 삭제 성공 시 UI에서 제거
+      } else {
+        alert('키워드 삭제에 실패했습니다.');
+      }
+    })
+    .catch(error => {
+      alert('서버와 통신 중 오류가 발생했습니다.');
+    });
   }
 
 
 
   // 키워드 등록 요청
-  function addKeywordtoDB() {
-    console.log("addKeywordtoDB() 실행됨");
+  function addKeywordToDB() {
     const csrftoken = getCookie('csrftoken');
-    console.log("CSRF Token:", csrftoken);
 
     const input = document.getElementById('keywordInput');
     const word = input.value.trim();
@@ -131,98 +138,61 @@
         alert('키워드 등록 실패');
       }
     })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('키워드 등록 중 오류가 발생했습니다.');
-    });
   }
 
   // DOMContentLoaded 이벤트는 함수 밖에서 한 번만 등록
   document.addEventListener('DOMContentLoaded', function() {
     const addBtn = document.getElementById('keywordAddBtn');
     if (addBtn) {
-      addBtn.addEventListener('click', addKeywordtoDB);
+      addBtn.addEventListener('click', addKeywordToDB);
     }
   });
 
   // 서버에서 알림 목록 불러오기
-  function loadNotifications() {
-    fetch('/meetagain/notifications/')
-      .then(res => res.json())
-      .then(data => {
-        const alertList = document.getElementById('alertList');
-        alertList.innerHTML = '';
+function loadNotifications() {
+  fetch('/meetagain/notifications/')
+    .then(res => res.json())
+    .then(data => {
+      const alertList = document.getElementById('alertList');
+      alertList.innerHTML = '';
 
-        if (!data.notifications || data.notifications.length === 0) {
-          alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
-          return;
-        }
+      if (!data.notifications || data.notifications.length === 0) {
+        alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
+        setNotificationBadge(false);
+        return;
+      }
 
-        const divListGroup = document.createElement('div');
-        divListGroup.className = 'list-group';
+      const divListGroup = document.createElement('div');
+      divListGroup.className = 'list-group';
 
-        data.notifications.forEach(n => {
-          if (n.content_type !== 'founditem') return;
+      data.notifications.forEach(n => {
+        if (n.content_type !== 'founditem') return;
 
-          const a = document.createElement('a');
-          a.href = `/meetagain/found/${n.object_id}/`;
-          a.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+        const a = document.createElement('a');
+        a.href = `/meetagain/found/${n.object_id}/`;
+        a.className = 'list-group-item list-group-item-action';
 
-          // 왼쪽 제목
-          const titleSpan = document.createElement('span');
-          titleSpan.textContent = n.item_name || `(제목 없음)`;
+        // 제목 텍스트만 추가 (읽음/안읽음 배지는 삭제)
+        a.textContent = n.item_name || '(제목 없음)';
 
-          // 오른쪽 읽음/읽지 않음 배지
-          const statusBadge = document.createElement('span');
-          statusBadge.className = n.is_read ? 'badge bg-secondary' : 'badge bg-danger';
-          statusBadge.textContent = n.is_read ? '읽음' : '읽지 않음';
-
-          a.appendChild(titleSpan);
-          a.appendChild(statusBadge);
-          divListGroup.appendChild(a);
-
-          // 클릭 시 읽음 처리 후 이동
-          a.addEventListener('click', function(e) {
-            e.preventDefault(); // 기본 이동 막음
-            fetch(`/meetagain/notifications/read/${n.id}/`, {
-              method: 'POST',
-              headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-              }
-            })
-              .then(res => {
-                if (res.ok) {
-                  statusBadge.className = 'badge bg-secondary';
-                  statusBadge.textContent = '읽음';
-                  window.location.href = `/meetagain/found/${n.object_id}/`;
-                }
-              })
-              .catch(console.error);
-          });
+        // 클릭하면 그냥 해당 페이지로 이동 (읽음 처리 따로 호출하지 않음)
+        a.addEventListener('click', function() {
+          window.location.href = `/meetagain/found/${n.object_id}/`;
         });
 
-        alertList.appendChild(divListGroup);
-      })
-      .catch(console.error);
+        divListGroup.appendChild(a);
+      });
+
+      alertList.appendChild(divListGroup);
+
+      // 알림 배지 상태도 알림 존재 여부만 체크
+      setNotificationBadge(data.notifications.length > 0);
+    })
+}
+
+  function setNotificationBadge(visible) {
+    const badge = document.getElementById('notificationBadge');
+    if (!badge) return;
+    badge.style.display = visible ? 'block' : 'none';
   }
-
-  // Django CSRF 토큰 가져오기
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
-
-
-
 </script>

@@ -36,6 +36,21 @@
     opacity: 1;              /* Bootstrap 기본 흐림 제거 */
     color: #6c757d;          /* 살짝만 흐리게 */
   }
+
+  /* ✅ 지도 핀 위 텍스트 라벨 */
+  .ma-label{
+    position: relative;
+    transform: translate(-50%, -110%); /* 마커 위로 살짝 */
+    padding: 4px 8px;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 8px;
+    background: rgba(255,255,255,.95);
+    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none; /* 라벨이 클릭 막지 않게 */
+  }
 </style>
 {% endblock %}
 
@@ -195,6 +210,15 @@
     return sel.options[sel.selectedIndex]?.text?.trim() || '';
   }
 
+  // ===== 라벨/이름 표시 설정 =====
+  const MAX_NAME_LEN = 8;      // 이름 8자 초과시 … 처리
+  const LABEL_SHOW_LEVEL = 3;  // 이 레벨 "이하"에서만 라벨 표시(가까이서만)
+
+  function truncateName(name, limit = MAX_NAME_LEN){
+    if (!name) return '';
+    return name.length > limit ? name.slice(0, limit) + '…' : name;
+  }
+
   // ===== 지도 & 초기화 =====
   window.addEventListener('load', function () {
     // 세부옵션 초기 세팅
@@ -211,63 +235,109 @@
   });
 
   function initMap(){
-  const container = document.getElementById('map');
-  if (!container || !window.kakao || !kakao.maps) return;
+    const container = document.getElementById('map');
+    if (!container || !window.kakao || !kakao.maps) return;
 
-  const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
-  const map = new kakao.maps.Map(container, {
-    center: DEFAULT_CENTER,
-    level: 2,
-    maxLevel: 4
-  });
+    const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
+    const map = new kakao.maps.Map(container, {
+      center: DEFAULT_CENTER,
+      level: 2,
+      maxLevel: 5
+    });
 
-  // ✅ 하나만 만들어서 재사용
-  const infoWindow = new kakao.maps.InfoWindow({ zIndex: 3, removable: true });
+    // ✅ 하나만 만들어서 재사용
+    const infoWindow = new kakao.maps.InfoWindow({ zIndex: 3, removable: true });
 
-  // ✅ ESC로 닫기
-  document.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape' && infoWindow.getMap()) infoWindow.close();
-  });
+    // ✅ ESC로 닫기
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && infoWindow.getMap()) infoWindow.close();
+    });
 
-  // ✅ 지도 왼쪽 클릭으로 닫기(빈공간 클릭)
-  kakao.maps.event.addListener(map, 'click', () => {
-    if (infoWindow.getMap()) infoWindow.close();
-  });
+    // ✅ 지도 왼쪽 클릭으로 닫기(빈공간 클릭)
+    kakao.maps.event.addListener(map, 'click', () => {
+      if (infoWindow.getMap()) infoWindow.close();
+    });
 
-  const queryString = window.location.search;
-  fetch(`/meetagain/api/items${queryString}`)
-    .then(res => res.json())
-    .then(({ items }) => {
-      if (!items || items.length === 0) return;
-      const bounds = new kakao.maps.LatLngBounds();
+    // 마커/라벨 저장
+    const markers = [];
+    const labels  = [];
 
-      items.forEach(item => {
-        if (item.lat == null || item.lng == null) return;
+    const queryString = window.location.search;
+    fetch(`/meetagain/api/items${queryString}`)
+      .then(res => res.json())
+      .then(({ items }) => {
+        if (!items || items.length === 0) return;
+        const bounds = new kakao.maps.LatLngBounds();
 
-        const pos = new kakao.maps.LatLng(item.lat, item.lng);
-        bounds.extend(pos);
-        const marker = new kakao.maps.Marker({ position: pos, map });
+        // 상세 URL 템플릿(장고 reverse를 이용해 id만 치환)
+        const detailUrlTemplate = `{% url 'meetagain:found_detail' item_id=0 %}`;
 
-        const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
-        const content = `
-          <div style="padding:8px 10px; min-width:180px; font-size:13px;">
-            <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
-            <div style="color:#666; margin-bottom:6px;">${item.date || ''}</div>
-            <a href="${detailUrl}" style="text-decoration:none;">자세히 보기 →</a>
-          </div>`;
+        items.forEach(item => {
+          if (item.lat == null || item.lng == null) return;
 
-        kakao.maps.event.addListener(marker, 'click', () => {
-          // 다른 창이 열려 있으면 닫고, 같은 인포윈도우에 새 콘텐츠로 열기
-          if (infoWindow.getMap()) infoWindow.close();
-          infoWindow.setContent(content);
-          infoWindow.open(map, marker);
+          const pos = new kakao.maps.LatLng(item.lat, item.lng);
+          bounds.extend(pos);
+
+          // 1) 마커
+          const marker = new kakao.maps.Marker({ position: pos, map });
+          markers.push(marker);
+
+          // 2) 라벨(CustomOverlay)
+          const labelEl = document.createElement('div');
+          labelEl.className = 'ma-label';
+          labelEl.textContent = truncateName(item.name);
+
+          const label = new kakao.maps.CustomOverlay({
+            position: pos,
+            content: labelEl,
+            yAnchor: 1.1,  // 마커 위로 약간 띄우기
+            zIndex: 2
+          });
+          labels.push(label);
+
+          // 3) 팝업(썸네일 + 텍스트 + 링크)
+          const detailUrl = detailUrlTemplate.replace('/0/', `/${item.id}/`);
+          const thumb = item.thumbnail_url ? `
+            <img src="${item.thumbnail_url}" alt="${escapeHtml(item.name)}"
+                 style="width:80px;height:80px;object-fit:cover;border-radius:6px;margin-right:8px;">
+          ` : '';
+
+          const content = `
+            <div style="display:flex;align-items:center;gap:8px;max-width:260px;padding:8px 10px;">
+              ${thumb}
+              <div style="min-width:0;">
+                <div style="font-weight:700;margin-bottom:4px;">${escapeHtml(item.name)}</div>
+                <div style="color:#666;margin-bottom:6px;font-size:12px;">${item.date || ''}</div>
+                <a href="${detailUrl}" style="font-size:12px;text-decoration:underline;">자세히 보기 →</a>
+              </div>
+            </div>`;
+
+          kakao.maps.event.addListener(marker, 'click', () => {
+            if (infoWindow.getMap()) infoWindow.close();
+            infoWindow.setContent(content);
+            infoWindow.open(map, marker);
+          });
         });
-      });
 
-      if (!bounds.isEmpty()) map.setBounds(bounds);
-    })
-    .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
-}
+        if (!bounds.isEmpty()) map.setBounds(bounds);
+
+        // 초기 라벨 표시/숨김
+        toggleLabelsByZoom();
+
+        // 줌 변경 시 라벨 표시/숨김
+        kakao.maps.event.addListener(map, 'zoom_changed', toggleLabelsByZoom);
+
+        function toggleLabelsByZoom(){
+          const lv = map.getLevel();
+          if (lv <= LABEL_SHOW_LEVEL){
+            labels.forEach(l => { if (!l.getMap()) l.setMap(map); });
+          } else {
+            labels.forEach(l => { if (l.getMap()) l.setMap(null); });
+          }
+        }
+      })
+      .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
+  }
 
   // ===== AJAX 페이지네이션 =====
   const GRID  = document.getElementById('items');

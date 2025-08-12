@@ -10,7 +10,7 @@ urlpatterns = [
 
     # 분실물 (Lost)
     path('lost/register/', views.lost_register_view, name='lost_register'),
-    path('lost/<int:item_id>/edit/', views.lost_update_view, name='lost_edit'),
+    path('lost/<int:item_id>/edit/', views.lost_edit_view, name='lost_edit'),
     path('lost/<int:item_id>/delete/', views.lost_delete_view, name='lost_delete'),
     path('lost/<int:item_id>/', views.lost_detail_view, name='lost_detail'),
 
@@ -30,13 +30,12 @@ urlpatterns = [
     # 키워드
     path('keywords/', views.keyword_list, name='keyword_list'),
     path('keywords/add/', views.keyword_add, name='add_keyword'),
-    path('keywords/delete/<int:keyword_id>/', views.keyword_delete, name='delete_keyword'),
+    path('/keywords/delete/<id>/', views.keyword_delete, name='delete_keyword'),
 
     # 알림(Notification)
     path('notifications/', views.get_notifications, name='get_notifications'),
-    path('notifications/read/<int:notification_id>/', views.mark_notification_read_and_redirect, name='read_notification'),
-    path('notifications/page/', views.notification_list, name='notification_list'),
-
+    path('notifications/mark_read/', views.mark_notifications_read, name='mark_notifications_read'),
+    
     # 공지사항(Notice)
     path('notice/', views.notice_list, name='notice_list'),
     path('notice/create/', views.notice_create, name='notice_create'),

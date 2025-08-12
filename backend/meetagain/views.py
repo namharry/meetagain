@@ -86,16 +86,18 @@ def lost_register_view(request):
     return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
 
 @login_required
-def lost_update_view(request, item_id):
-    item = get_object_or_404(LostItem, id=item_id)
+def lost_edit_view(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id, user=request.user)  # 본인 글만 수정
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
             form.save()
+            messages.success(request, "분실물 정보가 수정되었습니다.")
             return redirect('meetagain:lost_detail', item_id=item.id)
     else:
         form = LostItemForm(instance=item)
-    return render(request, 'lost/lost_update.html', {'form': form, 'item': item})
+    # 🔽 등록 폼 템플릿 재사용 (파일이 이미 존재한다고 가정)
+    return render(request, 'lost/lost_register.html', {'form': form, 'item': item, 'mode': 'update'})
 
 
 @login_required
@@ -324,12 +326,6 @@ def keyword_delete(request, keyword_id):
 # --------------------
 
 @login_required
-def create_notification(request):
-    # 실제 구현은 필요에 따라 작성
-    return JsonResponse({'message': 'Notification created (dummy response)'})
-
-
-@login_required
 def get_notifications(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     data = []
@@ -346,20 +342,13 @@ def get_notifications(request):
         })
     return JsonResponse({'notifications': data})
 
-
-
 @login_required
-def mark_notification_read_and_redirect(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
-    notification.is_read = True
-    notification.save()
-    return redirect('meetagain:index')
+@require_POST
+def mark_notifications_read(request):
+    user = request.user
+    user.notification_set.filter(is_read=False).update(is_read=True)
+    return JsonResponse({'status': 'success'})
 
-
-@login_required
-def notification_list(request):
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'pages/alert_sidebar.html', {'notifications': notifications})
 
 # --------------------
 # 공지사항 관련 뷰(관리자만 접근 가능)
@@ -459,7 +448,7 @@ def map_pins_api(request):
         qs = qs.filter(found_location__icontains=location)
 
     # ✅ 지도 가능한 데이터만
-    qs = qs.filter(lat__isnull=False, lng__isnull=False).order_by('-found_date')
+    qs = qs.filter(lat__isnull=False, lng__isnull=False).order_by('-found_date', '-id')
 
     data = [{
         'id': item.id,
@@ -467,7 +456,8 @@ def map_pins_api(request):
         'name': item.name,
         'lat': item.lat,
         'lng': item.lng,
-        'date': item.found_date.strftime('%Y-%m-%d'),
+        'date': item.found_date.strftime('%Y-%m-%d') if item.found_date else '',
+        'thumbnail_url': (item.image.url if item.image else None),  # ✅ 썸네일 URL 추가
     } for item in qs]
 
     return JsonResponse({'items': data})
