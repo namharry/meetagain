@@ -158,35 +158,70 @@
           return;
         }
 
-        const ul = document.createElement('ul');
+        const divListGroup = document.createElement('div');
+        divListGroup.className = 'list-group';
 
         data.notifications.forEach(n => {
-          // founditem 알림만 보여주기
-          if (n.content_type !== 'founditem') {
-            return; // continue (forEach에서 continue 대신 return)
-          }
-
-          const li = document.createElement('li');
-
-          // founditem 상세 페이지 URL
-          const detailUrl = `/meetagain/found/${n.object_id}/`;
+          if (n.content_type !== 'founditem') return;
 
           const a = document.createElement('a');
-          a.href = detailUrl;
-          a.textContent = `[${n.created_at}] 키워드 '${n.keyword}' 관련 알림 - ${n.item_name} ${n.is_read ? '(읽음)' : '(읽지 않음)'}`;
+          a.href = `/meetagain/found/${n.object_id}/`;
+          a.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
 
-          li.appendChild(a);
-          ul.appendChild(li);
+          // 왼쪽 제목
+          const titleSpan = document.createElement('span');
+          titleSpan.textContent = n.item_name || `(제목 없음)`;
+
+          // 오른쪽 읽음/읽지 않음 배지
+          const statusBadge = document.createElement('span');
+          statusBadge.className = n.is_read ? 'badge bg-secondary' : 'badge bg-danger';
+          statusBadge.textContent = n.is_read ? '읽음' : '읽지 않음';
+
+          a.appendChild(titleSpan);
+          a.appendChild(statusBadge);
+          divListGroup.appendChild(a);
+
+          // 클릭 시 읽음 처리 후 이동
+          a.addEventListener('click', function(e) {
+            e.preventDefault(); // 기본 이동 막음
+            fetch(`/meetagain/notifications/read/${n.id}/`, {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+              }
+            })
+              .then(res => {
+                if (res.ok) {
+                  statusBadge.className = 'badge bg-secondary';
+                  statusBadge.textContent = '읽음';
+                  window.location.href = `/meetagain/found/${n.object_id}/`;
+                }
+              })
+              .catch(console.error);
+          });
         });
 
-        if (ul.children.length === 0) {
-          alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
-        } else {
-          alertList.appendChild(ul);
-        }
+        alertList.appendChild(divListGroup);
       })
       .catch(console.error);
   }
+
+  // Django CSRF 토큰 가져오기
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
 
 
 
