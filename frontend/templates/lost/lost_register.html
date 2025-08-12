@@ -62,23 +62,13 @@
 
 {% block content %}
 <div class="register-box">
-  <h2 class="mb-5">📢 분실물 신고하기</h2>
+  <h2 class="mb-5">
+    {% if mode == 'update' %}✏️ 분실물 수정하기{% else %}📢 분실물 신고하기{% endif %}
+  </h2>
 
-  <form action="{% url 'meetagain:lost_register' %}" method="post" enctype="multipart/form-data" novalidate>
+  <form action="{% if mode == 'update' %}{% url 'meetagain:lost_edit' item_id=item.id %}{% else %}{% url 'meetagain:lost_register' %}{% endif %}" 
+    method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
-    <!-- 글제목 -->
-    <div class="mb-3 row align-items-center">
-      <label for="title" class="col-sm-2 col-form-label fw-semibold" style="font-size: 1.3rem;">📝 글 제목</label>
-      <div class="col-sm-10">
-        <input type="text" class="form-control" id="title" name="title" 
-          value="{{ form.title.value|default_if_none:'' }}" required>
-        {% if form.title.errors %}
-          <div class="text-danger small mt-1">
-          {% for error in form.title.errors %}{{ error }}<br>{% endfor %}
-          </div>
-        {% endif %}
-      </div>
-    </div>
 
     <!-- 분류 -->
     <div class="section-title">📂 분류</div>
@@ -103,8 +93,8 @@
           <option value="책/노트"    {% if form.category.value == '책/노트' %}selected{% endif %}>책/노트</option>
           <option value="기타" {% if form.category.value == '기타' %}selected{% endif %}>기타</option>
         </select>
-        {% if form.subcategory.errors %}<div class="text-danger small mt-1">
-          {% for error in form.subcategory.errors %}{{ error }}<br>{% endfor %}
+        {% if form.category.errors %}<div class="text-danger small mt-1">
+          {% for error in form.category.errors %}{{ error }}<br>{% endfor %}
         </div>{% endif %}
       </div>
       <div class="col-md-6">
@@ -184,17 +174,28 @@
 
 
     <!-- 사진 -->
-    <div class="section-title">🖼️ 사진 첨부</div>
+    <div class="section-title mt-4">🖼️ 사진 첨부</div>
     <div class="mb-4">
-      <input class="form-control" type="file" id="image" name="image" accept="image/*">
-      {% if form.image.errors %}<div class="text-danger small mt-1">
+      {% if mode == 'update' and item and item.image %}
+      <div class="mb-2">
+        <img src="{{ item.image.url }}" alt="현재 이미지" style="max-width:200px;height:auto;">
+      </div>
+      {% endif %}
+
+    <input class="form-control" type="file" id="image" name="image" accept="image/*">
+
+      {% if form.image.errors %}
+      <div class="text-danger small mt-1">
         {% for error in form.image.errors %}{{ error }}<br>{% endfor %}
-      </div>{% endif %}
+      </div>
+      {% endif %}
     </div>
 
     <!-- 작성 버튼 -->
     <div class="d-grid">
-      <button type="submit" class="btn btn-primary">✅ 작성 완료하기</button>
+      <button type="submit" class="btn btn-primary">
+        {% if mode == 'update' %}✅ 수정 완료하기{% else %}✅ 작성 완료하기{% endif %}
+      </button>
     </div>
     
   </form>
