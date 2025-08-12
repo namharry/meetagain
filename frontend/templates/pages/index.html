@@ -15,6 +15,21 @@
   .lost-card .card-body {
     min-height: 96px;
   }
+
+  /* 보라색 페이지네이션 */
+  .purple-pagination{
+    display:inline-flex; align-items:center; gap:2px;
+    background:#f5efff; border-radius:12px; padding:4px;
+    border:1px solid #e4d9ff;
+  }
+  .purple-pagination .pg-btn{
+    min-width:36px; height:36px; line-height:36px; text-align:center;
+    border-radius:8px; cursor:pointer; user-select:none;
+    padding:0 10px; font-weight:600; color:#4c3c88; background:transparent; border:none;
+  }
+  .purple-pagination .pg-btn:hover{ background:#efe7ff; }
+  .purple-pagination .active{ background:#7B3FF2; color:#fff; }
+  .purple-pagination .disabled{ opacity:.4; pointer-events:none; }
 </style>
 {% endblock %}
 
@@ -25,11 +40,11 @@
   <div class="row">
     <!-- 좌측: 검색 + 목록 -->
     <div class="col-md-7">
-      <form method="get" action="{% url 'meetagain:index' %}">
+      <form id="searchForm" method="get" action="{% url 'meetagain:index' %}">
         <div class="row g-2">
           <div class="col-md-6">
             <label class="form-label">종류</label>
-            <select name="category" id="typeSelect" class="form-select" onchange="updateSubOptions()">
+            <select name="category" id="typeSelect" class="form-select">
               <option value="">종류 선택</option>
               {% for cat, cat_label in items.model.CATEGORY_CHOICES %}
                 <option value="{{ cat }}" {% if request.GET.category == cat %}selected{% endif %}>{{ cat_label }}</option>
@@ -58,29 +73,13 @@
         </div>
       </form>
 
-      <!-- 리스트 -->
+      <!-- 리스트 (AJAX로 채움) -->
       <h5 class="mb-3 mt-4">📋 등록된 습득물 리스트</h5>
-      <div class="row row-cols-1 row-cols-md-3 g-4 mb-4" id="items">
-        {% for item in items %}
-        <div class="col">
-          <a class="text-decoration-none" href="{% url 'meetagain:found_detail' item_id=item.id %}">
-            <div class="card lost-card h-100">
-              {% if item.image %}
-                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="thumb">
-              {% else %}
-                <img src="https://via.placeholder.com/600x400?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" alt="이미지 없음" class="thumb">
-              {% endif %}
-              <div class="card-body">
-                <p class="text-center fw-bold text-dark mb-1">{{ item.name }}</p>
-                <p class="text-center text-muted small mb-1">{{ item.found_date|date:"Y-m-d" }}</p>
-                <p class="text-center text-muted small">{{ item.found_location }}</p>
-              </div>
-            </div>
-          </a>
-        </div>
-        {% empty %}
-          <p class="text-muted">등록된 습득물이 없습니다.</p>
-        {% endfor %}
+      <div class="row row-cols-1 row-cols-md-3 g-4 mb-3" id="items"></div>
+
+      <!-- 숫자 페이지네이션 (보라) -->
+      <div class="d-flex justify-content-center mb-4">
+        <div id="pager" class="purple-pagination"></div>
       </div>
     </div>
 
@@ -102,68 +101,45 @@
 
 {% block extra_scripts %}
 <script>
-  // 세부옵션 프리셋
-  const subOptions = {
-    "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
-    "의류": ["모자", "신발", "아우터", "기타의류"],
-    "전자기기": ["태블릿", "스마트워치", "무선이어폰", "카메라", "헤드셋", "기타용품"]
-  };
-  function updateSubOptions() {
-    const type = document.getElementById("typeSelect").value;
-    const subSelect = document.getElementById("subOptionSelect");
-    subSelect.innerHTML = '<option disabled selected>세부옵션 선택</option>';
-    if (subOptions[type]) {
-      subOptions[type].forEach(opt => {
-        const o = document.createElement("option");
-        o.value = o.text = opt;
-        subSelect.appendChild(o);
-      });
-    } else {
-      const o = document.createElement("option");
-      o.text = "해당 없음";
-      subSelect.appendChild(o);
-    }
-  }
-</script>
-
-<script>
+  // ===== 지도: 현재 URL 쿼리 그대로 반영 =====
   window.addEventListener('load', function () {
+    initMap();
+    // 페이지 로드 시 1페이지 가져오기
+    fetchPage(1);
+
+    // 검색폼 submit 시에도 1페이지부터 다시
+    document.getElementById('searchForm').addEventListener('submit', function(e){
+      // 기본 submit(전체 리로드) 허용하되, 원한다면 preventDefault하고 fetchPage(1)만 호출해도 됨
+      // e.preventDefault(); fetchPage(1);
+    });
+  });
+
+  function initMap(){
     const container = document.getElementById('map');
     if (!container || !window.kakao || !kakao.maps) return;
 
     const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
-    const map = new kakao.maps.Map(container, {
-      center: DEFAULT_CENTER,
-      level: 3
-    });
+    const map = new kakao.maps.Map(container, { center: DEFAULT_CENTER, level: 3 });
 
-    // 현재 페이지의 GET 파라미터를 그대로 API에 전달
-    const queryString = window.location.search; 
+    const queryString = window.location.search;
     fetch(`/meetagain/api/items${queryString}`)
       .then(res => res.json())
       .then(({ items }) => {
         if (!items || items.length === 0) return;
-
         const bounds = new kakao.maps.LatLngBounds();
         const openInfoWindows = [];
-
         items.forEach(item => {
           if (item.lat == null || item.lng == null) return;
-
           const pos = new kakao.maps.LatLng(item.lat, item.lng);
           bounds.extend(pos);
-
           const marker = new kakao.maps.Marker({ position: pos, map: map });
           const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
-
           const content = `
             <div style="padding:8px 10px; min-width:180px; font-size:13px;">
               <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
               <div style="color:#666; margin-bottom:6px;">${item.date || ''}</div>
               <a href="${detailUrl}" style="text-decoration:none;">자세히 보기 →</a>
-            </div>
-          `;
-
+            </div>`;
           const iw = new kakao.maps.InfoWindow({ content });
           kakao.maps.event.addListener(marker, 'click', () => {
             openInfoWindows.forEach(w => w.close());
@@ -171,22 +147,70 @@
             openInfoWindows.push(iw);
           });
         });
-
         if (!bounds.isEmpty()) map.setBounds(bounds);
       })
-      .catch(err => {
-        console.error('핀 데이터를 불러오지 못했습니다:', err);
-      });
+      .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
 
-    function escapeHtml(s) {
+    function escapeHtml(s){
       if (s == null) return '';
-      return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
     }
-  });
+  }
+
+  // ===== AJAX 페이지네이션 =====
+  const GRID  = document.getElementById('items');
+  const PAGER = document.getElementById('pager');
+
+  function buildQuery(extra={}) {
+    const params = new URLSearchParams(window.location.search);
+    for (const [k,v] of Object.entries(extra)) params.set(k, v);
+    return params.toString() ? `?${params.toString()}` : '';
+  }
+
+  function fetchPage(page){
+    fetch(`/meetagain/found/list_api/${buildQuery({page})}`)
+      .then(res => res.json())
+      .then(data => {
+        renderGrid(data.items);
+        renderPager(data.page, data.total_pages);
+      })
+      .catch(err => console.error(err));
+  }
+
+  function renderGrid(items){
+    GRID.innerHTML = items.map(it => `
+      <div class="col">
+        <a class="text-decoration-none" href="{% url 'meetagain:found_detail' item_id=0 %}".replace('/0/','/${it.id}/')>
+          <div class="card lost-card h-100">
+            ${it.image_url
+              ? `<img src="${it.image_url}" alt="${escapeHtml(it.name)}" class="thumb">`
+              : `<img src="https://via.placeholder.com/600x400?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" class="thumb" alt="이미지 없음">`}
+            <div class="card-body">
+              <p class="text-center fw-bold text-dark mb-1">${escapeHtml(it.name)}</p>
+              <p class="text-center text-muted small mb-1">${it.found_date || ''}</p>
+              <p class="text-center text-muted small">${escapeHtml(it.found_location || '')}</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    `).join('') || `<p class="text-muted">등록된 습득물이 없습니다.</p>`;
+  }
+
+  function renderPager(current, total){
+    if (total <= 1){ PAGER.innerHTML = ''; return; }
+    let html = '';
+    const prevClass = (current > 1) ? 'pg-btn' : 'pg-btn disabled';
+    const nextClass = (current < total) ? 'pg-btn' : 'pg-btn disabled';
+    html += `<button class="${prevClass}" data-pg="${current-1}">&laquo;</button>`;
+    for (let p = 1; p <= total; p++){
+      html += `<button class="pg-btn ${p===current?'active':''}" data-pg="${p}">${p}</button>`;
+    }
+    html += `<button class="${nextClass}" data-pg="${current+1}">&raquo;</button>`;
+    PAGER.innerHTML = html;
+    PAGER.querySelectorAll('.pg-btn:not(.disabled)').forEach(btn=>{
+      btn.onclick = () => fetchPage(parseInt(btn.dataset.pg, 10));
+    });
+  }
 </script>
 {% endblock %}

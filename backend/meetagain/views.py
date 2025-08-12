@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import logout
+from django.core.paginator import Paginator  # ➕ 페이지네이션
 from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import InquiryForm, LostItemForm, FoundItemForm, NoticeForm
 
@@ -42,13 +43,12 @@ def index_view(request):
     if location:
         items = items.filter(found_location__icontains=location)  # 부분 검색 가능
 
-    # 최신순 정렬
-    items = items.order_by('-found_date')
+    # 최신순 정렬 (지도/초기 노출용 — 화면에는 AJAX로 다시 채움)
+    items = items.order_by('-found_date', '-id')
 
     return render(request, 'pages/index.html', {
         'items': items
     })
-
 
 
 # --------------------
@@ -148,11 +148,9 @@ def found_register_view(request):
             raw = request.POST.get('is_returned', '')
             obj.is_returned = (str(raw).lower() in ('true', '1', 'on', 'yes'))
             obj.save()
-            print("저장완료", obj)  # 디버깅용 로그
-            #등록되었습니다 메세지
+            # 키워드 알림
             keywords = Keyword.objects.filter(user=request.user)
             content_type = ContentType.objects.get_for_model(obj)
-
             for keyword in keywords:
                 if keyword.word in obj.name:
                     Notification.objects.create(
@@ -161,10 +159,8 @@ def found_register_view(request):
                         content_type=content_type,
                         object_id=obj.id,
                     )
-
             return render(request, 'found/found_register_success.html')
         else:
-            print("폼 유효성 검사 실패", form.errors)
             return render(request, 'found/found_register.html', {'form': form})
     else:
         form = FoundItemForm()
@@ -239,6 +235,57 @@ def found_detail_view(request, item_id):
     return render(request, 'found/founditem_detail.html', context)
 
 
+@login_required
+def found_list_api(request):
+    """
+    메인(index)에서 페이지 이동 없이 숫자 버튼으로 넘기기 위한 JSON API
+    - 페이지당 6개
+    - index의 검색 파라미터(category/name/start_date/end_date/location) 그대로 반영
+    """
+    page = int(request.GET.get('page', 1))
+    per_page = 6
+
+    qs = FoundItem.objects.all()
+
+    category = request.GET.get('category')
+    name = request.GET.get('name')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    location = request.GET.get('location')
+
+    if category:
+        qs = qs.filter(category=category)
+    if name:
+        qs = qs.filter(name__icontains=name)
+    if start_date:
+        qs = qs.filter(found_date__gte=start_date)
+    if end_date:
+        qs = qs.filter(found_date__lte=end_date)
+    if location:
+        qs = qs.filter(found_location__icontains=location)
+
+    qs = qs.order_by('-found_date', '-id')
+    paginator = Paginator(qs, per_page)
+    page_obj = paginator.get_page(page)
+
+    def to_dict(it):
+        return {
+            'id': it.id,
+            'name': it.name,
+            'found_date': it.found_date.strftime('%Y-%m-%d') if it.found_date else '',
+            'found_location': it.found_location,
+            'image_url': (it.image.url if it.image else None),
+        }
+
+    return JsonResponse({
+        'items': [to_dict(i) for i in page_obj.object_list],
+        'page': page_obj.number,
+        'total_pages': paginator.num_pages,
+        'has_prev': page_obj.has_previous(),
+        'has_next': page_obj.has_next(),
+    })
+
+
 # --------------------
 # 키워드 관련 뷰
 # --------------------
@@ -307,7 +354,6 @@ def get_notifications(request):
 def mark_notification_read_and_redirect(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     notification.is_read = True
-    # notification.read_at = datetime.now()
     notification.save()
     return redirect('meetagain:index')
 
@@ -319,22 +365,18 @@ def notification_list(request):
 
 @login_required
 def notifications_api(request):
-    # 현재 로그인한 사용자(user)의 알림(Notification) 데이터를 최신순으로 20개 가져옴
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:20]
-
     data = []
     for n in notifications:
-        # 각 알림에 대해 필요한 정보들을 딕셔너리 형태로 정리
         data.append({
-            'id': n.id,                         # 알림 고유 번호
-            'keyword': n.keyword,               # 알림이 연관된 키워드
-            'is_read': n.is_read,               # 읽었는지 여부 (True/False)
-            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),  # 생성일 (보기 좋게 문자열로 변환)
-            'item_name': str(n.item),           # 연결된 물건 이름 (습득물 또는 분실물)
+            'id': n.id,
+            'keyword': n.keyword,
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
+            'item_name': str(n.item),
         })
-
-    # JSON 형식으로 알림 데이터 보내기
     return JsonResponse({'notifications': data})
+
 
 # --------------------
 # 공지사항 관련 뷰(관리자만 접근 가능)
@@ -350,7 +392,6 @@ def notice_detail(request, pk):
     return render(request, 'notice/notice_detail.html', {'notice': notice})
 
 
-# 관리자 권한 체크용 데코레이터
 def staff_required(view_func):
     decorated_view_func = login_required(user_passes_test(lambda u: u.is_staff)(view_func))
     return decorated_view_func
@@ -435,17 +476,12 @@ def map_pins_api(request):
     return JsonResponse({'items': data})
 
 
-
 # --------------------
 # 회원 탈퇴(quit) 관련 뷰
 # --------------------
 
 @login_required
 def quit_account_view(request):
-    """
-    GET: 탈퇴 동의 및 비밀번호 입력 화면 표시
-    POST: 비밀번호 확인 후 회원 탈퇴 처리
-    """
     if request.method == 'POST':
         password = request.POST.get('password', '')
         agree = request.POST.get('agree')
@@ -476,9 +512,6 @@ def quit_account_view(request):
 
 @login_required
 def quit_done_view(request):
-    """
-    탈퇴 완료 페이지 표시
-    """
     return render(request, 'quit/quit_done.html')
 
 
@@ -504,17 +537,17 @@ def myinquiries_view(request):
 
 @login_required
 def inquiry_detail_view(request, pk):
-    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만 접근
+    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)
     return render(request, "help/help_myinquiries_detail.html", {"inquiry": inquiry})
 
 @login_required
 def inquiry_edit_view(request, pk):
-    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)  # 본인 글만
+    inquiry = get_object_or_404(Inquiry, pk=pk, user=request.user)
 
     if request.method == 'POST':
-        form = InquiryForm(request.POST, instance=inquiry)  # ★ instance 지정
+        form = InquiryForm(request.POST, instance=inquiry)
         if form.is_valid():
-            form.save()  # user는 이미 설정돼 있으므로 다시 덮어쓸 필요 없음
+            form.save()
             messages.success(request, '문의가 수정되었습니다.')
             return redirect('meetagain:inquiry_detail', pk=inquiry.pk)
     else:
@@ -535,7 +568,7 @@ def inquiry_create(request):
             inquiry = form.save(commit=False)
             inquiry.user = request.user
             inquiry.save()
-            return redirect('inquiry_success')  # 성공 페이지 또는 목록 등으로 리다이렉트
+            return redirect('inquiry_success')
     else:
         form = InquiryForm()
     return render(request, 'meetagain/inquiry_form.html', {'form': form})
