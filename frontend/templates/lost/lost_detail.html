@@ -1,128 +1,124 @@
-{% extends "base/base.html" %}
-{% load static %}
+{% extends 'base/base.html' %}
 
-{% block title %}분실물 상세보기 | MeetAgain{% endblock %}
+{% block title %}MeetAgain - 분실물 상세{% endblock %}
 
 {% block extra_head %}
 <style>
-  body { 
-    font-family: 'Noto Sans KR', sans-serif; 
-    background-color:#f5f3fa; 
-    color:#333; 
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f5f3fa;
+    color: #333;
   }
-  .container { 
-    max-width:900px; 
-    background:#fff; 
-    padding:40px; 
-    margin:60px auto;
-    border-radius:12px; 
-    box-shadow:0 0 20px rgba(0,0,0,.05); 
+  .container {
+    max-width: 900px;
+    background-color: #fff;
+    padding: 40px;
+    margin: 60px auto;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
   }
-  h2 { 
-    font-weight:700; 
-    font-size:1.8rem; 
-    color:#5e3dc6; 
-    text-align:center; 
-    margin-bottom:30px; 
+  h2 {
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: #5e3dc6;
+    text-align: center;
+    margin-bottom: 30px;
   }
-  .img-box { 
-    width:100%; 
-    border-radius:8px; 
-    object-fit:cover; 
-    margin-bottom:20px; 
-    border:1px solid #e0e0e0; 
+  .img-box {
+    width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
   }
-  .list-group-item { 
-    border:none; 
-    background:#f9f8fc; 
-    margin-bottom:10px; 
-    border-radius:8px; 
-    padding:12px 16px; 
+  .list-group-item {
+    border: none;
+    background-color: #f9f8fc;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 12px 16px;
   }
-  .label { 
-    font-weight:600; 
-    color:#5e3dc6;
-    margin-right:10px; 
-    display:inline-block; 
-    width:120px; 
+  .label {
+    font-weight: 600;
+    color: #5e3dc6;
+    margin-right: 10px;
+    display: inline-block;
+    width: 120px;
   }
-  .btn-primary { 
-    background:#7B3FF2; 
-    border:none; 
+  .btn-primary { background-color: #7B3FF2; border: none; }
+  .btn-primary:hover { background-color: #6931d4; }
+  .btn-outline { border: 1px solid #ccc; color: #333; }
+  .btn-outline:hover { background-color: #f0eef9; color: #5e3dc6; }
+  .detail-text {
+    background-color: #f8f7fb;
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 15px;
+    font-size: 0.95rem;
   }
-  .btn-primary:hover { 
-    background:#6931d4; 
-  }
-  .btn-outline { 
-    border:1px solid #ccc; 
-    color:#333; 
-  }
-  .btn-outline:hover { 
-    background:#f0eef9; 
-    color:#5e3dc6; 
-  }
-  .detail-text { 
-    background:#f8f7fb; 
-    padding:16px; 
-    border-radius:8px; 
-    margin-top:15px; 
-    font-size:.95rem; 
-    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="m-0">📦 분실물 상세 정보</h2>
-    <a href="/items" class="btn btn-outline-secondary btn-sm">← 목록으로</a>
-  </div>
+<div class="container">
+  <h2>분실물 상세 정보</h2>
 
-  <div class="row g-4">
-    <!-- 이미지 영역 -->
-    <div class="col-md-5">
-      {% if lost_item.image %}
-      <img src="{{ item.image.url }}" class="img-fluid rounded border" alt="{{ item.name|default:'분실물 사진' }}">
+  <div class="row">
+    <!-- 이미지 -->
+    <div class="col-md-4">
+      {% if item.image %}
+        <img src="{{ item.image.url }}" alt="{{ item.name|default:'분실물 사진' }}" class="img-box">
       {% else %}
-      <img src="https://via.placeholder.com/400x300?text=Lost+Item" class="img-fluid rounded border" alt="분실물 사진">
+        <img src="https://via.placeholder.com/600x400" alt="이미지 없음" class="img-box">
       {% endif %}
     </div>
 
-    <!-- 상세 정보 영역 -->
-    <div class="col-md-7">
-      <ul class="list-group shadow-sm">
-        <li class="list-group-item d-flex justify-content-between">
-          <strong>물품명</strong> <span>{{ item.name }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <strong>종류</strong> <span>{{ item.category }}</span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between">
-          <strong>분실장소</strong> <span>{{ item.lost_locations }}</span>
-        </li>
-        {% if lost_item.lost_date_endtime %}
-        <li class="list-group-item d-flex justify-content-between">
-          <strong>분실일시</strong> <span>{{ item.lost_date_endtime|date:"Y년 n월 j일 H:i" }}</span>
-        </li>
+    <!-- 상세 정보 -->
+    <div class="col-md-8">
+      <ul class="list-group">
+        <li class="list-group-item"><span class="label">분실물명</span> {{ item.name|default:"-" }}</li>
+
+        {% if item.subcategory %}
+          <li class="list-group-item"><span class="label">세부옵션</span> {{ item.subcategory }}</li>
         {% endif %}
-        {% if item.description %}
+
+        <li class="list-group-item"><span class="label">종류</span> {{ item.get_category_display|default:"-" }}</li>
+
+        {% if item.lost_date_start or item.lost_date_end %}
         <li class="list-group-item">
-          <strong>특징</strong><br>
-          {{ item.description|linebreaksbr }}
+          <span class="label">분실기간</span>
+          {% if item.lost_date_start %}{{ item.lost_date_start|date:"Y년 n월 j일" }}{% endif %}
+          {% if item.lost_date_end %} ~ {{ item.lost_date_end|date:"Y년 n월 j일" }}{% endif %}
         </li>
         {% endif %}
+
+        <li class="list-group-item">
+          <span class="label">분실장소</span>
+          {% if item.lost_locations and item.lost_locations|length %}
+            {{ item.lost_locations|join:", " }}
+          {% else %}-{% endif %}
+        </li>
       </ul>
 
-      <div class="mt-4">
-        {% if item.latitude and item.longitude %}
-        <a class="btn btn-outline-primary" href="/map?lat={{ lost_item.latitude }}&lng={{ lost_item.longitude }}">
-          📍 지도에서 위치 보기
-        </a>
-        {% else %}
-        <button class="btn btn-outline-primary" disabled>📍 지도에서 위치 보기 (준비중)</button>
-        {% endif %}
+      <div class="detail-text mt-3">
+        <strong>상세 내용:</strong><br>
+        {{ item.description|default:"(설명 없음)"|linebreaks }}
       </div>
+
+      {% if request.user.is_authenticated and request.user == item.user or request.user.is_staff %}
+        <div class="mt-3">
+          <a href="{% url 'meetagain:lost_edit' item.id %}" class="btn btn-primary me-2">✏️ 수정하기</a>
+          <form method="POST" action="{% url 'meetagain:lost_delete' item.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-outline-danger" onclick="return confirm('정말 삭제하시겠습니까?');">🗑️ 삭제하기</button>
+          </form>
+        </div>
+      {% endif %}
+
+      <a href="{% url 'meetagain:index' %}" class="btn btn-primary mt-3">🏠 메인페이지로</a>
     </div>
   </div>
 </div>
 {% endblock %}
+
+{% block extra_scripts %}{% endblock %}

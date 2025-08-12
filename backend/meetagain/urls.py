@@ -13,6 +13,8 @@ urlpatterns = [
     path('lost/<int:item_id>/edit/', views.lost_update_view, name='lost_edit'),
     path('lost/<int:item_id>/delete/', views.lost_delete_view, name='lost_delete'),
     path('lost/<int:item_id>/', views.lost_detail_view, name='lost_detail'),
+    path('lost/', views.lost_index_view, name='lost_index'),
+
 
     # 습득물 (Found)
     path('found/register/', views.found_register_view, name='found_register'),
