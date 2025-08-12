@@ -101,15 +101,25 @@
 
 {% block extra_scripts %}
 <script>
+  /* 전역 유틸: XSS 방지 */
+  function escapeHtml(s){
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
+  }
+
   // ===== 지도: 현재 URL 쿼리 그대로 반영 =====
   window.addEventListener('load', function () {
     initMap();
     // 페이지 로드 시 1페이지 가져오기
     fetchPage(1);
 
-    // 검색폼 submit 시에도 1페이지부터 다시
+    // 검색폼 submit 시에도 1페이지부터 다시 (원하면 Ajax로 바꿀 수 있음)
     document.getElementById('searchForm').addEventListener('submit', function(e){
-      // 기본 submit(전체 리로드) 허용하되, 원한다면 preventDefault하고 fetchPage(1)만 호출해도 됨
       // e.preventDefault(); fetchPage(1);
     });
   });
@@ -137,6 +147,7 @@
           const pos = new kakao.maps.LatLng(item.lat, item.lng);
           bounds.extend(pos);
           const marker = new kakao.maps.Marker({ position: pos, map: map });
+
           const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
           const content = `
             <div style="padding:8px 10px; min-width:180px; font-size:13px;">
@@ -154,12 +165,6 @@
         if (!bounds.isEmpty()) map.setBounds(bounds);
       })
       .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
-
-    function escapeHtml(s){
-      if (s == null) return '';
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-    }
   }
 
   // ===== AJAX 페이지네이션 =====
@@ -174,31 +179,42 @@
 
   function fetchPage(page){
     fetch(`/meetagain/found/list_api/${buildQuery({page})}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         renderGrid(data.items);
         renderPager(data.page, data.total_pages);
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error('리스트 불러오기 실패:', err);
+        GRID.innerHTML = `<p class="text-danger">목록을 불러오지 못했습니다. 새로고침 해보세요.</p>`;
+      });
   }
 
   function renderGrid(items){
-    GRID.innerHTML = items.map(it => `
-      <div class="col">
-        <a class="text-decoration-none" href="{% url 'meetagain:found_detail' item_id=0 %}".replace('/0/','/${it.id}/')>
-          <div class="card lost-card h-100">
-            ${it.image_url
-              ? `<img src="${it.image_url}" alt="${escapeHtml(it.name)}" class="thumb">`
-              : `<img src="https://via.placeholder.com/600x400?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" class="thumb" alt="이미지 없음">`}
-            <div class="card-body">
-              <p class="text-center fw-bold text-dark mb-1">${escapeHtml(it.name)}</p>
-              <p class="text-center text-muted small mb-1">${it.found_date || ''}</p>
-              <p class="text-center text-muted small">${escapeHtml(it.found_location || '')}</p>
+    const detailUrlTemplate = "{% url 'meetagain:found_detail' item_id=0 %}";
+
+    GRID.innerHTML = items.map(it => {
+      const detailUrl = detailUrlTemplate.replace('/0/', `/${it.id}/`);
+      return `
+        <div class="col">
+          <a class="text-decoration-none" href="${detailUrl}">
+            <div class="card lost-card h-100">
+              ${it.image_url
+                ? `<img src="${it.image_url}" alt="${escapeHtml(it.name)}" class="thumb">`
+                : `<img src="https://via.placeholder.com/600x400?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" class="thumb" alt="이미지 없음">`}
+              <div class="card-body">
+                <p class="text-center fw-bold text-dark mb-1">${escapeHtml(it.name)}</p>
+                <p class="text-center text-muted small mb-1">${it.found_date || ''}</p>
+                <p class="text-center text-muted small">${escapeHtml(it.found_location || '')}</p>
+              </div>
             </div>
-          </div>
-        </a>
-      </div>
-    `).join('') || `<p class="text-muted">등록된 습득물이 없습니다.</p>`;
+          </a>
+        </div>
+      `;
+    }).join('') || `<p class="text-muted">등록된 습득물이 없습니다.</p>`;
   }
 
   function renderPager(current, total){
