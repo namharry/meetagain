@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
+from .forms import LOCATION_CHOICES
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -54,7 +55,8 @@ def index_view(request):
     items = items.order_by('-found_date', '-id')
 
     return render(request, 'pages/index.html', {
-        'items': items
+        'items': items,
+        'location_choices': LOCATION_CHOICES,
     })
 
 
@@ -257,14 +259,14 @@ def found_list_api(request):
         'has_next': page_obj.has_next(),
     })
 
-    @login_required
-    def found_edit(request, pk):
-        found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
-        if request.method == 'POST':
-            form = FoundItemForm(request.POST, request.FILES, instance=found_item)
-            if form.is_valid():
-                form.save()
-                return redirect('found_detail', pk=found_item.pk)
+@login_required
+def found_edit(request, pk):
+    found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = FoundItemForm(request.POST, request.FILES, instance=found_item)
+        if form.is_valid():
+            form.save()
+            return redirect('found_detail', pk=found_item.pk)
         else:
             form = FoundItemForm(instance=found_item)
         return render(request, 'found/found_register.html', {'form': form, 'edit_mode': True})
