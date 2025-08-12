@@ -272,6 +272,7 @@ def mypage_view(request):
         if not getattr(obj, "title", None):
             obj.title = obj.name
 
+    # ✅ 내가 잃어버린 물건
     l_qs = LostItem.objects.filter(user=request.user).order_by('-id')
     l_page = Paginator(l_qs, 10).get_page(request.GET.get('lost_page'))
     l_items = list(l_page.object_list)
