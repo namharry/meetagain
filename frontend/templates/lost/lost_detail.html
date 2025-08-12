@@ -14,7 +14,7 @@
     <!-- 이미지 영역 -->
     <div class="col-md-5">
       {% if lost_item.image %}
-      <img src="{{ lost_item.image.url }}" class="img-fluid rounded border" alt="{{ lost_item.name|default:'분실물 사진' }}">
+      <img src="{{ item.image.url }}" class="img-fluid rounded border" alt="{{ item.name|default:'분실물 사진' }}">
       {% else %}
       <img src="https://via.placeholder.com/400x300?text=Lost+Item" class="img-fluid rounded border" alt="분실물 사진">
       {% endif %}
@@ -24,29 +24,29 @@
     <div class="col-md-7">
       <ul class="list-group shadow-sm">
         <li class="list-group-item d-flex justify-content-between">
-          <strong>물품명</strong> <span>{{ lost_item.name }}</span>
+          <strong>물품명</strong> <span>{{ item.name }}</span>
         </li>
         <li class="list-group-item d-flex justify-content-between">
-          <strong>종류</strong> <span>{{ lost_item.category }}</span>
+          <strong>종류</strong> <span>{{ item.category }}</span>
         </li>
         <li class="list-group-item d-flex justify-content-between">
-          <strong>분실장소</strong> <span>{{ lost_item.location }}</span>
+          <strong>분실장소</strong> <span>{{ item.lost_locations }}</span>
         </li>
         {% if lost_item.lost_date_endtime %}
         <li class="list-group-item d-flex justify-content-between">
-          <strong>분실일시</strong> <span>{{ lost_item.lost_date_endtime|date:"Y년 n월 j일 H:i" }}</span>
+          <strong>분실일시</strong> <span>{{ item.lost_date_endtime|date:"Y년 n월 j일 H:i" }}</span>
         </li>
         {% endif %}
-        {% if lost_item.description %}
+        {% if item.description %}
         <li class="list-group-item">
           <strong>특징</strong><br>
-          {{ lost_item.description|linebreaksbr }}
+          {{ item.description|linebreaksbr }}
         </li>
         {% endif %}
       </ul>
 
       <div class="mt-4">
-        {% if lost_item.latitude and lost_item.longitude %}
+        {% if item.latitude and item.longitude %}
         <a class="btn btn-outline-primary" href="/map?lat={{ lost_item.latitude }}&lng={{ lost_item.longitude }}">
           📍 지도에서 위치 보기
         </a>
