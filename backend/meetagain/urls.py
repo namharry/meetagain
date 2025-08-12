@@ -19,6 +19,9 @@ urlpatterns = [
     path('found/<int:item_id>/', views.found_detail_view, name='found_detail'),
     path('found/', views.found_index_view, name='found_index'),
     path('found/form/', views.found_index_view, name='found_form'),
+    path('found/<int:item_id>/edit/', views.found_update_view, name='found_edit'),
+    path('found/<int:item_id>/delete/', views.found_delete_view, name='found_delete'),
+
 
     # ➕ AJAX 페이지네이션 API
     path('found/list_api/', views.found_list_api, name='found_list_api'),
