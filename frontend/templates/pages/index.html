@@ -135,38 +135,57 @@
       maxLevel: 4
     });
 
-    const queryString = window.location.search;
-    fetch(`/meetagain/api/items${queryString}`)
-      .then(res => res.json())
-      .then(({ items }) => {
-        if (!items || items.length === 0) return;
-        const bounds = new kakao.maps.LatLngBounds();
-        const openInfoWindows = [];
-        items.forEach(item => {
-          if (item.lat == null || item.lng == null) return;
-          const pos = new kakao.maps.LatLng(item.lat, item.lng);
-          bounds.extend(pos);
-          const marker = new kakao.maps.Marker({ position: pos, map: map });
+    // ✅ 하나만 공유해서 쓰는 인포윈도우 + 현재 열린 마커
+  const infowindow = new kakao.maps.InfoWindow({ removable: true });
+  let openedMarker = null;
 
-          const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
-          const content = `
-            <div style="padding:8px 10px; min-width:180px; font-size:13px;">
-              <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
-              <div style="color:#666; margin-bottom:6px;">${item.date || ''}</div>
-              <a href="${detailUrl}" style="text-decoration:none;">자세히 보기 →</a>
-            </div>`;
-          const iw = new kakao.maps.InfoWindow({ content });
-          kakao.maps.event.addListener(marker, 'click', () => {
-            openInfoWindows.forEach(w => w.close());
-            iw.open(map, marker);
-            openInfoWindows.push(iw);
-          });
+  const queryString = window.location.search;
+  fetch(`/meetagain/api/items${queryString}`)
+    .then(res => res.json())
+    .then(({ items }) => {
+      if (!items || items.length === 0) return;
+      const bounds = new kakao.maps.LatLngBounds();
+
+      items.forEach(item => {
+        if (item.lat == null || item.lng == null) return;
+
+        const pos = new kakao.maps.LatLng(item.lat, item.lng);
+        bounds.extend(pos);
+        const marker = new kakao.maps.Marker({ position: pos, map: map });
+
+        const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
+        const content = `
+          <div style="padding:8px 10px; min-width:180px; font-size:13px;">
+            <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
+            <div style="color:#666; margin-bottom:6px;">${item.date || ''}</div>
+            <a href="${detailUrl}" style="text-decoration:none;">자세히 보기 →</a>
+          </div>`;
+
+        // ✅ 클릭 시 토글
+        kakao.maps.event.addListener(marker, 'click', () => {
+          // 같은 마커가 이미 열려있으면 닫기
+          if (openedMarker === marker && infowindow.getMap()) {
+            infowindow.close();
+            openedMarker = null;
+            return;
+          }
+          // 다른 마커 → 내용 바꾸어 열기
+          infowindow.setContent(content);
+          infowindow.open(map, marker);
+          openedMarker = marker;
         });
-        if (!bounds.isEmpty()) map.setBounds(bounds);
-      })
-      .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
-  }
+      });
 
+      if (!bounds.isEmpty()) map.setBounds(bounds);
+    })
+    .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
+
+  // ✅ 지도 빈 곳 클릭 시 닫기
+  kakao.maps.event.addListener(map, 'click', function () {
+    if (infowindow.getMap()) infowindow.close();
+    openedMarker = null;
+  });
+}
   // ===== AJAX 페이지네이션 =====
   const GRID  = document.getElementById('items');
   const PAGER = document.getElementById('pager');

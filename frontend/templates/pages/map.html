@@ -25,7 +25,6 @@
       {{ form.image|add_class:"form-control" }}
     </div>
 
-    <!-- 기타 필드도 필요하면 추가 가능 -->
     <button type="submit" class="btn btn-primary">등록</button>
   </form>
 </div>
@@ -33,7 +32,6 @@
 
 {% block extra_scripts %}
 <script>
-  // base.html에서 Kakao SDK가 이미 로드된 상태 가정
   document.addEventListener('DOMContentLoaded', function () {
     const container = document.getElementById('map');
     const map = new kakao.maps.Map(container, {
@@ -42,19 +40,62 @@
     });
 
     const geocoder = new kakao.maps.services.Geocoder();
-    const marker = new kakao.maps.Marker({ map });
 
-    // 지도 클릭 시 주소 → 입력창 채우기
+    // 하나만 공유해서 쓰는 마커/인포윈도우
+    const marker = new kakao.maps.Marker({ map: null });
+    const infowindow = new kakao.maps.InfoWindow({ removable: true });
+    let lastContent = '';
+
+    const locInput = document.getElementById('id_location');
+
+    // 지도 클릭: 좌표 -> 주소 변환, 마커 이동 + 인풋 채우기 + 인포윈도우 열기
     kakao.maps.event.addListener(map, 'click', function (e) {
       const latlng = e.latLng;
       geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function (result, status) {
-        if (status === kakao.maps.services.Status.OK) {
-          const address = result[0].address.address_name;
-          const locInput = document.getElementById('id_location');
-          if (locInput) locInput.value = address;
-          marker.setPosition(latlng);
-        }
+        if (status !== kakao.maps.services.Status.OK) return;
+
+        const address = result[0].address.address_name;
+
+        if (locInput) locInput.value = address;
+
+        marker.setPosition(latlng);
+        marker.setMap(map);
+
+        const content = `<div style="padding:8px 10px;">${address}</div>`;
+        lastContent = content;
+        infowindow.setContent(content);
+        infowindow.open(map, marker);
       });
+    });
+
+    // 마커 클릭: 같은 내용이면 토글(닫기), 아니면 열기
+    kakao.maps.event.addListener(marker, 'click', function () {
+      // 인포윈도우가 열려 있고, 마지막 컨텐츠와 동일하면 -> 닫기(토글)
+      if (infowindow.getMap()) {
+        infowindow.close();
+      } else {
+        infowindow.setContent(lastContent || '<div style="padding:8px 10px;">선택된 위치</div>');
+        infowindow.open(map, marker);
+      }
+    });
+
+    // 지도 빈 곳 클릭: 인포윈도우 닫기
+    kakao.maps.event.addListener(map, 'rightclick', function () {
+      // 우클릭 지도: 인포만 닫기(초기화는 마커 우클릭에서)
+      infowindow.close();
+    });
+
+    // 마커 우클릭: 삭제
+    kakao.maps.event.addListener(marker, 'rightclick', function () {
+      infowindow.close();
+      marker.setMap(null);
+      lastContent = '';
+      if (locInput) locInput.value = '';
+    });
+
+    // ESC 키로도 인포윈도우 닫기
+    document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') infowindow.close();
     });
   });
 </script>
