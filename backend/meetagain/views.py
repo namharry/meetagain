@@ -12,6 +12,12 @@ from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import InquiryForm, LostItemForm, FoundItemForm, NoticeForm
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
+from datetime import timedelta
+from django.utils import timezone
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.utils.dateparse import parse_date
+from .forms import LOCATION_CHOICES
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -49,7 +55,8 @@ def index_view(request):
     items = items.order_by('-found_date', '-id')
 
     return render(request, 'pages/index.html', {
-        'items': items
+        'items': items,
+        'location_choices': LOCATION_CHOICES,
     })
 
 
@@ -71,59 +78,19 @@ def lost_register_view(request):
         form = LostItemForm()
     return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
 
-
 @login_required
-def lost_index_view(request):
-    items = LostItem.objects.all()
-
-    q = request.GET.get('q', '')
-    location = request.GET.get('location', '')
-    category = request.GET.get('category', '')
-    date_from = request.GET.get('date_from', '')
-    date_to = request.GET.get('date_to', '')
-
-    if q:
-        items = items.filter(name__icontains=q)
-    if location:
-        items = items.filter(lost_location__icontains=location)
-    if category and category != 'all':
-        items = items.filter(category=category)
-    # 날짜 필터: 사용자가 기간을 주면 "겹치는" 데이터만 보여주기
-    # (date_from <= item.lost_date_end) AND (date_to >= item.lost_date_start)
-    if date_from and date_to:
-        items = items.filter(
-            Q(lost_date_end__gte=date_from) & Q(lost_date_start__lte=date_to)
-        )
-    elif date_from:
-        items = items.filter(lost_date_end__gte=date_from)
-    elif date_to:
-        items = items.filter(lost_date_start__lte=date_to)
-
-    items = items.order_by('-lost_date_end')[:6]
-
-    context = {
-        'items': items,
-        'q': q,
-        'location': location,
-        'category': category,
-        'date_from': date_from,
-        'date_to': date_to,
-        'category_choices': LostItem.CATEGORY_CHOICES,
-    }
-    return render(request, 'lost/lost_list.html', context)
-
-
-@login_required
-def lost_update_view(request, item_id):
-    item = get_object_or_404(LostItem, id=item_id)
+def lost_edit_view(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id, user=request.user)  # 본인 글만 수정
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
             form.save()
+            messages.success(request, "분실물 정보가 수정되었습니다.")
             return redirect('meetagain:lost_detail', item_id=item.id)
     else:
         form = LostItemForm(instance=item)
-    return render(request, 'lost/lost_update.html', {'form': form, 'item': item})
+    # 🔽 등록 폼 템플릿 재사용 (파일이 이미 존재한다고 가정)
+    return render(request, 'lost/lost_register.html', {'form': form, 'item': item, 'mode': 'update'})
 
 
 @login_required
@@ -221,10 +188,10 @@ def found_update_view(request, item_id):
             raw = request.POST.get('is_returned', '')
             obj.is_returned = (str(raw).lower() in ('true', '1', 'on', 'yes'))
             obj.save()
-            return redirect('meetagain:found_detail', item_id=item.id)
+            return redirect('meetagain:found_detail', item_id=obj.id)
     else:
         form = FoundItemForm(instance=item)
-    return render(request, 'found/found_register.html', {'form': form, 'item': item})
+    return render(request, 'found/found_register.html', {'form': form, 'item': item, 'edit_mode': True})
 
 
 @login_required
@@ -294,14 +261,14 @@ def found_list_api(request):
         'has_next': page_obj.has_next(),
     })
 
-    @login_required
-    def found_edit(request, pk):
-        found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
-        if request.method == 'POST':
-            form = FoundItemForm(request.POST, request.FILES, instance=found_item)
-            if form.is_valid():
-                form.save()
-                return redirect('found_detail', pk=found_item.pk)
+@login_required
+def found_edit(request, pk):
+    found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = FoundItemForm(request.POST, request.FILES, instance=found_item)
+        if form.is_valid():
+            form.save()
+            return redirect('found_detail', pk=found_item.pk)
         else:
             form = FoundItemForm(instance=found_item)
         return render(request, 'found/found_register.html', {'form': form, 'edit_mode': True})
@@ -440,39 +407,53 @@ def notice_delete(request, pk):
 
 @login_required
 def map_pins_api(request):
-    category = request.GET.get('category')
-    name = request.GET.get('name')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    location = request.GET.get('location')
+    # ✅ 양쪽 파라미터 키 모두 지원
+    category   = request.GET.get('category', '')
+    name       = request.GET.get('name') or request.GET.get('q') or ''
+    location   = request.GET.get('location', '')
+    start_date = request.GET.get('start_date') or request.GET.get('date_from') or ''
+    end_date   = request.GET.get('end_date')   or request.GET.get('date_to')   or ''
 
-    found_items = FoundItem.objects.all()
+    filters_present = any([category, name, location, start_date, end_date])
 
+    qs = FoundItem.objects.all()
+
+    # ✅ 기본 진입(필터 없음)일 때만 최근 2주 제한
+    if not filters_present:
+        today = timezone.localdate()
+        two_weeks_ago = today - timedelta(days=14)
+        qs = qs.filter(found_date__gte=two_weeks_ago)
+
+    # ✅ 기간 필터(둘 다 지원)
+    sd = parse_date(start_date) if start_date else None
+    ed = parse_date(end_date)   if end_date   else None
+    if sd:
+        qs = qs.filter(found_date__gte=sd)
+    if ed:
+        qs = qs.filter(found_date__lte=ed)
+
+    # ✅ 기타 필터
     if category:
-        found_items = found_items.filter(category=category)
+        qs = qs.filter(category=category)
     if name:
-        found_items = found_items.filter(name__icontains=name)
-    if start_date:
-        found_items = found_items.filter(found_date__gte=start_date)
-    if end_date:
-        found_items = found_items.filter(found_date__lte=end_date)
+        qs = qs.filter(name__icontains=name)
     if location:
-        found_items = found_items.filter(found_location__icontains=location)
+        qs = qs.filter(found_location__icontains=location)
 
-    data = []
-    for item in found_items:
-        if item.lat is not None and item.lng is not None:
-            data.append({
-                'id': item.id,
-                'type': 'found',
-                'name': item.name,
-                'lat': item.lat,
-                'lng': item.lng,
-                'date': item.found_date.strftime('%Y-%m-%d'),
-            })
+    # ✅ 지도 가능한 데이터만
+    qs = qs.filter(lat__isnull=False, lng__isnull=False).order_by('-found_date', '-id')
+
+    data = [{
+        'id': item.id,
+        'type': 'found',
+        'name': item.name,
+        'lat': item.lat,
+        'lng': item.lng,
+        'date': item.found_date.strftime('%Y-%m-%d') if item.found_date else '',
+        'thumbnail_url': (item.image.url if item.image else None),  # ✅ 썸네일 URL 추가
+    } for item in qs]
 
     return JsonResponse({'items': data})
-
 
 # --------------------
 # 회원 탈퇴(quit) 관련 뷰

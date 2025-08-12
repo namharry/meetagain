@@ -87,16 +87,21 @@
         <label for="category" class="form-label">종류</label>
         <select class="form-select" id="category" name="category" required>
           <option value="">종류 선택</option>
-          <option value="가방">가방</option>
-          <option value="귀금속">귀금속</option>
-          <option value="의류">의류</option>
-          <option value="전자기기">전자기기</option>
-          <option value="지갑">지갑</option>
-          <option value="컴퓨터">컴퓨터</option>
-          <option value="카드">카드</option>
-          <option value="현금">현금</option>
-          <option value="휴대폰">휴대폰</option>
-          <option value="기타">기타</option>
+          <option value="가방" {% if form.category.value == '가방' %}selected{% endif %}>가방</option>
+          <option value="귀금속" {% if form.category.value == '귀금속' %}selected{% endif %}>귀금속</option>
+          <option value="의류" {% if form.category.value == '의류' %}selected{% endif %}>의류</option>
+          <option value="전자기기" {% if form.category.value == '전자기기' %}selected{% endif %}>전자기기</option>
+          <option value="지갑" {% if form.category.value == '지갑' %}selected{% endif %}>지갑</option>
+          <option value="컴퓨터" {% if form.category.value == '컴퓨터' %}selected{% endif %}>컴퓨터</option>
+          <option value="카드" {% if form.category.value == '카드' %}selected{% endif %}>카드</option>
+          <option value="현금" {% if form.category.value == '현금' %}selected{% endif %}>현금</option>
+          <option value="휴대폰" {% if form.category.value == '휴대폰' %}selected{% endif %}>휴대폰</option>
+          <option value="문서/서류"  {% if form.category.value == '문서/서류' %}selected{% endif %}>문서/서류</option>
+          <option value="악기"       {% if form.category.value == '악기' %}selected{% endif %}>악기</option>
+          <option value="스포츠용품" {% if form.category.value == '스포츠용품' %}selected{% endif %}>스포츠용품</option>
+          <option value="신분증"     {% if form.category.value == '신분증' %}selected{% endif %}>신분증</option>
+          <option value="책/노트"    {% if form.category.value == '책/노트' %}selected{% endif %}>책/노트</option>
+          <option value="기타" {% if form.category.value == '기타' %}selected{% endif %}>기타</option>
         </select>
         {% if form.subcategory.errors %}<div class="text-danger small mt-1">
           {% for error in form.subcategory.errors %}{{ error }}<br>{% endfor %}
@@ -131,10 +136,10 @@
     <label class="form-label">분실 기간</label>
     <div class="d-flex gap-2">
       <input type="date" class="form-control" id="lost_date_start" name="lost_date_start"
-             value="{{ form.lost_date_start.value|default_if_none:'' }}" required>
+             value="{{ form.lost_date_start.value|date:'Y-m-d' }}" required>
       <span class="px-2">~</span>
       <input type="date" class="form-control" id="lost_date_end" name="lost_date_end"
-             value="{{ form.lost_date_end.value|default_if_none:'' }}" required>
+             value="{{ form.lost_date_end.value|date:'Y-m-d' }}" required>
     </div>
     {% if form.lost_date_start.errors or form.lost_date_end.errors %}
       <div class="text-danger small mt-1">
@@ -148,18 +153,18 @@
     <div class="mb-3">
       <label for="lost_locations" class="form-label">분실 장소 (복수 선택 가능)</label>
       <select class="form-select" id="lost_locations" name="lost_locations" multiple required> 
-        <option value="난향관">난향관</option>
-        <option value="성신관">성신관</option>
-        <option value="수정관">수정관</option>
-        <option value="중앙도서관">중앙도서관</option>
-        <option value="조형1관">조형1관</option>
-        <option value="조형2관">조형2관</option>
-        <option value="체육관">체육관</option>
-        <option value="프라임관">프라임관</option>
-        <option value="행정관">행정관</option>
-        <option value="학생회관">학생회관</option>
-        <option value="음악관">음악관</option>
-        <option value="기타">기타</option>
+        <option value="난향관" {% if form.lost_locations.value and '난향관' in form.lost_locations.value %}selected{% endif %}>난향관</option>
+        <option value="성신관" {% if form.lost_locations.value and '성신관' in form.lost_locations.value %}selected{% endif %}>성신관</option>
+        <option value="수정관" {% if form.lost_locations.value and '수정관' in form.lost_locations.value %}selected{% endif %}>수정관</option>
+        <option value="중앙도서관" {% if form.lost_locations.value and '중앙도서관' in form.lost_locations.value %}selected{% endif %}>중앙도서관</option>
+        <option value="조형1관" {% if form.lost_locations.value and '조형1관' in form.lost_locations.value %}selected{% endif %}>조형1관</option>
+        <option value="조형2관" {% if form.lost_locations.value and '조형2관' in form.lost_locations.value %}selected{% endif %}>조형2관</option>
+        <option value="체육관" {% if form.lost_locations.value and '체육관' in form.lost_locations.value %}selected{% endif %}>체육관</option>
+        <option value="프라임관" {% if form.lost_locations.value and '프라임관' in form.lost_locations.value %}selected{% endif %}>프라임관</option>
+        <option value="행정관" {% if form.lost_locations.value and '행정관' in form.lost_locations.value %}selected{% endif %}>행정관</option>
+        <option value="학생회관" {% if form.lost_locations.value and '학생회관' in form.lost_locations.value %}selected{% endif %}>학생회관</option>
+        <option value="음악관" {% if form.lost_locations.value and '음악관' in form.lost_locations.value %}selected{% endif %}>음악관</option>
+        <option value="기타" {% if form.lost_locations.value and '기타' in form.lost_locations.value %}selected{% endif %}>기타</option>
       </select>
       {% if form.lost_locations.errors %}<div class="text-danger small mt-1">
         {% for error in form.lost_locations.errors %}{{ error }}<br>{% endfor %}
