@@ -92,7 +92,6 @@
           {% if item.status %}{{ item.get_status_display }}
           {% else %}{% if item.is_returned %}소유자 반환{% else %}보관 중{% endif %}{% endif %}
         </li>
-        {# 좌표 숫자 노출은 제거했습니다. 지도 버튼/지도는 유지 #}
       </ul>
 
       <div class="detail-text mt-3">
@@ -104,8 +103,13 @@
         {% if request.user == item.user or request.user.is_staff %}
           <div class="mt-3">
             <a href="{% url 'meetagain:found_edit' item.id %}" class="btn btn-primary me-2">✏️ 수정하기</a>
-            <a href="{% url 'meetagain:found_delete' item.id %}" class="btn btn-outline btn-outline-danger"
-              onclick="return confirm('정말 삭제하시겠습니까?');">🗑️ 삭제하기</a>
+            
+            <form method="POST" action="{% url 'meetagain:found_delete' item.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline btn-outline-danger" onclick="return confirm('정말 삭제하시겠습니까?');">
+                🗑️ 삭제하기
+              </button>
+            </form>
           </div>
         {% endif %}
       {% endif %}
@@ -146,7 +150,6 @@
     const el = document.getElementById('detailMap');
     if (!el || !window.kakao || !kakao.maps) return;
 
-    // data-에서 안전하게 읽어 숫자로 변환
     const lat = parseFloat(el.dataset.lat);
     const lng = parseFloat(el.dataset.lng);
     if (isNaN(lat) || isNaN(lng)) return;
