@@ -26,8 +26,16 @@
     padding:0 10px; font-weight:600; color:#4c3c88; background:transparent; border:none;
   }
   .purple-pagination .pg-btn:hover{ background:#efe7ff; }
-  .purple-pagination .active{ background:#6A5ADB; color:#fff; }
+  .purple-pagination .active{ background:#7B3FF2; color:#fff; }
   .purple-pagination .disabled{ opacity:.4; pointer-events:none; }
+
+  /* 🔧 세부옵션 없음일 때: 회색 배경 제거하고 클릭만 막기 */
+  #subSelect.no-sub {
+    pointer-events: none;    /* 열리지 않음 */
+    background-color: #fff;  /* 회색 아님 */
+    opacity: 1;              /* Bootstrap 기본 흐림 제거 */
+    color: #6c757d;          /* 살짝만 흐리게 */
+  }
 </style>
 {% endblock %}
 
@@ -52,8 +60,8 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">세부옵션</label>
-            <!-- 초기에는 비활성화, JS에서 카테고리에 맞춰 채움 -->
-            <select name="subcategory" id="subSelect" class="form-select" disabled
+            <!-- 값 유지용 data-attr -->
+            <select name="subcategory" id="subSelect" class="form-select"
                     data-subselected="{{ request.GET.subcategory|default:'' }}">
               <option value="">세부옵션 선택</option>
             </select>
@@ -88,11 +96,9 @@
         </div>
       </form>
 
-      <!-- 리스트 (AJAX로 채움) -->
       <h5 class="mb-3 mt-4">📋 등록된 습득물 리스트</h5>
       <div class="row row-cols-1 row-cols-md-3 g-4 mb-3" id="items"></div>
 
-      <!-- 숫자 페이지네이션 (보라) -->
       <div class="d-flex justify-content-center mb-4">
         <div id="pager" class="purple-pagination"></div>
       </div>
@@ -128,7 +134,6 @@
   }
 
   // ===== 세부옵션 매핑 (라벨 기준) =====
-  // 라벨은 템플릿 option의 표시 텍스트와 일치해야 함
   const SUB_OPTIONS = {
     '카드': [],
     '지갑': [],
@@ -149,18 +154,21 @@
   function fillSubOptions(categoryLabel, selectedValue){
     const sub = document.getElementById('subSelect');
     const list = SUB_OPTIONS[categoryLabel] || [];
+
     sub.innerHTML = '';
     if (list.length === 0){
-      // 해당 없음: 비활성화 + 전송값 비움
+      // 🔸 세부옵션 없음: 일반 스타일 유지 + 클릭만 막음
       const opt = document.createElement('option');
       opt.value = '';
-      opt.textContent = '해당 없음';
+      opt.textContent = '세부옵션 없음';
       sub.appendChild(opt);
-      sub.disabled = true;
+      sub.classList.add('no-sub');   // 스타일로 pointer-events만 막음
       sub.value = '';
       return;
     }
+
     // 선택 가능
+    sub.classList.remove('no-sub');
     const ph = document.createElement('option');
     ph.value = '';
     ph.textContent = '세부옵션 선택';
@@ -171,14 +179,7 @@
       o.textContent = v;
       sub.appendChild(o);
     });
-    sub.disabled = false;
-    if (selectedValue){
-      // 값이 리스트에 있을 때만 선택
-      const exists = list.includes(selectedValue);
-      sub.value = exists ? selectedValue : '';
-    } else {
-      sub.value = '';
-    }
+    sub.value = (selectedValue && list.includes(selectedValue)) ? selectedValue : '';
   }
 
   function currentCategoryLabel(){
@@ -199,13 +200,7 @@
     });
 
     initMap();
-    // 페이지 로드 시 1페이지 가져오기
     fetchPage(1);
-
-    // 검색폼 기본 submit 사용 (쿼리 유지)
-    document.getElementById('searchForm').addEventListener('submit', function(e){
-      // e.preventDefault(); fetchPage(1);
-    });
   });
 
   function initMap(){
@@ -219,7 +214,7 @@
       maxLevel: 4
     });
 
-    const queryString = window.location.search; // subcategory 포함 그대로 전달
+    const queryString = window.location.search;
     fetch(`/meetagain/api/items${queryString}`)
       .then(res => res.json())
       .then(({ items }) => {
