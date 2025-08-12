@@ -12,9 +12,7 @@
     border-top-right-radius: .5rem;
     background: #f6f6f6;
   }
-  .lost-card .card-body {
-    min-height: 96px;
-  }
+  .lost-card .card-body { min-height: 96px; }
 
   /* 보라색 페이지네이션 */
   .purple-pagination{
@@ -28,7 +26,7 @@
     padding:0 10px; font-weight:600; color:#4c3c88; background:transparent; border:none;
   }
   .purple-pagination .pg-btn:hover{ background:#efe7ff; }
-  .purple-pagination .active{ background:#7B3FF2; color:#fff; }
+  .purple-pagination .active{ background:#6A5ADB; color:#fff; }
   .purple-pagination .disabled{ opacity:.4; pointer-events:none; }
 </style>
 {% endblock %}
@@ -42,6 +40,7 @@
     <div class="col-md-7">
       <form id="searchForm" method="get" action="{% url 'meetagain:index' %}">
         <div class="row g-2">
+          <!-- 1줄: 종류 + 세부옵션 -->
           <div class="col-md-6">
             <label class="form-label">종류</label>
             <select name="category" id="typeSelect" class="form-select">
@@ -52,9 +51,15 @@
             </select>
           </div>
           <div class="col-md-6">
-            <label class="form-label">습득물명</label>
-            <input type="text" name="name" value="{{ request.GET.name }}" class="form-control" placeholder="예: 파란색 우산">
+            <label class="form-label">세부옵션</label>
+            <!-- 초기에는 비활성화, JS에서 카테고리에 맞춰 채움 -->
+            <select name="subcategory" id="subSelect" class="form-select" disabled
+                    data-subselected="{{ request.GET.subcategory|default:'' }}">
+              <option value="">세부옵션 선택</option>
+            </select>
           </div>
+
+          <!-- 2줄: 기간 -->
           <div class="col-md-12">
             <label class="form-label">습득 기간</label>
             <div class="d-flex gap-2">
@@ -63,10 +68,20 @@
               <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
             </div>
           </div>
+
+          <!-- 3줄: 장소 -->
           <div class="col-md-12">
             <label class="form-label">습득 장소</label>
             <input type="text" name="location" value="{{ request.GET.location }}" class="form-control" placeholder="예: 중앙도서관">
           </div>
+
+          <!-- 4줄: 물품명 -->
+          <div class="col-md-12">
+            <label class="form-label">습득물명</label>
+            <input type="text" name="name" value="{{ request.GET.name }}" class="form-control" placeholder="예: 파란색 우산">
+          </div>
+
+          <!-- 버튼 -->
           <div class="col-12 text-end mt-3">
             <button type="submit" class="btn btn-primary">검색</button>
           </div>
@@ -112,13 +127,82 @@
       .replace(/'/g,'&#039;');
   }
 
-  // ===== 지도: 현재 URL 쿼리 그대로 반영 =====
+  // ===== 세부옵션 매핑 (라벨 기준) =====
+  // 라벨은 템플릿 option의 표시 텍스트와 일치해야 함
+  const SUB_OPTIONS = {
+    '카드': [],
+    '지갑': [],
+    '전자기기': ['태블릿','스마트워치','무선이어폰','카메라','헤드셋','기타용품'],
+    '의류': ['모자','신발','아우터','기타의류'],
+    '가방': [],
+    '신발': [],
+    '문서/서류': [],
+    '귀금속': ['반지','목걸이','귀걸이','시계','기타'],
+    '악기': [],
+    '책/노트': [],
+    '스포츠 용품': [],
+    '신분증': [],
+    '현금': [],
+    '기타': []
+  };
+
+  function fillSubOptions(categoryLabel, selectedValue){
+    const sub = document.getElementById('subSelect');
+    const list = SUB_OPTIONS[categoryLabel] || [];
+    sub.innerHTML = '';
+    if (list.length === 0){
+      // 해당 없음: 비활성화 + 전송값 비움
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '해당 없음';
+      sub.appendChild(opt);
+      sub.disabled = true;
+      sub.value = '';
+      return;
+    }
+    // 선택 가능
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = '세부옵션 선택';
+    sub.appendChild(ph);
+    list.forEach(v=>{
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = v;
+      sub.appendChild(o);
+    });
+    sub.disabled = false;
+    if (selectedValue){
+      // 값이 리스트에 있을 때만 선택
+      const exists = list.includes(selectedValue);
+      sub.value = exists ? selectedValue : '';
+    } else {
+      sub.value = '';
+    }
+  }
+
+  function currentCategoryLabel(){
+    const sel = document.getElementById('typeSelect');
+    if (!sel) return '';
+    return sel.options[sel.selectedIndex]?.text?.trim() || '';
+  }
+
+  // ===== 지도 & 초기화 =====
   window.addEventListener('load', function () {
+    // 세부옵션 초기 세팅
+    const subSelected = document.getElementById('subSelect').dataset.subselected || '';
+    fillSubOptions(currentCategoryLabel(), subSelected);
+
+    // 카테고리 변경 시 세부옵션 갱신
+    document.getElementById('typeSelect').addEventListener('change', function(){
+      fillSubOptions(currentCategoryLabel(), '');
+    });
+
     initMap();
     // 페이지 로드 시 1페이지 가져오기
     fetchPage(1);
 
-    // 검색폼 submit 시에도 1페이지부터 다시 (원하면 Ajax로 바꿀 수 있음)
+    // 검색폼 기본 submit 사용 (쿼리 유지)
     document.getElementById('searchForm').addEventListener('submit', function(e){
       // e.preventDefault(); fetchPage(1);
     });
@@ -135,57 +219,38 @@
       maxLevel: 4
     });
 
-    // ✅ 하나만 공유해서 쓰는 인포윈도우 + 현재 열린 마커
-  const infowindow = new kakao.maps.InfoWindow({ removable: true });
-  let openedMarker = null;
+    const queryString = window.location.search; // subcategory 포함 그대로 전달
+    fetch(`/meetagain/api/items${queryString}`)
+      .then(res => res.json())
+      .then(({ items }) => {
+        if (!items || items.length === 0) return;
+        const bounds = new kakao.maps.LatLngBounds();
+        const openInfoWindows = [];
+        items.forEach(item => {
+          if (item.lat == null || item.lng == null) return;
+          const pos = new kakao.maps.LatLng(item.lat, item.lng);
+          bounds.extend(pos);
+          const marker = new kakao.maps.Marker({ position: pos, map: map });
 
-  const queryString = window.location.search;
-  fetch(`/meetagain/api/items${queryString}`)
-    .then(res => res.json())
-    .then(({ items }) => {
-      if (!items || items.length === 0) return;
-      const bounds = new kakao.maps.LatLngBounds();
-
-      items.forEach(item => {
-        if (item.lat == null || item.lng == null) return;
-
-        const pos = new kakao.maps.LatLng(item.lat, item.lng);
-        bounds.extend(pos);
-        const marker = new kakao.maps.Marker({ position: pos, map: map });
-
-        const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
-        const content = `
-          <div style="padding:8px 10px; min-width:180px; font-size:13px;">
-            <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
-            <div style="color:#666; margin-bottom:6px;">${item.date || ''}</div>
-            <a href="${detailUrl}" style="text-decoration:none;">자세히 보기 →</a>
-          </div>`;
-
-        // ✅ 클릭 시 토글
-        kakao.maps.event.addListener(marker, 'click', () => {
-          // 같은 마커가 이미 열려있으면 닫기
-          if (openedMarker === marker && infowindow.getMap()) {
-            infowindow.close();
-            openedMarker = null;
-            return;
-          }
-          // 다른 마커 → 내용 바꾸어 열기
-          infowindow.setContent(content);
-          infowindow.open(map, marker);
-          openedMarker = marker;
+          const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
+          const content = `
+            <div style="padding:8px 10px; min-width:180px; font-size:13px;">
+              <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
+              <div style="color:#666; margin-bottom:6px;">${item.date || ''}</div>
+              <a href="${detailUrl}" style="text-decoration:none;">자세히 보기 →</a>
+            </div>`;
+          const iw = new kakao.maps.InfoWindow({ content });
+          kakao.maps.event.addListener(marker, 'click', () => {
+            openInfoWindows.forEach(w => w.close());
+            iw.open(map, marker);
+            openInfoWindows.push(iw);
+          });
         });
-      });
+        if (!bounds.isEmpty()) map.setBounds(bounds);
+      })
+      .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
+  }
 
-      if (!bounds.isEmpty()) map.setBounds(bounds);
-    })
-    .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
-
-  // ✅ 지도 빈 곳 클릭 시 닫기
-  kakao.maps.event.addListener(map, 'click', function () {
-    if (infowindow.getMap()) infowindow.close();
-    openedMarker = null;
-  });
-}
   // ===== AJAX 페이지네이션 =====
   const GRID  = document.getElementById('items');
   const PAGER = document.getElementById('pager');
@@ -214,7 +279,6 @@
 
   function renderGrid(items){
     const detailUrlTemplate = "{% url 'meetagain:found_detail' item_id=0 %}";
-
     GRID.innerHTML = items.map(it => {
       const detailUrl = detailUrlTemplate.replace('/0/', `/${it.id}/`);
       return `
