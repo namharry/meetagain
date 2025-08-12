@@ -362,7 +362,7 @@ def get_notifications(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     data = []
     for n in notifications:
-        item_name = str(n.item)  # __str__이 습득물명 리턴한다고 했으니 OK
+        item_name = str(n.item).replace('[습득물] ', '')
         data.append({
             'id': n.id,
             'keyword': n.keyword,

@@ -150,7 +150,6 @@
     fetch('/meetagain/notifications/')
       .then(res => res.json())
       .then(data => {
-        console.log('notifications data:', data.notifications);
         const alertList = document.getElementById('alertList');
         alertList.innerHTML = '';
 
@@ -163,7 +162,6 @@
         divListGroup.className = 'list-group';
 
         data.notifications.forEach(n => {
-          console.log('item_name:', n.item_name);
           if (n.content_type !== 'founditem') return;
 
           const a = document.createElement('a');
