@@ -76,15 +76,16 @@ def lost_register_view(request):
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES)
         if form.is_valid():
-            obj = form.save(commit=False)  
-            obj.user = request.user      
-            obj.save()   
-            return render(request, 'lost/lost_register_success.html')
+            obj = form.save(commit=False)
+            obj.user = request.user          # ✅ 작성자 저장 (중요!)
+            obj.save()
+            # ✅ 성공 페이지로 이동'
+            return render(request, 'lost/lost_register_success.html', {'item_id':obj.id})
         else:
-            return render(request, 'lost/lost_register.html', {'form': form})
+            return render(request, 'lost/lost_register.html', {'form': form, 'mode': 'create'})
     else:
         form = LostItemForm()
-    return render(request, 'lost/lost_register.html', {'form': form})
+    return render(request, 'lost/lost_register.html', {'form': form, 'mode': 'create'})
 
 @login_required
 def lost_edit_view(request, item_id):
