@@ -43,7 +43,7 @@
  <div class="d-flex gap-2">
   <a href="{% url 'meetagain:myinquiries' %}" class="btn btn-secondary">목록</a>
 
-  {% if user.is_authenticated and user.id == inquiry.user_id %}
+  {% if user.is_authenticated and user.id == inquiry.user_id and not inquiry.response %}
     <a href="{% url 'meetagain:inquiry_edit' inquiry.pk %}" 
        class="btn" 
        style="background-color: #c8a2ff; color: white; border: none;">
