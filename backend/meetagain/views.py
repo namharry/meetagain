@@ -350,6 +350,7 @@ def get_notifications(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     data = []
     for n in notifications:
+        item_name = str(n.item)  # __str__이 습득물명 리턴한다고 했으니 OK
         data.append({
             'id': n.id,
             'keyword': n.keyword,
@@ -357,8 +358,10 @@ def get_notifications(request):
             'object_id': n.object_id,
             'is_read': n.is_read,
             'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
+            'item_name': item_name,
         })
     return JsonResponse({'notifications': data})
+
 
 
 @login_required
@@ -373,21 +376,6 @@ def mark_notification_read_and_redirect(request, notification_id):
 def notification_list(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'pages/alert_sidebar.html', {'notifications': notifications})
-
-@login_required
-def notifications_api(request):
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:20]
-    data = []
-    for n in notifications:
-        data.append({
-            'id': n.id,
-            'keyword': n.keyword,
-            'is_read': n.is_read,
-            'created_at': n.created_at.strftime('%Y-%m-%d %H:%M'),
-            'item_name': str(n.item),
-        })
-    return JsonResponse({'notifications': data})
-
 
 # --------------------
 # 공지사항 관련 뷰(관리자만 접근 가능)
