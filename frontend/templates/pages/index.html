@@ -30,7 +30,12 @@
   .purple-pagination .disabled{ opacity:.4; pointer-events:none; }
 
   /* 🔧 세부옵션 없음일 때: 회색 배경 제거하고 클릭만 막기 */
-  #subSelect.no-sub { pointer-events: none; background:#fff; opacity:1; color:#6c757d; }
+  #subSelect.no-sub {
+    pointer-events: none;
+    background-color: #fff;
+    opacity: 1;
+    color: #6c757d;
+  }
 
   /* ✅ 지도 핀 위 텍스트 라벨 */
   .ma-label{
@@ -51,8 +56,9 @@
   .ma-iw {
     display:flex; align-items:center; gap:8px;
     width:260px; box-sizing:border-box; padding:8px 10px;
-    overflow:hidden; cursor:pointer;
+    overflow:hidden;
   }
+  .ma-iw-link{ text-decoration:none; color:inherit; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; }
   .ma-iw-thumb{
     width:80px; height:80px; flex:0 0 80px;
     border-radius:6px; background:#f1f1f1; object-fit:cover; display:block;
@@ -61,6 +67,15 @@
   .ma-iw .name{ font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ma-iw .date{ color:#666; font-size:12px; margin-bottom:6px; }
   .ma-iw .more{ font-size:12px; text-decoration:underline; }
+
+  /* ✅ 투명 클릭 히트박스 (크게, 원형) */
+  .ma-hitbox{
+    width:96px; height:96px;
+    transform: translate(-50%, -50%);
+    border-radius:9999px;
+    pointer-events:auto;
+    background: transparent; /* 디버그용: rgba(0,0,0,.06) */
+  }
 </style>
 {% endblock %}
 
@@ -73,6 +88,7 @@
     <div class="col-md-7">
       <form id="searchForm" method="get" action="{% url 'meetagain:index' %}">
         <div class="row g-2">
+          <!-- 1줄: 종류 + 세부옵션 -->
           <div class="col-md-6">
             <label class="form-label">종류</label>
             <select name="category" id="typeSelect" class="form-select">
@@ -90,6 +106,7 @@
             </select>
           </div>
 
+          <!-- 2줄: 기간 -->
           <div class="col-md-12">
             <label class="form-label">습득 기간</label>
             <div class="d-flex gap-2">
@@ -99,6 +116,7 @@
             </div>
           </div>
 
+          <!-- 3줄: 장소 -->
           <div class="col-md-12">
             <label class="form-label">습득 장소</label>
             <select name="location" class="form-select">
@@ -111,11 +129,13 @@
             </select>
           </div>
 
+          <!-- 4줄: 물품명 -->
           <div class="col-md-12">
             <label class="form-label">습득물명</label>
             <input type="text" name="name" value="{{ request.GET.name }}" class="form-control" placeholder="예: 파란색 우산">
           </div>
 
+          <!-- 버튼 -->
           <div class="col-12 text-end mt-3">
             <button type="submit" class="btn btn-primary">검색</button>
           </div>
@@ -152,8 +172,11 @@
   function escapeHtml(s){
     if (s == null) return '';
     return String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
   }
 
   // ===== 세부옵션 매핑 (라벨 기준) =====
@@ -193,6 +216,7 @@
     });
     sub.value = (selectedValue && list.includes(selectedValue)) ? selectedValue : '';
   }
+
   function currentCategoryLabel(){
     const sel = document.getElementById('typeSelect');
     if (!sel) return '';
@@ -208,9 +232,11 @@
   window.addEventListener('load', function () {
     const subSelected = document.getElementById('subSelect').dataset.subselected || '';
     fillSubOptions(currentCategoryLabel(), subSelected);
+
     document.getElementById('typeSelect').addEventListener('change', function(){
       fillSubOptions(currentCategoryLabel(), '');
     });
+
     initMap();
     fetchPage(1);
   });
@@ -220,7 +246,11 @@
     if (!container || !window.kakao || !kakao.maps) return;
 
     const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
-    const map = new kakao.maps.Map(container, { center: DEFAULT_CENTER, level: 2, maxLevel: 5 });
+    const map = new kakao.maps.Map(container, {
+      center: DEFAULT_CENTER,
+      level: 2,
+      maxLevel: 5
+    });
 
     // 공용 인포윈도우
     const infoWindow = new kakao.maps.InfoWindow({ zIndex: 3, removable: true });
@@ -237,6 +267,7 @@
 
     const markers = [];
     const labels  = [];
+    const hitboxes = [];
 
     const queryString = window.location.search;
     fetch(`/meetagain/api/items${queryString}`)
@@ -248,11 +279,12 @@
 
         items.forEach(item => {
           if (item.lat == null || item.lng == null) return;
+
           const pos = new kakao.maps.LatLng(item.lat, item.lng);
           bounds.extend(pos);
 
           // 1) 마커
-          const marker = new kakao.maps.Marker({ position: pos, map });
+          const marker = new kakao.maps.Marker({ position: pos, map, clickable: true });
           markers.push(marker);
 
           // 2) 라벨
@@ -272,22 +304,65 @@
             : `<div class="ma-iw-thumb"></div>`;
           const content = `
             <div class="ma-iw" onclick="event.stopPropagation(); window.location.href='${detailUrl}'">
-              ${thumb}
-              <div class="txt">
-                <div class="name">${escapeHtml(item.name || '')}</div>
-                <div class="date">${item.date || ''}</div>
-                <a href="${detailUrl}" class="more" onclick="event.stopPropagation()">자세히 보기 →</a>
-              </div>
+              <a class="ma-iw-link" href="${detailUrl}" onclick="event.stopPropagation()">
+                ${thumb}
+                <div class="txt">
+                  <div class="name">${escapeHtml(item.name || '')}</div>
+                  <div class="date">${item.date || ''}</div>
+                  <span class="more">자세히 보기 →</span>
+                </div>
+              </a>
             </div>`;
 
-          kakao.maps.event.addListener(marker, 'click', () => {
+          function openCard(){
             if (infoWindow.getMap()) infoWindow.close();
             infoWindow.setContent(content);
             infoWindow.open(map, marker);
+          }
+
+          // 마커 클릭 → 팝업 열기
+          kakao.maps.event.addListener(marker, 'click', openCard);
+
+          // 4) 투명 히트박스(96×96) : 마커 주변도 클릭되게
+          const hitEl = document.createElement('div');
+          hitEl.className = 'ma-hitbox';
+          hitEl.title = '자세히 보기';
+          hitEl.onclick = function(e){ e.stopPropagation(); openCard(); };
+
+          const hitbox = new kakao.maps.CustomOverlay({
+            position: pos,
+            content: hitEl,
+            xAnchor: 0.5,
+            yAnchor: 0.5,
+            zIndex: 10
           });
+          hitbox.setMap(map);
+          hitboxes.push(hitbox);
         });
 
         if (!bounds.isEmpty()) map.setBounds(bounds);
+
+        // ✅ 근접 클릭 자동 오픈(지도 클릭 시 가까운 마커 반경 R 내면 자동 오픈)
+        const proj = map.getProjection();
+        const targets = markers.map((m, idx) => ({
+          pos: m.getPosition(),
+          open: () => kakao.maps.event.trigger(markers[idx], 'click')
+        }));
+
+        kakao.maps.event.addListener(map, 'click', function(mouseEvent){
+          const clickPt = proj.containerPointFromCoords(mouseEvent.latLng);
+          let best = null, bestD = Infinity;
+
+          for (const t of targets){
+            const pt = proj.containerPointFromCoords(t.pos);
+            const dx = pt.x - clickPt.x, dy = pt.y - clickPt.y;
+            const d = Math.hypot(dx, dy);
+            if (d < bestD){ bestD = d; best = t; }
+          }
+
+          const R = 48; // px 반경 (필요하면 56~64까지 올려도 됨)
+          if (best && bestD <= R){ best.open(); }
+        });
 
         // 라벨 표시/숨김 제어
         function toggleLabelsByZoom(){
@@ -368,5 +443,8 @@
       btn.onclick = () => fetchPage(parseInt(btn.dataset.pg, 10));
     });
   }
+
+  // 실행
+  initMap();
 </script>
 {% endblock %}
