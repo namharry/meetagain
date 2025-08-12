@@ -79,6 +79,12 @@
     el.dataset.open = newOpenState;
 
     icons.style.setProperty('display', newOpenState === '1' ? 'none' : 'flex', 'important');
+
+    if (newOpenState === '1') {  // 사이드바 열릴 때만 실행
+      console.log("사이드바 열림 감지, 키워드와 알림 목록 로드 시작");
+      loadKeywords();
+      loadNotifications();
+    }
   };
 
   // 메뉴 사이드바 토글 (오른쪽)

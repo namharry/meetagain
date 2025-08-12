@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import logout
 from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import InquiryForm, LostItemForm, FoundItemForm, NoticeForm
+from django.views.decorators.http import require_http_methods
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -253,16 +254,17 @@ def keyword_list(request):
 @login_required
 def keyword_add(request):
     word = request.POST.get('word', '').strip()
+    print(f"keyword_add 호출됨, word: {word}, user: {request.user}")  # 디버깅용 출력
     if not word:
-        messages.error(request, "키워드를 입력해주세요.")
-        return redirect('meetagain:keyword_list')
+        return JsonResponse({'error': '키워드를 입력해주세요.'}, status=400)
 
     keyword, created = Keyword.objects.get_or_create(user=request.user, word=word)
     if created:
-        messages.success(request, f"'{word}' 키워드가 등록되었습니다.")
+        print(f"키워드 생성됨: {keyword.word}")
+        return JsonResponse({'success': f"'{word}' 키워드가 등록되었습니다."})
     else:
-        messages.info(request, f"이미 '{word}' 키워드를 등록하셨습니다.")
-    return redirect('meetagain:keyword_list')
+        print(f"이미 존재하는 키워드: {keyword.word}")
+        return JsonResponse({'info': f"이미 '{word}' 키워드를 등록하셨습니다."})
 
 
 @require_POST
