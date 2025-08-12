@@ -79,16 +79,18 @@ def lost_register_view(request):
     return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
 
 @login_required
-def lost_update_view(request, item_id):
-    item = get_object_or_404(LostItem, id=item_id)
+def lost_edit_view(request, item_id):
+    item = get_object_or_404(LostItem, id=item_id, user=request.user)  # 본인 글만 수정
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
             form.save()
+            messages.success(request, "분실물 정보가 수정되었습니다.")
             return redirect('meetagain:lost_detail', item_id=item.id)
     else:
         form = LostItemForm(instance=item)
-    return render(request, 'lost/lost_update.html', {'form': form, 'item': item})
+    # 🔽 등록 폼 템플릿 재사용 (파일이 이미 존재한다고 가정)
+    return render(request, 'lost/lost_register.html', {'form': form, 'item': item, 'mode': 'update'})
 
 
 @login_required

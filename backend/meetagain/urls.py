@@ -10,7 +10,7 @@ urlpatterns = [
 
     # 분실물 (Lost)
     path('lost/register/', views.lost_register_view, name='lost_register'),
-    path('lost/<int:item_id>/edit/', views.lost_update_view, name='lost_edit'),
+    path('lost/<int:item_id>/edit/', views.lost_edit_view, name='lost_edit'),
     path('lost/<int:item_id>/delete/', views.lost_delete_view, name='lost_delete'),
     path('lost/<int:item_id>/', views.lost_detail_view, name='lost_detail'),
 
