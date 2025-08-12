@@ -28,39 +28,67 @@ class LostItemForm(forms.ModelForm):
             'name',
             'description',
             'category',
-            'lost_contact',
             'lost_location',
-            'lost_date',
+            'lost_date_start',
+            'lost_date_end',
             'is_claimed',
             'image'
         ]
+        widgets = {
+            'lost_date_start': forms.DateInput(
+                attrs={
+                    'type': 'date',
+                    'class': 'form-control',
+                    'placeholder': 'YYYY-MM-DD',
+                }
+            ),
+            'lost_date_end': forms.DateInput(
+                attrs={
+                    'type': 'date',
+                    'class': 'form-control',
+                    'placeholder': 'YYYY-MM-DD',
+                }
+            ),
+        }
     
     def clean(self): #모든 필드가 입력되었는지 확인해주는 메서드
         cleaned_data = super().clean()
+
         required_fields = [
             'name',
-            'description',
             'category',
-            'lost_contact',
             'lost_location',
-            'lost_date',
-            'image',
+            'lost_date_start',
+            'lost_date_end',
         ] 
 
         for field in required_fields:
-            if not cleaned_data.get(field):
-                self.add_error(field, f"{field} 항목은 필수입니다.") 
+            value = cleaned_data.get(field)
+            if value in (None, ''):
+                self.add_error(field, f"{self.fields[field].label or field} 항목은 필수입니다.")
 
-        if 'is_claimed' not in cleaned_data: #BooleanField 별도 처리
-            self.add_error('is_claimed', "처리 여부를 선택해주세요.")
+         # 날짜 교차 검증
+        start = cleaned_date.get('lost_date_start')
+        end = cleaned_date.get('lost_date_end')
+        today = date.today()
 
-        lost_date = cleaned_data.get('lost_date') #미래 날짜 입력 제한
-        if lost_date and lost_date > date.today():
-            self.add_error('lost_date', "미래 날짜는 입력할 수 없습니다.")
+        if start and start > today:
+            self.add_error('lost_date_start', "미래 날짜는 입력할 수 없습니다.")
+        if end and end > today:
+            self.add_error('lost_date_end', "미래 날짜는 입력할 수 없습니다.")
+        if start and end and start > end:
+            self.add_error('lost_date_end', "분실 종료일은 시작일보다 빠를 수 없습니다.")
 
-    def clean_image(self): #다른 형식자의 파일 업로드 불가
+        return cleaned_data
+
+    def clean_image(self):
         image = self.cleaned_data.get('image')
-        if image and not image.content_type.startswith('image/'):
+        if not image:
+            return image
+
+    # content_type 속성 안전하게 접근
+        content_type = getattr(image, 'content_type', None)
+        if content_type and not content_type.startswith('image/'):
             raise ValidationError("이미지 파일만 업로드할 수 있습니다.")
         return image
     
@@ -96,27 +124,46 @@ class FoundItemForm(forms.ModelForm):
         cleaned_data = super().clean()
         required_fields = [
             'name',
-            'description',
             'category',
             'found_location',
+            'found_date',
             'lat',
             'lng'
         ]
 
         for field in required_fields:
-            if not cleaned_data.get(field):
-                self.add_error(field, f"{field} 항목은 필수입니다.")
-
-        if 'is_returned' not in cleaned_data:
-            self.add_error('is_returned', "처리 여부를 선택해주세요.")
+            value = cleaned_data.get(field)
+            if value in (None, ''):
+                self.add_error(field, f"{self.fields[field].label or field} 항목은 필수입니다.")
         
         found_date = cleaned_data.get('found_date')
         if found_date and found_date > date.today():
             self.add_error('found_date', "미래 날짜는 입력할 수 없습니다.")
+        
+        # 위경도 범위 검사
+        lat = cleaned_data.get('lat')
+        lng = cleaned_data.get('lng')
+        try:
+            if not (-90.0 <= float(lat) <= 90.0):
+                self.add_error('lat', "위도(lat)는 -90 ~ 90 범위여야 합니다.")
+        except (TypeError, ValueError):
+            self.add_error('lat', "위도(lat)는 숫자여야 합니다.")
+        
+        try:
+            if not (-180.0 <= float(lng) <= 180.0):
+                self.add_error('lng', "경도(lng)는 -180 ~ 180 범위여야 합니다.")
+        except (TypeError, ValueError):
+            self.add_error('lng', "경도(lng)는 숫자여야 합니다.")
+
+        return cleaned_data
 
     def clean_image(self):
         image = self.cleaned_data.get('image')
-        if image and not image.content_type.startswith('image/'):
+        if not image:
+            return image
+
+        content_type = getattr(image, 'content_type', None)
+        if content_type and not content_type.startswith('image/'):
             raise ValidationError("이미지 파일만 업로드할 수 있습니다.")
         return image
 

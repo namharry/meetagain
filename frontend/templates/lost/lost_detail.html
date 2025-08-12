@@ -32,9 +32,9 @@
         <li class="list-group-item d-flex justify-content-between">
           <strong>분실장소</strong> <span>{{ lost_item.location }}</span>
         </li>
-        {% if lost_item.lost_datetime %}
+        {% if lost_item.lost_date_endtime %}
         <li class="list-group-item d-flex justify-content-between">
-          <strong>분실일시</strong> <span>{{ lost_item.lost_datetime|date:"Y년 n월 j일 H:i" }}</span>
+          <strong>분실일시</strong> <span>{{ lost_item.lost_date_endtime|date:"Y년 n월 j일 H:i" }}</span>
         </li>
         {% endif %}
         {% if lost_item.description %}

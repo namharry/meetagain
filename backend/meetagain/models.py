@@ -1,28 +1,25 @@
 from django.db import models
-from django.contrib.auth import get_user_model
-User = get_user_model()
-
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-
 from django.conf import settings
 
 
 class LostItem(models.Model):
     CATEGORY_CHOICES = [
-        ('카드', '카드'),
-        ('지갑', '지갑'),
-        ('전자기기', '전자기기'),
-        ('의류', '의류'),
         ('가방', '가방'),
-        ('신발', '신발'),
-        ('문서/서류', '문서/서류'),
         ('귀금속', '귀금속'),
-        ('악기', '악기'),
-        ('책/노트', '책/노트'),
-        ('스포츠 용품', '스포츠 용품'),
-        ('신분증', '신분증'),
+        ('의류', '의류'),
+        ('전자기기', '전자기기'),
+        ('지갑', '지갑'),
+        ('컴퓨터', '컴퓨터'),
+        ('카드', '카드'),
         ('현금', '현금'),
+        ('휴대폰', '휴대폰'),
+        ('문서/서류', '문서/서류'),
+        ('악기', '악기'),
+        ('스포츠용품', '스포츠용품'), 
+        ('신분증', '신분증'),
+        ('책/노트', '책/노트'),
         ('기타', '기타'),
     ]
 
@@ -30,9 +27,9 @@ class LostItem(models.Model):
     description = models.TextField(blank=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='기타')
 
-    lost_contact = models.CharField(max_length=20, blank=True)
     lost_location = models.CharField(max_length=200)
-    lost_date = models.DateField()
+    lost_date_start = models.DateField(null=False, blank=True)
+    lost_date_end = models.DateField(null=False, blank=True)
 
     is_claimed = models.BooleanField(default=False)
     user = models.ForeignKey(
@@ -50,19 +47,20 @@ class LostItem(models.Model):
 
 class FoundItem(models.Model):
     CATEGORY_CHOICES = [
-        ('카드', '카드'),
-        ('지갑', '지갑'),
-        ('전자기기', '전자기기'),
-        ('의류', '의류'),
         ('가방', '가방'),
-        ('신발', '신발'),
-        ('문서/서류', '문서/서류'),
         ('귀금속', '귀금속'),
-        ('악기', '악기'),
-        ('책/노트', '책/노트'),
-        ('스포츠 용품', '스포츠 용품'),
-        ('신분증', '신분증'),
+        ('의류', '의류'),
+        ('전자기기', '전자기기'),
+        ('지갑', '지갑'),
+        ('컴퓨터', '컴퓨터'),
+        ('카드', '카드'),
         ('현금', '현금'),
+        ('휴대폰', '휴대폰'),
+        ('문서/서류', '문서/서류'),
+        ('악기', '악기'),
+        ('스포츠용품', '스포츠용품'), 
+        ('신분증', '신분증'),
+        ('책/노트', '책/노트'),
         ('기타', '기타'),
     ]
 
@@ -71,7 +69,7 @@ class FoundItem(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='기타')
 
     found_location = models.CharField(max_length=200)
-    found_date = models.DateField()
+    found_date = models.DateField(null=False)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -97,7 +95,7 @@ class FoundItem(models.Model):
     
     
 class Keyword(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     word = models.CharField(max_length=50)
 
     class Meta:
@@ -115,7 +113,7 @@ class Notification(models.Model):
 
     # Generic relation to LostItem or FoundItem
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.PositiveBigIntegerField()
     item = GenericForeignKey('content_type', 'object_id')
 
     def __str__(self):

@@ -11,6 +11,7 @@ from django.core.paginator import Paginator  # ➕ 페이지네이션
 from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import InquiryForm, LostItemForm, FoundItemForm, NoticeForm
 from django.views.decorators.http import require_http_methods
+from django.db.models import Q
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -73,7 +74,7 @@ def lost_register_view(request):
 
 @login_required
 def lost_index_view(request):
-    items = LostItem.objects.all().order_by('-lost_date')
+    items = LostItem.objects.all()
 
     q = request.GET.get('q', '')
     location = request.GET.get('location', '')
@@ -87,12 +88,18 @@ def lost_index_view(request):
         items = items.filter(lost_location__icontains=location)
     if category and category != 'all':
         items = items.filter(category=category)
-    if date_from:
-        items = items.filter(lost_date__gte=date_from)
-    if date_to:
-        items = items.filter(lost_date__lte=date_to)
+    # 날짜 필터: 사용자가 기간을 주면 "겹치는" 데이터만 보여주기
+    # (date_from <= item.lost_date_end) AND (date_to >= item.lost_date_start)
+    if date_from and date_to:
+        items = items.filter(
+            Q(lost_date_end__gte=date_from) & Q(lost_date_start__lte=date_to)
+        )
+    elif date_from:
+        items = items.filter(lost_date_end__gte=date_from)
+    elif date_to:
+        items = items.filter(lost_date_start__lte=date_to)
 
-    items = items.order_by('-lost_date')[:6]
+    items = items.order_by('-lost_date_end')[:6]
 
     context = {
         'items': items,

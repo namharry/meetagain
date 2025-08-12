@@ -22,7 +22,7 @@
           <h5 class="card-title text-truncate" title="{{ item.name }}">{{ item.name }}</h5>
           <p class="card-text text-muted mb-1">{{ item.location }}</p>
           {% if item.lost_datetime %}
-          <p class="card-text small text-muted">{{ item.lost_datetime|date:"Y.m.d H:i" }}</p>
+          <p class="card-text small text-muted">{{ item.lost_date_endtime|date:"Y.m.d H:i" }}</p>
           {% endif %}
           <div class="mt-auto">
             <a href="{% url 'lostitem_detail' item.id %}" class="btn btn-outline-primary w-100">자세히 보기</a>
