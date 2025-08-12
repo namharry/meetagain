@@ -142,7 +142,7 @@
       <div class="col-md-6">
         <label for="date" class="form-label">습득일시</label>
         <input type="date" class="form-control" id="date" name="found_date" 
-               value="{{ form.found_date.value|default_if_none:'' }}" required>
+               value="{{ form.found_date.value|date:'Y-m-d' }}" required>
         {% if form.found_date.errors %}
           <div class="text-danger small mt-1">
             {% for error in form.found_date.errors %}{{ error }}<br>{% endfor %}
