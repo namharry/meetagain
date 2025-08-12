@@ -78,7 +78,9 @@
           <option value="">종류 선택</option>
           {% if form and form.category %}
             {% for v,l in form.category.field.choices %}
-              {% if v %}<option value="{{ v }}">{{ l }}</option>{% endif %}
+              {% if v %}
+                <option value="{{ v }}" {% if form.category.value == v %}selected{% endif %}>{{ l }}</option>
+              {% endif %}
             {% endfor %}
           {% else %}
             <option value="카드">카드</option>
@@ -100,7 +102,7 @@
       </div>
       <div class="col-md-6">
         <label for="subcategory" class="form-label">세부옵션</label>
-        <select class="form-select" id="subcategory">
+        <select class="form-select" id="subcategory" name="subcategory">
           <option value="">세부옵션 선택</option>
         </select>
       </div>
@@ -123,18 +125,18 @@
         <label for="location" class="form-label">습득장소</label>
         <select class="form-select" id="location" name="found_location" required>
           <option value="">장소 선택</option>
-          <option>난향관</option>
-          <option>성신관</option>
-          <option>수정관</option>
-          <option>중앙도서관</option>
-          <option>조형1관</option>
-          <option>조형2관</option>
-          <option>체육관</option>
-          <option>프라임관</option>
-          <option>행정관</option>
-          <option>학생회관</option>
-          <option>음악관</option>
-          <option>기타</option>
+          <option {% if form.found_location.value == '난향관' %}selected{% endif %}>난향관</option>
+          <option {% if form.found_location.value == '성신관' %}selected{% endif %}>성신관</option>
+          <option {% if form.found_location.value == '수정관' %}selected{% endif %}>수정관</option>
+          <option {% if form.found_location.value == '중앙도서관' %}selected{% endif %}>중앙도서관</option>
+          <option {% if form.found_location.value == '조형1관' %}selected{% endif %}>조형1관</option>
+          <option {% if form.found_location.value == '조형2관' %}selected{% endif %}>조형2관</option>
+          <option {% if form.found_location.value == '체육관' %}selected{% endif %}>체육관</option>
+          <option {% if form.found_location.value == '프라임관' %}selected{% endif %}>프라임관</option>
+          <option {% if form.found_location.value == '행정관' %}selected{% endif %}>행정관</option>
+          <option {% if form.found_location.value == '학생회관' %}selected{% endif %}>학생회관</option>
+          <option {% if form.found_location.value == '음악관' %}selected{% endif %}>음악관</option>
+          <option {% if form.found_location.value == '기타' %}selected{% endif %}>기타</option>
         </select>
       </div>
       <div class="col-md-6">
@@ -162,8 +164,8 @@
     <div class="mb-3">
       <label class="form-label">처리 상태</label>
       <select class="form-select" name="is_returned" id="is_returned">
-        <option value="false" selected>보관 중</option>
-        <option value="true">소유자 반환</option>
+        <option value="false" {% if form.is_returned.value == False %}selected{% endif %}>보관 중</option>
+        <option value="true" {% if form.is_returned.value == True %}selected{% endif %}>소유자 반환</option>
       </select>
     </div>
 
@@ -204,6 +206,9 @@
   const categorySelect = document.getElementById("category");
   const subcategorySelect = document.getElementById("subcategory");
 
+  // 기존 선택된 세부옵션 값 (초기값)
+  const initialSubcategory = "{{ form.subcategory.value|default:'' }}";
+
   if (categorySelect) {
     categorySelect.addEventListener("change", function () {
       const selected = this.value;
@@ -221,7 +226,22 @@
         opt.textContent = "해당 없음";
         subcategorySelect.appendChild(opt);
       }
+      // 선택된 세부옵션 유지
+      if (initialSubcategory) {
+        for (let option of subcategorySelect.options) {
+          if (option.value === initialSubcategory) {
+            option.selected = true;
+            break;
+          }
+        }
+      }
     });
+
+    // 페이지 로드 시 카테고리 선택되어 있다면, change 이벤트 트리거해서 서브카테고리 셋팅 및 선택 유지
+    if (categorySelect.value) {
+      const event = new Event('change');
+      categorySelect.dispatchEvent(event);
+    }
   }
 
   (function(){
@@ -241,7 +261,15 @@
       draggable: false
     });
 
-    marker.setMap(null);
+    // 기존 위도경도 값이 있으면 지도 중심과 마커 위치로 설정
+    if (latInput.value && lngInput.value) {
+      const pos = new kakao.maps.LatLng(parseFloat(latInput.value), parseFloat(lngInput.value));
+      marker.setPosition(pos);
+      marker.setMap(map);
+      map.setCenter(pos);
+    } else {
+      marker.setMap(null);
+    }
 
     kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
       const latlng = mouseEvent.latLng;

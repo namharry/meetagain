@@ -221,7 +221,7 @@ def found_update_view(request, item_id):
             raw = request.POST.get('is_returned', '')
             obj.is_returned = (str(raw).lower() in ('true', '1', 'on', 'yes'))
             obj.save()
-            return redirect('meetagain:found_detail', item_id=item.id)
+            return redirect('meetagain:found_detail', item_id=obj.id)
     else:
         form = FoundItemForm(instance=item)
     return render(request, 'found/found_register.html', {'form': form, 'item': item})
