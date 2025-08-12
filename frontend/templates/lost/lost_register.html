@@ -1,6 +1,12 @@
 {% extends 'base/base.html' %}
 
-{% block title %}📢 분실물 신고하기{% endblock %}
+{% block title %}
+{% if mode == 'update' %}
+    ✏️ 분실물 수정하기
+  {% else %}
+    📢 분실물 신고하기
+  {% endif %}
+{% endblock %}
 
 {% block extra_head %}
 <style>
