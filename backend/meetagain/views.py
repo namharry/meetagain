@@ -10,8 +10,8 @@ from django.contrib.auth import logout, authenticate
 from datetime import datetime
 import json
 
-from .models import LostItem, FoundItem, Keyword, Notification, Notice
-from .forms import LostItemForm, FoundItemForm, NoticeForm
+from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
+from .forms import InquiryForm, LostItemForm, FoundItemForm, NoticeForm
 from users.forms import SignupForm
 from django.contrib.auth.decorators import login_required
 from .models import Notification
