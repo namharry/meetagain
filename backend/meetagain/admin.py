@@ -4,9 +4,9 @@ from .models import LostItem, FoundItem, Notice, Inquiry, Keyword, Notification
 # LostItem
 @admin.register(LostItem)
 class LostItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'category', 'lost_location', 'lost_date_start', 'lost_date_end')
+    list_display = ('id', 'name', 'category', 'lost_locations', 'lost_date_start', 'lost_date_end')
     list_filter = ('lost_date_start', 'lost_date_end')
-    search_fields = ('name', 'lost_location')
+    search_fields = ('name', 'lost_locations')
 
 # FoundItem
 @admin.register(FoundItem)

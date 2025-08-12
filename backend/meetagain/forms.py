@@ -20,15 +20,34 @@ class KeywordForm(forms.ModelForm):
         if Keyword.objects.filter(user=self.user, word=word).exists():
             raise forms.ValidationError("이미 등록한 키워드입니다.")
         return word
-        
+
+# 고정 선택지
+LOCATION_CHOICES = [
+    ('난향관','난향관'), ('성신관','성신관'), ('수정관','수정관'),
+    ('중앙도서관','중앙도서관'), ('조형1관','조형1관'), ('조형2관','조형2관'),
+    ('체육관','체육관'), ('프라임관','프라임관'), ('행정관','행정관'),
+    ('학생회관','학생회관'), ('음악관','음악관'), ('기타','기타'),
+]
+
 class LostItemForm(forms.ModelForm):
+
+    lost_locations = forms.MultipleChoiceField(
+        choices=LOCATION_CHOICES,
+        required=True,
+        widget=forms.SelectMultiple(attrs={
+            "class": "form-select",
+            "id": "lost_locations",
+        }),
+        label="분실 장소(복수 선택 가능)"
+    )
+
     class Meta:
         model = LostItem
         fields = [
             'name',
             'description',
             'category',
-            'lost_location',
+            'lost_locations',
             'lost_date_start',
             'lost_date_end',
             'is_claimed',
@@ -57,7 +76,7 @@ class LostItemForm(forms.ModelForm):
         required_fields = [
             'name',
             'category',
-            'lost_location',
+            'lost_locations',
             'lost_date_start',
             'lost_date_end',
         ] 
@@ -66,6 +85,13 @@ class LostItemForm(forms.ModelForm):
             value = cleaned_data.get(field)
             if value in (None, ''):
                 self.add_error(field, f"{self.fields[field].label or field} 항목은 필수입니다.")
+
+        locations = cleaned_data.get('lost_locations', [])
+        if not locations or (isinstance(locations, (list, tuple)) and len(locations) == 0):
+            self.add_error('lost_locations', "분실 장소는 최소 1개 이상 선택하세요.")
+        else:
+            # 공백 제거 등 정리
+            cleaned_data['lost_locations'] = [s.strip() for s in locations if s and s.strip()]
 
          # 날짜 교차 검증
         start = cleaned_data.get('lost_date_start')

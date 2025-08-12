@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 
 
 class LostItem(models.Model):
@@ -27,7 +28,13 @@ class LostItem(models.Model):
     description = models.TextField(blank=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='기타')
 
-    lost_location = models.CharField(max_length=200)
+     # ✅ 다중 위치용 새 필드
+    lost_locations = ArrayField(
+        base_field=models.CharField(max_length=200),  
+        default=list,
+        blank=True,
+    )
+
     lost_date_start = models.DateField(null=False, blank=True)
     lost_date_end = models.DateField(null=False, blank=True)
 

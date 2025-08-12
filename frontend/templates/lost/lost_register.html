@@ -146,8 +146,8 @@
 
     <!-- 분실 장소 -->
     <div class="mb-3">
-      <label for="lost_location" class="form-label">분실 장소 (복수 선택 가능)</label>
-      <select class="form-select" id="lost_location" name="lost_location" required> 
+      <label for="lost_locations" class="form-label">분실 장소 (복수 선택 가능)</label>
+      <select class="form-select" id="lost_locations" name="lost_locations" multiple required> 
         <option value="난향관">난향관</option>
         <option value="성신관">성신관</option>
         <option value="수정관">수정관</option>
@@ -161,8 +161,8 @@
         <option value="음악관">음악관</option>
         <option value="기타">기타</option>
       </select>
-      {% if form.lost_location.errors %}<div class="text-danger small mt-1">
-        {% for error in form.lost_location.errors %}{{ error }}<br>{% endfor %}
+      {% if form.lost_locations.errors %}<div class="text-danger small mt-1">
+        {% for error in form.lost_locations.errors %}{{ error }}<br>{% endfor %}
       </div>{% endif %}
       <small class="text-muted">※ 여러 장소를 선택하려면 Ctrl (또는 Cmd) 키를 누른 채 클릭하세요</small>
     </div>

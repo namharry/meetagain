@@ -62,14 +62,15 @@ def lost_register_view(request):
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            # ✅ 성공 페이지로 이동
-            return render(request, 'lost/lost_register_success.html')
+            item = form.save(commit=False)
+            item.user = request.user  # 작성자 저장 (원하면)
+            item.save()
+            return render(request, 'lost/lost_register_success.html')  # ✅ 홈 URL name에 맞게
         else:
             return render(request, 'lost/lost_register.html', {'form': form})
     else:
         form = LostItemForm()
-    return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
+    return render(request, 'lost/lost_register.html', {'form': form})
 
 
 @login_required
