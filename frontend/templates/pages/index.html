@@ -30,17 +30,12 @@
   .purple-pagination .disabled{ opacity:.4; pointer-events:none; }
 
   /* 🔧 세부옵션 없음일 때: 회색 배경 제거하고 클릭만 막기 */
-  #subSelect.no-sub {
-    pointer-events: none;    /* 열리지 않음 */
-    background-color: #fff;  /* 회색 아님 */
-    opacity: 1;              /* Bootstrap 기본 흐림 제거 */
-    color: #6c757d;          /* 살짝만 흐리게 */
-  }
+  #subSelect.no-sub { pointer-events: none; background:#fff; opacity:1; color:#6c757d; }
 
   /* ✅ 지도 핀 위 텍스트 라벨 */
   .ma-label{
     position: relative;
-    transform: translate(-50%, -110%); /* 마커 위로 살짝 */
+    transform: translate(-50%, -110%);
     padding: 4px 8px;
     border: 1px solid rgba(0,0,0,.15);
     border-radius: 8px;
@@ -49,8 +44,23 @@
     font-size: 12px;
     line-height: 1.2;
     white-space: nowrap;
-    pointer-events: none; /* 라벨이 클릭 막지 않게 */
+    pointer-events: none;
   }
+
+  /* ✅ 인포윈도우 카드(고정폭 + 오버플로우 방지 + 전체 클릭 타겟) */
+  .ma-iw {
+    display:flex; align-items:center; gap:8px;
+    width:260px; box-sizing:border-box; padding:8px 10px;
+    overflow:hidden; cursor:pointer;
+  }
+  .ma-iw-thumb{
+    width:80px; height:80px; flex:0 0 80px;
+    border-radius:6px; background:#f1f1f1; object-fit:cover; display:block;
+  }
+  .ma-iw .txt{ min-width:0; flex:1 1 auto; }
+  .ma-iw .name{ font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ma-iw .date{ color:#666; font-size:12px; margin-bottom:6px; }
+  .ma-iw .more{ font-size:12px; text-decoration:underline; }
 </style>
 {% endblock %}
 
@@ -63,7 +73,6 @@
     <div class="col-md-7">
       <form id="searchForm" method="get" action="{% url 'meetagain:index' %}">
         <div class="row g-2">
-          <!-- 1줄: 종류 + 세부옵션 -->
           <div class="col-md-6">
             <label class="form-label">종류</label>
             <select name="category" id="typeSelect" class="form-select">
@@ -75,14 +84,12 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">세부옵션</label>
-            <!-- 값 유지용 data-attr -->
             <select name="subcategory" id="subSelect" class="form-select"
                     data-subselected="{{ request.GET.subcategory|default:'' }}">
               <option value="">세부옵션 선택</option>
             </select>
           </div>
 
-          <!-- 2줄: 기간 -->
           <div class="col-md-12">
             <label class="form-label">습득 기간</label>
             <div class="d-flex gap-2">
@@ -92,7 +99,6 @@
             </div>
           </div>
 
-          <!-- 3줄: 장소 -->
           <div class="col-md-12">
             <label class="form-label">습득 장소</label>
             <select name="location" class="form-select">
@@ -105,13 +111,11 @@
             </select>
           </div>
 
-          <!-- 4줄: 물품명 -->
           <div class="col-md-12">
             <label class="form-label">습득물명</label>
             <input type="text" name="name" value="{{ request.GET.name }}" class="form-control" placeholder="예: 파란색 우산">
           </div>
 
-          <!-- 버튼 -->
           <div class="col-12 text-end mt-3">
             <button type="submit" class="btn btn-primary">검색</button>
           </div>
@@ -148,48 +152,34 @@
   function escapeHtml(s){
     if (s == null) return '';
     return String(s)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#039;');
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
 
   // ===== 세부옵션 매핑 (라벨 기준) =====
   const SUB_OPTIONS = {
-    '카드': [],
-    '지갑': [],
+    '카드': [], '지갑': [],
     '전자기기': ['태블릿','스마트워치','무선이어폰','카메라','헤드셋','기타용품'],
     '의류': ['모자','신발','아우터','기타의류'],
-    '가방': [],
-    '신발': [],
-    '문서/서류': [],
+    '가방': [], '신발': [], '문서/서류': [],
     '귀금속': ['반지','목걸이','귀걸이','시계','기타'],
-    '악기': [],
-    '책/노트': [],
-    '스포츠 용품': [],
-    '신분증': [],
-    '현금': [],
-    '기타': []
+    '악기': [], '책/노트': [], '스포츠 용품': [],
+    '신분증': [], '현금': [], '기타': []
   };
 
   function fillSubOptions(categoryLabel, selectedValue){
     const sub = document.getElementById('subSelect');
     const list = SUB_OPTIONS[categoryLabel] || [];
-
     sub.innerHTML = '';
     if (list.length === 0){
-      // 🔸 세부옵션 없음: 일반 스타일 유지 + 클릭만 막음
       const opt = document.createElement('option');
       opt.value = '';
       opt.textContent = '세부옵션 없음';
       sub.appendChild(opt);
-      sub.classList.add('no-sub');   // 스타일로 pointer-events만 막음
+      sub.classList.add('no-sub');
       sub.value = '';
       return;
     }
-
-    // 선택 가능
     sub.classList.remove('no-sub');
     const ph = document.createElement('option');
     ph.value = '';
@@ -203,7 +193,6 @@
     });
     sub.value = (selectedValue && list.includes(selectedValue)) ? selectedValue : '';
   }
-
   function currentCategoryLabel(){
     const sel = document.getElementById('typeSelect');
     if (!sel) return '';
@@ -211,25 +200,17 @@
   }
 
   // ===== 라벨/이름 표시 설정 =====
-  const MAX_NAME_LEN = 8;      // 이름 8자 초과시 … 처리
-  const LABEL_SHOW_LEVEL = 3;  // 이 레벨 "이하"에서만 라벨 표시(가까이서만)
-
-  function truncateName(name, limit = MAX_NAME_LEN){
-    if (!name) return '';
-    return name.length > limit ? name.slice(0, limit) + '…' : name;
-  }
+  const MAX_NAME_LEN = 8;      // 8자 초과 … 처리
+  const LABEL_SHOW_LEVEL = 3;  // 이 레벨 이하에서 라벨 표시
+  const truncateName = (s,n=MAX_NAME_LEN)=>!s?'':(s.length>n? s.slice(0,n)+'…':s);
 
   // ===== 지도 & 초기화 =====
   window.addEventListener('load', function () {
-    // 세부옵션 초기 세팅
     const subSelected = document.getElementById('subSelect').dataset.subselected || '';
     fillSubOptions(currentCategoryLabel(), subSelected);
-
-    // 카테고리 변경 시 세부옵션 갱신
     document.getElementById('typeSelect').addEventListener('change', function(){
       fillSubOptions(currentCategoryLabel(), '');
     });
-
     initMap();
     fetchPage(1);
   });
@@ -239,26 +220,21 @@
     if (!container || !window.kakao || !kakao.maps) return;
 
     const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
-    const map = new kakao.maps.Map(container, {
-      center: DEFAULT_CENTER,
-      level: 2,
-      maxLevel: 5
-    });
+    const map = new kakao.maps.Map(container, { center: DEFAULT_CENTER, level: 2, maxLevel: 5 });
 
-    // ✅ 하나만 만들어서 재사용
+    // 공용 인포윈도우
     const infoWindow = new kakao.maps.InfoWindow({ zIndex: 3, removable: true });
 
-    // ✅ ESC로 닫기
+    // ESC 로 닫기
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape' && infoWindow.getMap()) infoWindow.close();
     });
-
-    // ✅ 지도 왼쪽 클릭으로 닫기(빈공간 클릭)
-    kakao.maps.event.addListener(map, 'click', () => {
+    // ❌ 왼쪽클릭 닫기 제거 (클릭 타겟 축소 문제)
+    // ✅ 오른쪽 클릭으로 닫기만 유지
+    kakao.maps.event.addListener(map, 'rightclick', () => {
       if (infoWindow.getMap()) infoWindow.close();
     });
 
-    // 마커/라벨 저장
     const markers = [];
     const labels  = [];
 
@@ -268,13 +244,10 @@
       .then(({ items }) => {
         if (!items || items.length === 0) return;
         const bounds = new kakao.maps.LatLngBounds();
-
-        // 상세 URL 템플릿(장고 reverse를 이용해 id만 치환)
         const detailUrlTemplate = `{% url 'meetagain:found_detail' item_id=0 %}`;
 
         items.forEach(item => {
           if (item.lat == null || item.lng == null) return;
-
           const pos = new kakao.maps.LatLng(item.lat, item.lng);
           bounds.extend(pos);
 
@@ -282,33 +255,28 @@
           const marker = new kakao.maps.Marker({ position: pos, map });
           markers.push(marker);
 
-          // 2) 라벨(CustomOverlay)
+          // 2) 라벨
           const labelEl = document.createElement('div');
           labelEl.className = 'ma-label';
           labelEl.textContent = truncateName(item.name);
-
           const label = new kakao.maps.CustomOverlay({
-            position: pos,
-            content: labelEl,
-            yAnchor: 1.1,  // 마커 위로 약간 띄우기
-            zIndex: 2
+            position: pos, content: labelEl, yAnchor: 1.1, zIndex: 2
           });
           labels.push(label);
 
-          // 3) 팝업(썸네일 + 텍스트 + 링크)
+          // 3) 팝업(고정폭 카드) — 카드 전체 클릭 시 상세로 이동
           const detailUrl = detailUrlTemplate.replace('/0/', `/${item.id}/`);
-          const thumb = item.thumbnail_url ? `
-            <img src="${item.thumbnail_url}" alt="${escapeHtml(item.name)}"
-                 style="width:80px;height:80px;object-fit:cover;border-radius:6px;margin-right:8px;">
-          ` : '';
-
+          const thumb = item.thumbnail_url
+            ? `<img src="${item.thumbnail_url}" alt="" class="ma-iw-thumb"
+                    onerror="this.onerror=null; this.src='https://via.placeholder.com/80x80?text=%20';">`
+            : `<div class="ma-iw-thumb"></div>`;
           const content = `
-            <div style="display:flex;align-items:center;gap:8px;max-width:260px;padding:8px 10px;">
+            <div class="ma-iw" onclick="event.stopPropagation(); window.location.href='${detailUrl}'">
               ${thumb}
-              <div style="min-width:0;">
-                <div style="font-weight:700;margin-bottom:4px;">${escapeHtml(item.name)}</div>
-                <div style="color:#666;margin-bottom:6px;font-size:12px;">${item.date || ''}</div>
-                <a href="${detailUrl}" style="font-size:12px;text-decoration:underline;">자세히 보기 →</a>
+              <div class="txt">
+                <div class="name">${escapeHtml(item.name || '')}</div>
+                <div class="date">${item.date || ''}</div>
+                <a href="${detailUrl}" class="more" onclick="event.stopPropagation()">자세히 보기 →</a>
               </div>
             </div>`;
 
@@ -321,12 +289,7 @@
 
         if (!bounds.isEmpty()) map.setBounds(bounds);
 
-        // 초기 라벨 표시/숨김
-        toggleLabelsByZoom();
-
-        // 줌 변경 시 라벨 표시/숨김
-        kakao.maps.event.addListener(map, 'zoom_changed', toggleLabelsByZoom);
-
+        // 라벨 표시/숨김 제어
         function toggleLabelsByZoom(){
           const lv = map.getLevel();
           if (lv <= LABEL_SHOW_LEVEL){
@@ -335,6 +298,8 @@
             labels.forEach(l => { if (l.getMap()) l.setMap(null); });
           }
         }
+        toggleLabelsByZoom();
+        kakao.maps.event.addListener(map, 'zoom_changed', toggleLabelsByZoom);
       })
       .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
   }
