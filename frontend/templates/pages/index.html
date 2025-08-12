@@ -134,7 +134,8 @@
     const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
     const map = new kakao.maps.Map(container, {
       center: DEFAULT_CENTER,
-      level: 3
+      level: 2,
+      maxLevel: 4
     });
 
     // 현재 페이지의 GET 파라미터를 그대로 API에 전달
