@@ -272,22 +272,21 @@ def mypage_view(request):
         if not getattr(obj, "title", None):
             obj.title = obj.name
 
-    # (선택) 내가 분실한 물건도 같이 보여줄 거면 아래 주석 해제
-    # l_qs = LostItem.objects.filter(user=request.user).order_by('-id')
-    # l_page = Paginator(l_qs, 10).get_page(request.GET.get('lost_page'))
-    # l_items = list(l_page.object_list)
-    # for obj in l_items:
-    #     if not getattr(obj, "title", None):
-    #         obj.title = obj.name
+    l_qs = LostItem.objects.filter(user=request.user).order_by('-id')
+    l_page = Paginator(l_qs, 10).get_page(request.GET.get('lost_page'))
+    l_items = list(l_page.object_list)
+    for obj in l_items:
+        if not getattr(obj, "title", None):
+            obj.title = obj.name
 
     return render(request, 'mypage/mypage.html', {
         'found_items': f_items,
         'page_obj': f_page,        # 템플릿에서 페이지네이션 쓰면 그대로 동작
         'found_count': f_qs.count(),
         'tab': 'found',            # 템플릿에 탭 조건 있으면 유지
-        # 'lost_items': l_items,
-        # 'lost_page_obj': l_page,
-        # 'lost_count': l_qs.count(),
+        'lost_items': l_items,
+        'lost_page_obj': l_page,
+        'lost_count': l_qs.count(),
     })
 
 # ✅ 수정 완료: 설정 업데이트 API (mypage 토글이 호출)
