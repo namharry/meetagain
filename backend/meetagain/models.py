@@ -28,6 +28,8 @@ class LostItem(models.Model):
     description = models.TextField(blank=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='기타')
 
+    subcategory = models.CharField(max_length=50, blank=True, null=True, verbose_name='세부옵션')
+
      # ✅ 다중 위치용 새 필드
     lost_locations = ArrayField(
         base_field=models.CharField(max_length=200),  

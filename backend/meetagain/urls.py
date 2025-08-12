@@ -30,7 +30,7 @@ urlpatterns = [
     # 키워드
     path('keywords/', views.keyword_list, name='keyword_list'),
     path('keywords/add/', views.keyword_add, name='add_keyword'),
-    path('/keywords/delete/<id>/', views.keyword_delete, name='delete_keyword'),
+    path('keywords/delete/<id>/', views.keyword_delete, name='delete_keyword'),
 
     # 알림(Notification)
     path('notifications/', views.get_notifications, name='get_notifications'),

@@ -51,7 +51,8 @@ class LostItemForm(forms.ModelForm):
             'lost_date_start',
             'lost_date_end',
             'is_claimed',
-            'image'
+            'image',
+            'subcategory'
         ]
         widgets = {
             'lost_date_start': forms.DateInput(
