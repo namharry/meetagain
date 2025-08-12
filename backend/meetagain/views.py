@@ -55,9 +55,16 @@ def index_view(request):
     items = items.order_by('-found_date', '-id')
 
     return render(request, 'pages/index.html', {
-        'items': items,
-        'location_choices': LOCATION_CHOICES,
+    'items': items,
+    'location_choices': LOCATION_CHOICES,
+    'category': category,
+    'name': name,
+    'start_date': start_date,
+    'end_date': end_date,
+    'location': location,
     })
+
+    
 
 
 # --------------------
