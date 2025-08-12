@@ -14,6 +14,7 @@ urlpatterns = [
     path('lost/<int:item_id>/delete/', views.lost_delete_view, name='lost_delete'),
     path('lost/<int:item_id>/', views.lost_detail_view, name='lost_detail'),
 
+
     # 습득물 (Found)
     path('found/register/', views.found_register_view, name='found_register'),
     path('found/<int:item_id>/', views.found_detail_view, name='found_detail'),

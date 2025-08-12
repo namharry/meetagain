@@ -80,7 +80,14 @@
           <!-- 3줄: 장소 -->
           <div class="col-md-12">
             <label class="form-label">습득 장소</label>
-            <input type="text" name="location" value="{{ request.GET.location }}" class="form-control" placeholder="예: 중앙도서관">
+            <select name="location" class="form-select">
+              <option value="">장소 선택</option>
+              {% for value, label in location_choices %}
+                <option value="{{ value }}" {% if request.GET.location == value %}selected{% endif %}>
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
           </div>
 
           <!-- 4줄: 물품명 -->

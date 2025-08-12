@@ -12,6 +12,12 @@ from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import InquiryForm, LostItemForm, FoundItemForm, NoticeForm
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
+from datetime import timedelta
+from django.utils import timezone
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.utils.dateparse import parse_date
+from .forms import LOCATION_CHOICES
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -49,7 +55,8 @@ def index_view(request):
     items = items.order_by('-found_date', '-id')
 
     return render(request, 'pages/index.html', {
-        'items': items
+        'items': items,
+        'location_choices': LOCATION_CHOICES,
     })
 
 
@@ -252,14 +259,14 @@ def found_list_api(request):
         'has_next': page_obj.has_next(),
     })
 
-    @login_required
-    def found_edit(request, pk):
-        found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
-        if request.method == 'POST':
-            form = FoundItemForm(request.POST, request.FILES, instance=found_item)
-            if form.is_valid():
-                form.save()
-                return redirect('found_detail', pk=found_item.pk)
+@login_required
+def found_edit(request, pk):
+    found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = FoundItemForm(request.POST, request.FILES, instance=found_item)
+        if form.is_valid():
+            form.save()
+            return redirect('found_detail', pk=found_item.pk)
         else:
             form = FoundItemForm(instance=found_item)
         return render(request, 'found/found_register.html', {'form': form, 'edit_mode': True})
@@ -411,39 +418,52 @@ def notice_delete(request, pk):
 
 @login_required
 def map_pins_api(request):
-    category = request.GET.get('category')
-    name = request.GET.get('name')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    location = request.GET.get('location')
+    # ✅ 양쪽 파라미터 키 모두 지원
+    category   = request.GET.get('category', '')
+    name       = request.GET.get('name') or request.GET.get('q') or ''
+    location   = request.GET.get('location', '')
+    start_date = request.GET.get('start_date') or request.GET.get('date_from') or ''
+    end_date   = request.GET.get('end_date')   or request.GET.get('date_to')   or ''
 
-    found_items = FoundItem.objects.all()
+    filters_present = any([category, name, location, start_date, end_date])
 
+    qs = FoundItem.objects.all()
+
+    # ✅ 기본 진입(필터 없음)일 때만 최근 2주 제한
+    if not filters_present:
+        today = timezone.localdate()
+        two_weeks_ago = today - timedelta(days=14)
+        qs = qs.filter(found_date__gte=two_weeks_ago)
+
+    # ✅ 기간 필터(둘 다 지원)
+    sd = parse_date(start_date) if start_date else None
+    ed = parse_date(end_date)   if end_date   else None
+    if sd:
+        qs = qs.filter(found_date__gte=sd)
+    if ed:
+        qs = qs.filter(found_date__lte=ed)
+
+    # ✅ 기타 필터
     if category:
-        found_items = found_items.filter(category=category)
+        qs = qs.filter(category=category)
     if name:
-        found_items = found_items.filter(name__icontains=name)
-    if start_date:
-        found_items = found_items.filter(found_date__gte=start_date)
-    if end_date:
-        found_items = found_items.filter(found_date__lte=end_date)
+        qs = qs.filter(name__icontains=name)
     if location:
-        found_items = found_items.filter(found_location__icontains=location)
+        qs = qs.filter(found_location__icontains=location)
 
-    data = []
-    for item in found_items:
-        if item.lat is not None and item.lng is not None:
-            data.append({
-                'id': item.id,
-                'type': 'found',
-                'name': item.name,
-                'lat': item.lat,
-                'lng': item.lng,
-                'date': item.found_date.strftime('%Y-%m-%d'),
-            })
+    # ✅ 지도 가능한 데이터만
+    qs = qs.filter(lat__isnull=False, lng__isnull=False).order_by('-found_date')
+
+    data = [{
+        'id': item.id,
+        'type': 'found',
+        'name': item.name,
+        'lat': item.lat,
+        'lng': item.lng,
+        'date': item.found_date.strftime('%Y-%m-%d'),
+    } for item in qs]
 
     return JsonResponse({'items': data})
-
 
 # --------------------
 # 회원 탈퇴(quit) 관련 뷰
