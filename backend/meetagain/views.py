@@ -62,15 +62,14 @@ def lost_register_view(request):
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES)
         if form.is_valid():
-            item = form.save(commit=False)
-            item.user = request.user  # 작성자 저장 (원하면)
-            item.save()
-            return render(request, 'lost/lost_register_success.html')  # ✅ 홈 URL name에 맞게
+            form.save()
+            # ✅ 성공 페이지로 이동
+            return render(request, 'lost/lost_register_success.html')
         else:
             return render(request, 'lost/lost_register.html', {'form': form})
     else:
         form = LostItemForm()
-    return render(request, 'lost/lost_register.html', {'form': form})
+    return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
 
 
 @login_required
@@ -225,7 +224,7 @@ def found_update_view(request, item_id):
             return redirect('meetagain:found_detail', item_id=item.id)
     else:
         form = FoundItemForm(instance=item)
-    return render(request, 'found/found_update.html', {'form': form, 'item': item})
+    return render(request, 'found/found_register.html', {'form': form, 'item': item})
 
 
 @login_required
@@ -294,6 +293,19 @@ def found_list_api(request):
         'has_prev': page_obj.has_previous(),
         'has_next': page_obj.has_next(),
     })
+
+    @login_required
+    def found_edit(request, pk):
+        found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
+        if request.method == 'POST':
+            form = FoundItemForm(request.POST, request.FILES, instance=found_item)
+            if form.is_valid():
+                form.save()
+                return redirect('found_detail', pk=found_item.pk)
+        else:
+            form = FoundItemForm(instance=found_item)
+        return render(request, 'found/found_register.html', {'form': form, 'edit_mode': True})
+
 
 
 # --------------------
