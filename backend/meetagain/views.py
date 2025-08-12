@@ -71,48 +71,6 @@ def lost_register_view(request):
         form = LostItemForm()
     return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
 
-
-@login_required
-def lost_index_view(request):
-    items = LostItem.objects.all()
-
-    q = request.GET.get('q', '')
-    location = request.GET.get('location', '')
-    category = request.GET.get('category', '')
-    date_from = request.GET.get('date_from', '')
-    date_to = request.GET.get('date_to', '')
-
-    if q:
-        items = items.filter(name__icontains=q)
-    if location:
-        items = items.filter(lost_location__icontains=location)
-    if category and category != 'all':
-        items = items.filter(category=category)
-    # 날짜 필터: 사용자가 기간을 주면 "겹치는" 데이터만 보여주기
-    # (date_from <= item.lost_date_end) AND (date_to >= item.lost_date_start)
-    if date_from and date_to:
-        items = items.filter(
-            Q(lost_date_end__gte=date_from) & Q(lost_date_start__lte=date_to)
-        )
-    elif date_from:
-        items = items.filter(lost_date_end__gte=date_from)
-    elif date_to:
-        items = items.filter(lost_date_start__lte=date_to)
-
-    items = items.order_by('-lost_date_end')[:6]
-
-    context = {
-        'items': items,
-        'q': q,
-        'location': location,
-        'category': category,
-        'date_from': date_from,
-        'date_to': date_to,
-        'category_choices': LostItem.CATEGORY_CHOICES,
-    }
-    return render(request, 'lost/lost_list.html', context)
-
-
 @login_required
 def lost_update_view(request, item_id):
     item = get_object_or_404(LostItem, id=item_id)

@@ -20,8 +20,8 @@
         {% endif %}
         <div class="card-body d-flex flex-column">
           <h5 class="card-title text-truncate" title="{{ item.name }}">{{ item.name }}</h5>
-          <p class="card-text text-muted mb-1">{{ item.location }}</p>
-          {% if item.lost_datetime %}
+          <p class="card-text text-muted mb-1">{{ item.locations }}</p>
+          {% if item.lost_date_endtime %}
           <p class="card-text small text-muted">{{ item.lost_date_endtime|date:"Y.m.d H:i" }}</p>
           {% endif %}
           <div class="mt-auto">
@@ -37,7 +37,6 @@
     {% endfor %}
   </div>
 
-  {# 페이지네이션 사용 시 주석 해제
   {% if is_paginated %}
   <nav class="mt-4">
     <ul class="pagination justify-content-center">
@@ -52,6 +51,5 @@
     </ul>
   </nav>
   {% endif %}
-  #}
 </div>
 {% endblock %}
