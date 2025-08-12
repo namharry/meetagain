@@ -45,7 +45,10 @@
 
   {% if request.path != '/users/login/' and request.path != '/users/signup/' and request.path != '/users/password_reset/' %}
   <div id="topIcons" class="top-icons d-flex justify-content-end gap-3" style="position: fixed; top: 20px; right: 20px; font-size: 20px; z-index: 1100;">
-    <i class="fa-solid fa-bell" onclick="toggleSidebar()" style="cursor:pointer;"></i>
+    <i class="fa-solid fa-bell position-relative" onclick="toggleSidebar()" style="cursor:pointer;">
+      <span id="notificationBadge" 
+            style="position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; background: red; border-radius: 50%; display: none;"></span>
+    </i>
     <i class="fa-solid fa-bars" onclick="toggleMenuSidebar()" style="cursor:pointer;"></i>
   </div>
   {% endif %}
@@ -85,6 +88,18 @@
       loadKeywords();
       loadNotifications();
     }
+
+    fetch('/meetagain/notifications/mark_read/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+      }
+    }).then(res => {
+      if (res.ok) {
+        setNotificationBadge(false);
+        loadNotifications();  // 새로고침
+      }
+    }).catch(console.error);
   };
 
   // 메뉴 사이드바 토글 (오른쪽)
