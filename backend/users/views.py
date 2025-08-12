@@ -260,8 +260,7 @@ def mypage_view(request):
     if request.method == 'POST':
         user = request.user
         user.allow_notification = 'allow_notification' in request.POST
-        user.allow_location = 'allow_location' in request.POST
-        user.save(update_fields=['allow_notification', 'allow_location'])
+        user.save(update_fields=['allow_notification'])
         return redirect('users:mypage')
 
     # ✅ 내가 습득한 물건
