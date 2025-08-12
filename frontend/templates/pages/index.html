@@ -204,47 +204,63 @@
   });
 
   function initMap(){
-    const container = document.getElementById('map');
-    if (!container || !window.kakao || !kakao.maps) return;
+  const container = document.getElementById('map');
+  if (!container || !window.kakao || !kakao.maps) return;
 
-    const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
-    const map = new kakao.maps.Map(container, {
-      center: DEFAULT_CENTER,
-      level: 2,
-      maxLevel: 4
-    });
+  const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
+  const map = new kakao.maps.Map(container, {
+    center: DEFAULT_CENTER,
+    level: 2,
+    maxLevel: 4
+  });
 
-    const queryString = window.location.search;
-    fetch(`/meetagain/api/items${queryString}`)
-      .then(res => res.json())
-      .then(({ items }) => {
-        if (!items || items.length === 0) return;
-        const bounds = new kakao.maps.LatLngBounds();
-        const openInfoWindows = [];
-        items.forEach(item => {
-          if (item.lat == null || item.lng == null) return;
-          const pos = new kakao.maps.LatLng(item.lat, item.lng);
-          bounds.extend(pos);
-          const marker = new kakao.maps.Marker({ position: pos, map: map });
+  // ✅ 하나만 만들어서 재사용
+  const infoWindow = new kakao.maps.InfoWindow({ zIndex: 3, removable: true });
 
-          const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
-          const content = `
-            <div style="padding:8px 10px; min-width:180px; font-size:13px;">
-              <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
-              <div style="color:#666; margin-bottom:6px;">${item.date || ''}</div>
-              <a href="${detailUrl}" style="text-decoration:none;">자세히 보기 →</a>
-            </div>`;
-          const iw = new kakao.maps.InfoWindow({ content });
-          kakao.maps.event.addListener(marker, 'click', () => {
-            openInfoWindows.forEach(w => w.close());
-            iw.open(map, marker);
-            openInfoWindows.push(iw);
-          });
+  // ✅ ESC로 닫기
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && infoWindow.getMap()) infoWindow.close();
+  });
+
+  // ✅ 지도 왼쪽 클릭으로 닫기(빈공간 클릭)
+  kakao.maps.event.addListener(map, 'click', () => {
+    if (infoWindow.getMap()) infoWindow.close();
+  });
+
+  const queryString = window.location.search;
+  fetch(`/meetagain/api/items${queryString}`)
+    .then(res => res.json())
+    .then(({ items }) => {
+      if (!items || items.length === 0) return;
+      const bounds = new kakao.maps.LatLngBounds();
+
+      items.forEach(item => {
+        if (item.lat == null || item.lng == null) return;
+
+        const pos = new kakao.maps.LatLng(item.lat, item.lng);
+        bounds.extend(pos);
+        const marker = new kakao.maps.Marker({ position: pos, map });
+
+        const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
+        const content = `
+          <div style="padding:8px 10px; min-width:180px; font-size:13px;">
+            <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name)}</div>
+            <div style="color:#666; margin-bottom:6px;">${item.date || ''}</div>
+            <a href="${detailUrl}" style="text-decoration:none;">자세히 보기 →</a>
+          </div>`;
+
+        kakao.maps.event.addListener(marker, 'click', () => {
+          // 다른 창이 열려 있으면 닫고, 같은 인포윈도우에 새 콘텐츠로 열기
+          if (infoWindow.getMap()) infoWindow.close();
+          infoWindow.setContent(content);
+          infoWindow.open(map, marker);
         });
-        if (!bounds.isEmpty()) map.setBounds(bounds);
-      })
-      .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
-  }
+      });
+
+      if (!bounds.isEmpty()) map.setBounds(bounds);
+    })
+    .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
+}
 
   // ===== AJAX 페이지네이션 =====
   const GRID  = document.getElementById('items');
