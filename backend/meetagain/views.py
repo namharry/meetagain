@@ -271,17 +271,19 @@ def found_list_api(request):
     })
 
 @login_required
-def found_edit(request, pk):
-    found_item = get_object_or_404(FoundItem, pk=pk, user=request.user)
+def found_edit_view(request, item_id):
+    item = get_object_or_404(FoundItem, id=item_id, user=request.user)
     if request.method == 'POST':
-        form = FoundItemForm(request.POST, request.FILES, instance=found_item)
+        form = FoundItemForm(request.POST, request.FILES, instance=item)  # ✅ 핵심
         if form.is_valid():
-            form.save()
-            return redirect('found_detail', pk=found_item.pk)
-        else:
-            form = FoundItemForm(instance=found_item)
-        return render(request, 'found/found_register.html', {'form': form, 'edit_mode': True})
-
+            obj = form.save(commit=False)     # (user를 폼에서 안 다루면)
+            obj.user = request.user           # 선택: user 유지/보정
+            obj.save()
+            messages.success(request, '습득물 정보가 수정되었습니다.')
+            return redirect('meetagain:found_detail', item_id=obj.id)
+    else:
+        form = FoundItemForm(instance=item)   # ✅ GET에서도 instance
+    return render(request, 'found/found_register.html', {'form': form, 'item': item, 'mode': 'update'})
 # --------------------
 # 키워드 관련 뷰
 # --------------------
