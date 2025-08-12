@@ -26,9 +26,35 @@ def staff_member_required(view_func):
 
 # 메인 홈 화면용 뷰
 def index_view(request):
-    # 메인에서 사용될 최신 습득물 6개
-    items = FoundItem.objects.all().order_by('-found_date')[:6]
-    return render(request, 'pages/index.html', {'items': items})
+    # 검색 파라미터 가져오기
+    category = request.GET.get('category')
+    name = request.GET.get('name')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    location = request.GET.get('location')
+
+    # 기본 쿼리셋
+    items = FoundItem.objects.all()
+
+    # 필터 조건 적용
+    if category:
+        items = items.filter(category=category)
+    if name:
+        items = items.filter(name__icontains=name)
+    if start_date:
+        items = items.filter(found_date__gte=start_date)
+    if end_date:
+        items = items.filter(found_date__lte=end_date)
+    if location:
+        items = items.filter(found_location__icontains=location)  # 부분 검색 가능
+
+    # 최신순 정렬
+    items = items.order_by('-found_date')
+
+    return render(request, 'pages/index.html', {
+        'items': items
+    })
+
 
 
 # --------------------
@@ -381,11 +407,24 @@ def notice_delete(request, pk):
 
 @login_required
 def map_pins_api(request):
-    """
-    습득물 위치 좌표 데이터 JSON 반환
-    LostItem에는 좌표 필드가 없으므로 FoundItem만 보냄.
-    """
+    category = request.GET.get('category')
+    name = request.GET.get('name')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    location = request.GET.get('location')
+
     found_items = FoundItem.objects.all()
+
+    if category:
+        found_items = found_items.filter(category=category)
+    if name:
+        found_items = found_items.filter(name__icontains=name)
+    if start_date:
+        found_items = found_items.filter(found_date__gte=start_date)
+    if end_date:
+        found_items = found_items.filter(found_date__lte=end_date)
+    if location:
+        found_items = found_items.filter(found_location__icontains=location)
 
     data = []
     for item in found_items:
@@ -394,12 +433,13 @@ def map_pins_api(request):
                 'id': item.id,
                 'type': 'found',
                 'name': item.name,
-                'lat': item.lat,   # 필드명 일치
-                'lng': item.lng,   # 필드명 일치
+                'lat': item.lat,
+                'lng': item.lng,
                 'date': item.found_date.strftime('%Y-%m-%d'),
             })
 
     return JsonResponse({'items': data})
+
 
 
 # --------------------

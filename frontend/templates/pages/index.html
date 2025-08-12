@@ -3,19 +3,17 @@
 
 {% block extra_head %}
 <style>
-  /* 카드 썸네일 고정 사이즈 */
   .lost-card .thumb {
     width: 100%;
-    height: 180px;         /* 필요한 고정 높이로 조절 가능 */
-    object-fit: cover;     /* 비율 유지하며 영역 꽉 채움 */
+    height: 180px;
+    object-fit: cover;
     display: block;
     border-top-left-radius: .5rem;
     border-top-right-radius: .5rem;
-    background: #f6f6f6;   /* 빈 이미지일 때 배경 */
+    background: #f6f6f6;
   }
-  /* 카드 본문 최소 높이(제목/텍스트 길이 달라도 줄맞춤) */
   .lost-card .card-body {
-    min-height: 96px;      /* 필요시 조절 */
+    min-height: 96px;
   }
 </style>
 {% endblock %}
@@ -27,69 +25,41 @@
   <div class="row">
     <!-- 좌측: 검색 + 목록 -->
     <div class="col-md-7">
-      <div class="border p-4 bg-light mb-4">
-        <h5>🔍 습득물 조회</h5>
+      <form method="get" action="{% url 'meetagain:index' %}">
         <div class="row g-2">
           <div class="col-md-6">
             <label class="form-label">종류</label>
-            <select id="typeSelect" class="form-select" onchange="updateSubOptions()">
-              <option selected disabled>종류 선택</option>
-              <option>가방</option>
-              <option>귀금속</option>
-              <option>의류</option>
-              <option>전자기기</option>
-              <option>지갑</option>
-              <option>컴퓨터</option>
-              <option>카드</option>
-              <option>현금</option>
-              <option>휴대폰</option>
-              <option>기타</option>
+            <select name="category" id="typeSelect" class="form-select" onchange="updateSubOptions()">
+              <option value="">종류 선택</option>
+              {% for cat, cat_label in items.model.CATEGORY_CHOICES %}
+                <option value="{{ cat }}" {% if request.GET.category == cat %}selected{% endif %}>{{ cat_label }}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="col-md-6">
-            <label class="form-label">세부옵션</label>
-            <select id="subOptionSelect" class="form-select">
-              <option selected disabled>세부옵션 선택</option>
-            </select>
-          </div>
-          <div class="col-md-12">
             <label class="form-label">습득물명</label>
-            <input type="text" class="form-control" placeholder="예: 파란색 우산">
+            <input type="text" name="name" value="{{ request.GET.name }}" class="form-control" placeholder="예: 파란색 우산">
           </div>
           <div class="col-md-12">
             <label class="form-label">습득 기간</label>
             <div class="d-flex gap-2">
-              <input type="date" class="form-control">
+              <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
               <span class="align-self-center">~</span>
-              <input type="date" class="form-control">
+              <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
             </div>
           </div>
           <div class="col-md-12">
             <label class="form-label">습득 장소</label>
-            <select class="form-select">
-              <option selected disabled>장소 선택</option>
-              <option>난향관</option>
-              <option>성신관</option>
-              <option>수정관</option>
-              <option>중앙도서관</option>
-              <option>조형1관</option>
-              <option>조형2관</option>
-              <option>체육관</option>
-              <option>프라임관</option>
-              <option>행정관</option>
-              <option>학생회관</option>
-              <option>음악관</option>
-              <option>기타</option>
-            </select>
+            <input type="text" name="location" value="{{ request.GET.location }}" class="form-control" placeholder="예: 중앙도서관">
           </div>
           <div class="col-12 text-end mt-3">
-            <a class="btn btn-primary" href="{% url 'meetagain:index' %}#items">검색</a>
+            <button type="submit" class="btn btn-primary">검색</button>
           </div>
         </div>
-      </div>
+      </form>
 
-      <!-- ✅ 등록된 습득물 리스트 -->
-      <h5 class="mb-3">📋 등록된 습득물 리스트</h5>
+      <!-- 리스트 -->
+      <h5 class="mb-3 mt-4">📋 등록된 습득물 리스트</h5>
       <div class="row row-cols-1 row-cols-md-3 g-4 mb-4" id="items">
         {% for item in items %}
         <div class="col">
@@ -114,7 +84,7 @@
       </div>
     </div>
 
-    <!-- 우측: 지도 + CTA -->
+    <!-- 우측: 지도 -->
     <div class="col-md-5">
       <div id="map" style="width:100%; height:380px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,.06);"></div>
       <div class="d-flex gap-2 mt-3">
@@ -132,7 +102,7 @@
 
 {% block extra_scripts %}
 <script>
-  // ===== 세부옵션 프리셋 =====
+  // 세부옵션 프리셋
   const subOptions = {
     "귀금속": ["반지", "목걸이", "귀걸이", "시계", "기타"],
     "의류": ["모자", "신발", "아우터", "기타의류"],
@@ -154,8 +124,9 @@
       subSelect.appendChild(o);
     }
   }
+</script>
 
-  // ===== Kakao Map + 습득물 핀 렌더링 =====
+<script>
   window.addEventListener('load', function () {
     const container = document.getElementById('map');
     if (!container || !window.kakao || !kakao.maps) return;
@@ -166,8 +137,9 @@
       level: 3
     });
 
-    // API에서 좌표 가져와 마커 표시
-    fetch('/meetagain/api/items/')
+    // 현재 페이지의 GET 파라미터를 그대로 API에 전달
+    const queryString = window.location.search; 
+    fetch(`/meetagain/api/items${queryString}`)
       .then(res => res.json())
       .then(({ items }) => {
         if (!items || items.length === 0) return;
@@ -182,8 +154,6 @@
           bounds.extend(pos);
 
           const marker = new kakao.maps.Marker({ position: pos, map: map });
-
-          // 상세페이지 URL 생성 (reverse URL을 안전하게 치환)
           const detailUrl = `{% url 'meetagain:found_detail' item_id=0 %}`.replace('/0/', `/${item.id}/`);
 
           const content = `
@@ -196,21 +166,18 @@
 
           const iw = new kakao.maps.InfoWindow({ content });
           kakao.maps.event.addListener(marker, 'click', () => {
-            // 열려있는 다른 인포윈도우 닫기
             openInfoWindows.forEach(w => w.close());
             iw.open(map, marker);
             openInfoWindows.push(iw);
           });
         });
 
-        // 모든 마커가 보이도록 영역 맞추기
         if (!bounds.isEmpty()) map.setBounds(bounds);
       })
       .catch(err => {
         console.error('핀 데이터를 불러오지 못했습니다:', err);
       });
 
-    // XSS 안전을 위한 간단 escape
     function escapeHtml(s) {
       if (s == null) return '';
       return String(s)
