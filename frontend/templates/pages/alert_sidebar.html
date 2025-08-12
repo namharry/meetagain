@@ -152,19 +152,42 @@
       .then(data => {
         const alertList = document.getElementById('alertList');
         alertList.innerHTML = '';
+
         if (!data.notifications || data.notifications.length === 0) {
           alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
           return;
         }
+
         const ul = document.createElement('ul');
+
         data.notifications.forEach(n => {
+          // founditem 알림만 보여주기
+          if (n.content_type !== 'founditem') {
+            return; // continue (forEach에서 continue 대신 return)
+          }
+
           const li = document.createElement('li');
-          li.textContent = `[${n.created_at}] 키워드 '${n.keyword}' 관련 알림 ${n.is_read ? '(읽음)' : '(읽지 않음)'}`;
+
+          // founditem 상세 페이지 URL
+          const detailUrl = `/meetagain/found/${n.object_id}/`;
+
+          const a = document.createElement('a');
+          a.href = detailUrl;
+          a.textContent = `[${n.created_at}] 키워드 '${n.keyword}' 관련 알림 - ${n.item_name} ${n.is_read ? '(읽음)' : '(읽지 않음)'}`;
+
+          li.appendChild(a);
           ul.appendChild(li);
         });
-        alertList.appendChild(ul);
+
+        if (ul.children.length === 0) {
+          alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
+        } else {
+          alertList.appendChild(ul);
+        }
       })
       .catch(console.error);
   }
+
+
 
 </script>
