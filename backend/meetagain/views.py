@@ -452,7 +452,7 @@ def map_pins_api(request):
         qs = qs.filter(found_location__icontains=location)
 
     # ✅ 지도 가능한 데이터만
-    qs = qs.filter(lat__isnull=False, lng__isnull=False).order_by('-found_date')
+    qs = qs.filter(lat__isnull=False, lng__isnull=False).order_by('-found_date', '-id')
 
     data = [{
         'id': item.id,
@@ -460,7 +460,8 @@ def map_pins_api(request):
         'name': item.name,
         'lat': item.lat,
         'lng': item.lng,
-        'date': item.found_date.strftime('%Y-%m-%d'),
+        'date': item.found_date.strftime('%Y-%m-%d') if item.found_date else '',
+        'thumbnail_url': (item.image.url if item.image else None),  # ✅ 썸네일 URL 추가
     } for item in qs]
 
     return JsonResponse({'items': data})
