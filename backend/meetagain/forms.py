@@ -125,6 +125,7 @@ class FoundItemForm(forms.ModelForm):
             'name',
             'description',
             'category',
+            'subcategory', 
             'found_location',
             'found_date',
             'is_returned',

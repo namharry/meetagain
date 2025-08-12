@@ -75,6 +75,8 @@ class FoundItem(models.Model):
     description = models.TextField(blank=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='기타')
 
+    subcategory = models.CharField(max_length=50, blank=True, null=True, verbose_name='세부옵션')  # 새 필드 추가
+
     found_location = models.CharField(max_length=200)
     found_date = models.DateField(null=False)
 
@@ -111,6 +113,7 @@ class Keyword(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.word}"
 
+
 class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     keyword = models.CharField(max_length=100)
@@ -126,6 +129,7 @@ class Notification(models.Model):
     def __str__(self):
         return f"🔔 {self.user.username} - '{self.keyword}' 매칭 알림"
     
+
 class Notice(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -139,6 +143,7 @@ class Notice(models.Model):
     
     def __str__(self):
         return self.title
+
 
 class Inquiry(models.Model):
     STATUS_CHOICES = [
@@ -172,5 +177,3 @@ class Inquiry(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.subject}"
-
-    
