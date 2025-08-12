@@ -67,7 +67,8 @@
   <h2 class="mb-3">📌 습득물 등록하기</h2>
   <p class="text-muted mb-4">지도를 클릭해 습득 위치를 지정해 주세요.</p>
 
-  <form action="{% url 'meetagain:found_register' %}" method="POST" enctype="multipart/form-data">
+  <form action="{% if edit_mode %}{% url 'meetagain:found_edit' item.id %}{% else %}{% url 'meetagain:found_register' %}{% endif %}" method="POST" enctype="multipart/form-data">
+
     {% csrf_token %}
 
     <div class="section-title">📂 분류</div>
@@ -142,7 +143,7 @@
       <div class="col-md-6">
         <label for="date" class="form-label">습득일시</label>
         <input type="date" class="form-control" id="date" name="found_date" 
-               value="{{ form.found_date.value|date:'Y-m-d' }}" required>
+               value="{{ form.found_date.value|default_if_none:'' }}" required>
         {% if form.found_date.errors %}
           <div class="text-danger small mt-1">
             {% for error in form.found_date.errors %}{{ error }}<br>{% endfor %}

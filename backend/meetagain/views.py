@@ -189,7 +189,7 @@ def found_update_view(request, item_id):
             return redirect('meetagain:found_detail', item_id=obj.id)
     else:
         form = FoundItemForm(instance=item)
-    return render(request, 'found/found_register.html', {'form': form, 'item': item})
+    return render(request, 'found/found_register.html', {'form': form, 'item': item, 'edit_mode': True})
 
 
 @login_required
