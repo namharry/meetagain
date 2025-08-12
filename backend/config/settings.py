@@ -1,4 +1,4 @@
-"""
+""" 
 Django settings for config project.
 """
 
@@ -21,6 +21,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # --- Cloudinary ---
+    'cloudinary',
+    'cloudinary_storage',
+
+    # --- 기존 앱 ---
     'users',
     'meetagain',
 ]
@@ -92,8 +98,15 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# ✅ Cloudinary 저장소 설정
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dr4kqw4vg',
+    'API_KEY': '679437386832466',
+    'API_SECRET': 'LxageC_itSH7aeezXmSP3shxyWg'
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 # === 사용자/인증 ===
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'  # ← 중복 정리
