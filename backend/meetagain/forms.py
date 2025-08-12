@@ -68,8 +68,8 @@ class LostItemForm(forms.ModelForm):
                 self.add_error(field, f"{self.fields[field].label or field} 항목은 필수입니다.")
 
          # 날짜 교차 검증
-        start = cleaned_date.get('lost_date_start')
-        end = cleaned_date.get('lost_date_end')
+        start = cleaned_data.get('lost_date_start')
+        end = cleaned_data.get('lost_date_end')
         today = date.today()
 
         if start and start > today:

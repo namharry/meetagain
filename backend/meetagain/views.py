@@ -62,14 +62,14 @@ def lost_register_view(request):
     if request.method == 'POST':
         form = LostItemForm(request.POST, request.FILES)
         if form.is_valid():
-            item = form.save()
-            # 저장 후 상세 페이지로 이동(안전)
-            return redirect('meetagain:lost_detail', item_id=item.id)
+            form.save()
+            # ✅ 성공 페이지로 이동
+            return render(request, 'lost/lost_register_success.html')
         else:
             return render(request, 'lost/lost_register.html', {'form': form})
     else:
         form = LostItemForm()
-    return render(request, 'lost/lost_register.html', {'form': form})
+    return render(request, 'lost/lost_register.html', {'form': LostItemForm()})
 
 
 @login_required

@@ -64,12 +64,19 @@
 <div class="register-box">
   <h2 class="mb-5">📢 분실물 신고하기</h2>
 
-  <form>
+  <form action="{% url 'meetagain:lost_register' %}" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
     <!-- 글제목 -->
     <div class="mb-3 row align-items-center">
       <label for="title" class="col-sm-2 col-form-label fw-semibold" style="font-size: 1.3rem;">📝 글 제목</label>
       <div class="col-sm-10">
-        <input type="text" class="form-control" id="title" required>
+        <input type="text" class="form-control" id="title" name="title" 
+          value="{{ form.title.value|default_if_none:'' }}" required>
+        {% if form.title.errors %}
+          <div class="text-danger small mt-1">
+          {% for error in form.title.errors %}{{ error }}<br>{% endfor %}
+          </div>
+        {% endif %}
       </div>
     </div>
 
@@ -78,7 +85,7 @@
     <div class="row mb-3">
       <div class="col-md-6">
         <label for="category" class="form-label">종류</label>
-        <select class="form-select" id="category" required>
+        <select class="form-select" id="category" name="category" required>
           <option value="">종류 선택</option>
           <option value="가방">가방</option>
           <option value="귀금속">귀금속</option>
@@ -91,63 +98,93 @@
           <option value="휴대폰">휴대폰</option>
           <option value="기타">기타</option>
         </select>
+        {% if form.subcategory.errors %}<div class="text-danger small mt-1">
+          {% for error in form.subcategory.errors %}{{ error }}<br>{% endfor %}
+        </div>{% endif %}
       </div>
       <div class="col-md-6">
         <label for="subcategory" class="form-label">세부옵션</label>
-        <select class="form-select" id="subcategory">
+        <select class="form-select" id="subcategory" name="subcategory">
           <option value="">세부옵션 선택</option>
         </select>
-      </div>
+        {% if form.subcategory.errors %}<div class="text-danger small mt-1">
+        {% for error in form.subcategory.errors %}{{ error }}<br>{% endfor %}
+      </div>{% endif %}
     </div>
 
     <!-- 상세내용 -->
-    <div class="section-title">🔍 상세내용</div>
+    <div class="section-title">🔍 상세내용</div> 
 
     <div class="mb-3">
-      <label for="lost_name" class="form-label">분실물명</label>
-      <input type="text" class="form-control" id="lost_name" required>
+      <label for="name" class="form-label">분실물명</label>
+      <input type="text" class="form-control" id="name" name="name" 
+        value="{{ form.name.value|default_if_none:'' }}" required>
+        {% if form.name.errors %}
+        <div class="text-danger small mt-1">
+          {% for error in form.name.errors %}{{ error }}<br>{% endfor %}
+        </div>{% endif %}
     </div>
+
 
     <!-- 분실 기간 -->
-    <div class="mb-3">
-      <label class="form-label">분실 기간</label>
-      <div class="d-flex gap-2">
-        <input type="date" class="form-control" id="lost_date_start" required>
-        <span class="px-2">~</span>
-        <input type="date" class="form-control" id="lost_date_end" required>
-      </div>
+  <div class="mb-3">
+    <label class="form-label">분실 기간</label>
+    <div class="d-flex gap-2">
+      <input type="date" class="form-control" id="lost_date_start" name="lost_date_start"
+             value="{{ form.lost_date_start.value|default_if_none:'' }}" required>
+      <span class="px-2">~</span>
+      <input type="date" class="form-control" id="lost_date_end" name="lost_date_end"
+             value="{{ form.lost_date_end.value|default_if_none:'' }}" required>
     </div>
+    {% if form.lost_date_start.errors or form.lost_date_end.errors %}
+      <div class="text-danger small mt-1">
+        {% for error in form.lost_date_start.errors %}{{ error }}<br>{% endfor %}
+        {% for error in form.lost_date_end.errors %}{{ error }}<br>{% endfor %}
+      </div>
+    {% endif %}
+  </div>
 
     <!-- 분실 장소 -->
     <div class="mb-3">
       <label for="lost_location" class="form-label">분실 장소 (복수 선택 가능)</label>
-      <select class="form-select" id="lost_location" multiple size="5" required>
-        <option>난향관</option>
-        <option>성신관</option>
-        <option>수정관</option>
-        <option>중앙도서관</option>
-        <option>조형1관</option>
-        <option>조형2관</option>
-        <option>체육관</option>
-        <option>프라임관</option>
-        <option>행정관</option>
-        <option>학생회관</option>
-        <option>음악관</option>
-        <option>기타</option>
+      <select class="form-select" id="lost_location" name="lost_location" required> 
+        <option value="난향관">난향관</option>
+        <option value="성신관">성신관</option>
+        <option value="수정관">수정관</option>
+        <option value="중앙도서관">중앙도서관</option>
+        <option value="조형1관">조형1관</option>
+        <option value="조형2관">조형2관</option>
+        <option value="체육관">체육관</option>
+        <option value="프라임관">프라임관</option>
+        <option value="행정관">행정관</option>
+        <option value="학생회관">학생회관</option>
+        <option value="음악관">음악관</option>
+        <option value="기타">기타</option>
       </select>
+      {% if form.lost_location.errors %}<div class="text-danger small mt-1">
+        {% for error in form.lost_location.errors %}{{ error }}<br>{% endfor %}
+      </div>{% endif %}
       <small class="text-muted">※ 여러 장소를 선택하려면 Ctrl (또는 Cmd) 키를 누른 채 클릭하세요</small>
     </div>
 
     <!-- 특징 -->
     <div class="mb-3">
-      <label for="lost_description" class="form-label">분실물 특징</label>
-      <textarea class="form-control" id="lost_description" rows="3" placeholder="분실물 특징을 상세히 작성해주세요."></textarea>
+      <label for="description" class="form-label">분실물 특징</label>
+      <textarea class="form-control" id="description" name="description" rows="3" 
+        placeholder="분실물 특징을 상세히 작성해주세요.">{{ form.description.value|default_if_none:'' }}</textarea>
+      {% if form.description.errors %}<div class="text-danger small mt-1">
+        {% for error in form.description.errors %}{{ error }}<br>{% endfor %}
+      </div>{% endif %}
     </div>
+
 
     <!-- 사진 -->
     <div class="section-title">🖼️ 사진 첨부</div>
     <div class="mb-4">
-      <input class="form-control" type="file" id="lost_image" accept="image/*">
+      <input class="form-control" type="file" id="image" name="image" accept="image/*">
+      {% if form.image.errors %}<div class="text-danger small mt-1">
+        {% for error in form.image.errors %}{{ error }}<br>{% endfor %}
+      </div>{% endif %}
     </div>
 
     <!-- 작성 버튼 -->
