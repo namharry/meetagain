@@ -145,6 +145,7 @@ def found_register_view(request):
         form = FoundItemForm(request.POST, request.FILES)
         if form.is_valid():
             obj = form.save(commit=False)
+            obj.user = request.user  
             # 셀렉트에서 'true'/'false' 문자열로 넘어오는 경우 보정
             raw = request.POST.get('is_returned', '')
             obj.is_returned = (str(raw).lower() in ('true', '1', 'on', 'yes'))
