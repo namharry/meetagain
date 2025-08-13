@@ -316,11 +316,16 @@ def keyword_add(request):
 def keyword_delete(request, keyword_id):
     keyword = Keyword.objects.filter(id=keyword_id, user=request.user).first()
     if keyword:
+        # 키워드와 일치하는 알림 삭제
+        Notification.objects.filter(user=request.user, keyword=keyword.word).delete()
+        
         messages.success(request, f"'{keyword.word}' 키워드가 삭제되었습니다.")
         keyword.delete()
     else:
         messages.error(request, "해당 키워드를 찾을 수 없습니다.")
     return redirect('meetagain:keyword_list')
+
+
 
 
 # --------------------
