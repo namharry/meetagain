@@ -290,7 +290,7 @@ def found_edit_view(request, item_id):
 
 @login_required
 def keyword_list(request):
-    keywords = Keyword.objects.filter(user=request.user).values_list('word', flat=True)
+    keywords = Keyword.objects.filter(user=request.user).values('id', 'word')
     return JsonResponse({'keywords': list(keywords)})
 
 

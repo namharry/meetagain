@@ -64,48 +64,50 @@
         const keywordList = document.getElementById('keywordList');
         keywordList.innerHTML = '';
         if (!data.keywords || data.keywords.length === 0) {
-          keywordList.innerHTML = '<p>등록된 키워드가 없습니다.</p>';
+          keyword
+          List.innerHTML = '<p>등록된 키워드가 없습니다.</p>';
           return;
         }
-        data.keywords.forEach(word => {
+        data.keywords.forEach(k => { // k는 {id, word} 형태
           const pill = document.createElement('span');
           pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
-          pill.textContent = word;
+          pill.textContent = k.word;
 
           const removeBtn = document.createElement('button');
           removeBtn.type = 'button';
           removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
           removeBtn.textContent = '×';
 
-          // 삭제 버튼 클릭 시 키워드 삭제 함수 호출
           removeBtn.onclick = () => {
-            deleteKeywordFromDB(word);
+            deleteKeywordFromDB(k.id, pill); // id 넘김
           };
 
           pill.appendChild(removeBtn);
           keywordList.appendChild(pill);
         });
-      })
+      });
+
   }
 
-  function deleteKeywordFromDB(word, pill) {
-    fetch(`/meetagain/keywords/${encodeURIComponent(word)}/delete/`, {
-      method: 'DELETE',
+  function deleteKeywordFromDB(keywordId, pill) {
+    fetch(`/meetagain/keywords/delete/${keywordId}/`, {
+      method: 'POST', // POST로 변경
       headers: {
         'X-CSRFToken': getCookie('csrftoken'),
       }
     })
     .then(response => {
       if (response.ok) {
-        pill.remove();  // 삭제 성공 시 UI에서 제거
+        pill.remove();
       } else {
         alert('키워드 삭제에 실패했습니다.');
       }
     })
-    .catch(error => {
+    .catch(() => {
       alert('서버와 통신 중 오류가 발생했습니다.');
     });
   }
+
 
 
 

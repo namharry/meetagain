@@ -83,23 +83,34 @@
 
     icons.style.setProperty('display', newOpenState === '1' ? 'none' : 'flex', 'important');
 
-    if (newOpenState === '1') {  // 사이드바 열릴 때만 실행
+    if (newOpenState === '1') {
+      // 열릴 때
+      el.removeAttribute('aria-hidden');
+      el.removeAttribute('inert');
+
       console.log("사이드바 열림 감지, 키워드와 알림 목록 로드 시작");
       loadKeywords();
       loadNotifications();
+    } else {
+      // 닫힐 때
+      el.setAttribute('aria-hidden', 'true');
+      el.setAttribute('inert', '');
     }
 
+    // 알림 읽음 처리
     fetch('/meetagain/notifications/mark_read/', {
       method: 'POST',
       headers: {
         'X-CSRFToken': getCookie('csrftoken'),
       }
-    }).then(res => {
+    })
+    .then(res => {
       if (res.ok) {
         setNotificationBadge(false);
         loadNotifications();  // 새로고침
       }
-    }).catch(console.error);
+    })
+    .catch(console.error);
   };
 
   // 메뉴 사이드바 토글 (오른쪽)
@@ -114,6 +125,14 @@
     el.dataset.open = newOpenState;
 
     icons.style.setProperty('display', newOpenState === '1' ? 'none' : 'flex', 'important');
+
+    if (newOpenState === '1') {
+      el.removeAttribute('aria-hidden');
+      el.removeAttribute('inert');
+    } else {
+      el.setAttribute('aria-hidden', 'true');
+      el.setAttribute('inert', '');
+    }
   };
 
   // 알림 사이드바 내 키워드 입력 토글
@@ -122,6 +141,7 @@
     if (!g) return;
     g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
   };
+
 
   // 알림 사이드바 키워드 추가(pill 형태)
 window.addKeyword = function () {
