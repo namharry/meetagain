@@ -1,4 +1,4 @@
-{% load static %}
+{% load static %} 
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -14,26 +14,117 @@
   <!-- Kakao Map -->
   <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=f387153e7e5f423d38f1a6d392d6bef8&libraries=services"></script>
 
+  <!-- ===== Theme & Layout Polishing ===== -->
   <style>
+    :root{
+      --brand: #7B3FF2;
+      --brand-ink: #4c3c88;
+      --mint: #A8E5D8;
+      --mint-weak: #E6FAF5;
+      --ink: #222;
+      --muted: #666;
+      --card: #ffffff;
+      --border: #e9eef4;
+      --bg-1: #F9FAFB;
+      --bg-2: #F3F7FB;
+    }
+
+    /* 전체 배경: 은은한 그라데이션 */
+    html, body { height: 100%; }
+    body{
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: radial-gradient(1200px 800px at 20% -10%, #f1f5ff 0%, var(--bg-1) 55%) fixed;
+      color: var(--ink);
+    }
+
+    /* 공통 카드 스타일 */
+    .surface{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(22, 28, 45, 0.05);
+    }
+    .soft-shadow{ box-shadow: 0 10px 24px rgba(17, 24, 39, .08); }
+
+    /* 섹션 타이틀 칩 */
+    .chip{
+      display:inline-flex; align-items:center; gap:.5rem;
+      background: #eef2ff; color: var(--brand-ink);
+      border: 1px solid #e0e7ff;
+      padding: .35rem .7rem; border-radius: 9999px; font-weight: 600; font-size:.9rem;
+    }
+
+    /* 폼/컨트롤 미세 정리 */
+    .form-label{ font-weight:600; color:#334155; }
+    .form-control, .form-select{
+      border-radius: 10px; border-color: var(--border);
+    }
+    .form-control:focus, .form-select:focus{
+      box-shadow: 0 0 0 .25rem rgba(123, 63, 242, .12);
+      border-color: #c8b3ff;
+    }
+
+    /* 버튼 통일 */
+    .btn-primary{
+      background: var(--brand); border-color: var(--brand);
+    }
+    .btn-primary:hover{ filter: brightness(.95); }
+
+    /* 상단 우측 아이콘 */
+    #topIcons i { color:#2b2b2b; }
+    #topIcons i:hover{ color: var(--brand); }
+
+    /* 메인 CTA 버튼(우측 카드) */
     .btn-found {
-      background-color: #ebf0ff; /* 아주 연한 연파랑+흰색 */
-      color: #000000; /* 검정 텍스트 */
-      border: none;
+      background-color: #ebf0ff;
+      color: #000000;
+      border: 1px solid #dfe5ff;
+      border-radius: 14px;
     }
     .btn-found:hover {
-      background-color: #d4dbff; /* 호버 시 약간 진해짐 */
+      background-color: #dde5ff;
+      color: #000000;
+    }
+    .btn-lost {
+      background-color: #f5ebff;
+      color: #000000;
+      border: 1px solid #eaddff;
+      border-radius: 14px;
+    }
+    .btn-lost:hover {
+      background-color: #e8d9ff;
       color: #000000;
     }
 
-    .btn-lost {
-      background-color: #f5ebff; /* 아주 연한 연보라+흰색 */
-      color: #000000; /* 검정 텍스트 */
-      border: none;
+    /* 카드 호버 */
+    .card.hoverable{
+      transition: transform .18s ease, box-shadow .18s ease;
     }
-    .btn-lost:hover {
-      background-color: #ddc4ff; /* 호버 시 약간 진해짐 */
-      color: #000000;
+    .card.hoverable:hover{
+      transform: translateY(-4px);
+      box-shadow: 0 10px 28px rgba(0,0,0,.12);
     }
+
+    /* 목록 카드(이미지) 기본값 */
+    .lost-card .thumb {
+      width: 100%; height: 180px; object-fit: cover; display: block;
+      border-top-left-radius: .75rem; border-top-right-radius: .75rem;
+      background: #f6f6f6;
+    }
+    .lost-card .card-body { min-height: 96px; }
+
+    /* 사이드바 알림 항목 */
+    #alertSidebar .list-group-item {
+      border: 1px solid #ddd;
+      background-color: white;
+      margin-bottom: 4px;
+      border-radius: 8px;
+      padding: 10px 15px;
+    }
+
+    /* 컨테이너 상단 여백 살짝 축소 */
+    .container-fluid.mt-4{ margin-top: 1.25rem !important; }
   </style>
 
   {% block extra_head %}{% endblock %}
@@ -84,30 +175,23 @@
     icons.style.setProperty('display', newOpenState === '1' ? 'none' : 'flex', 'important');
 
     if (newOpenState === '1') {
-      // 열릴 때
       el.removeAttribute('aria-hidden');
       el.removeAttribute('inert');
-
-      console.log("사이드바 열림 감지, 키워드와 알림 목록 로드 시작");
       loadKeywords();
       loadNotifications();
     } else {
-      // 닫힐 때
       el.setAttribute('aria-hidden', 'true');
       el.setAttribute('inert', '');
     }
 
-    // 알림 읽음 처리
     fetch('/meetagain/notifications/mark_read/', {
       method: 'POST',
-      headers: {
-        'X-CSRFToken': getCookie('csrftoken'),
-      }
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
     })
     .then(res => {
       if (res.ok) {
         setNotificationBadge(false);
-        loadNotifications();  // 새로고침
+        loadNotifications();
       }
     })
     .catch(console.error);
@@ -142,48 +226,30 @@
     g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
   };
 
-
   // 알림 사이드바 키워드 추가(pill 형태)
-window.addKeyword = function () {
-  const input = document.getElementById('keywordInput');
-  const list = document.getElementById('keywordList');
-  if (!input || !list) return;
+  window.addKeyword = function () {
+    const input = document.getElementById('keywordInput');
+    const list = document.getElementById('keywordList');
+    if (!input || !list) return;
 
-  const text = (input.value || '').trim();
-  if (!text) return;
+    const text = (input.value || '').trim();
+    if (!text) return;
 
-  // 키워드 pill 역할을 하는 span 생성
-  const pill = document.createElement('span');
-  pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';  // pill 스타일
-  pill.textContent = text;
+    const pill = document.createElement('span');
+    pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
+    pill.textContent = text;
 
-  // ×(삭제) 버튼 생성
-  const removeBtn = document.createElement('button');
-  removeBtn.type = 'button';
-  removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
-  removeBtn.textContent = '×';
-  removeBtn.onclick = () => pill.remove();  // 클릭 시 pill 삭제
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
+    removeBtn.textContent = '×';
+    removeBtn.onclick = () => pill.remove();
 
-  // pill 안에 삭제 버튼 추가
-  pill.appendChild(removeBtn);
-
-  // 키워드 리스트에 pill 추가
-  list.appendChild(pill);
-
-  // 입력창 초기화
-  input.value = '';
-};
-
+    pill.appendChild(removeBtn);
+    list.appendChild(pill);
+    input.value = '';
+  };
 </script>
- <style>
-    #alertSidebar .list-group-item {
-      border: 1px solid #ddd;
-      background-color: white;
-      margin-bottom: 4px;
-      border-radius: 4px;
-      padding: 10px 15px;
-    }
-  </style>
 
 {% block extra_scripts %}{% endblock %}
 {% block script %}{% endblock %}

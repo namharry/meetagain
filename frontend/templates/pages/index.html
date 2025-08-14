@@ -3,178 +3,169 @@
 
 {% block extra_head %}
 <style>
-  /* ===== 민트 테마 ===== */
-  :root{
-    --ivory: #E6FAF5;                 /* 배경: 연한 민트 */
-    --ivory-alpha: rgba(230,250,245,.96); /* 반투명 민트 */
-    --ivory-border: #A8E5D8;          /* 테두리: 살짝 진한 민트 */
-    --ink: #222;
-    --muted: #666;
+  /* === 섹션 헤더(검색/리스트 공통) === */
+  .section-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 1.1rem; /* 살짝 더 여유 */
+  }
+  .section-chip{
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding: .6rem 1rem;
+    background: #f3f4f6;
+    border: 1px solid #e0e0e0;
+    border-radius: 9999px;
+    white-space: nowrap;    /* 줄바꿈 방지로 끊김 방지 */
   }
 
-  .lost-card .thumb {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    display: block;
-    border-top-left-radius: .5rem;
-    border-top-right-radius: .5rem;
-    background: #f6f6f6;
+  /* === 레이아웃 (여백은 적당히, 왼쪽 패널만 넓힘) === */
+  @media (min-width: 1200px){
+    .page-container{ max-width: 1420px; }       /* 좌우여백 약간만 */
+    .layout-row{ display:flex; gap: 24px; align-items: flex-start; }
+    .left-narrow{ flex: 1 1 auto; max-width: 980px; } /* 900→980로 확장 */
+    .right-map{  flex: 0 0 540px; max-width: 540px; } /* 지도 폭 유지 */
   }
-  .lost-card .card-body { min-height: 96px; }
-
-  /* 보라색 페이지네이션 (기존 유지) */
-  .purple-pagination{
-    display:inline-flex; align-items:center; gap:2px;
-    background:#f5efff; border-radius:12px; padding:4px;
-    border:1px solid #e4d9ff;
-  }
-  .purple-pagination .pg-btn{
-    min-width:36px; height:36px; line-height:36px; text-align:center;
-    border-radius:8px; cursor:pointer; user-select:none;
-    padding:0 10px; font-weight:600; color:#4c3c88; background:transparent; border:none;
-  }
-  .purple-pagination .pg-btn:hover{ background:#efe7ff; }
-  .purple-pagination .active{ background:#7B3FF2; color:#fff; }
-  .purple-pagination .disabled{ opacity:.4; pointer-events:none; }
-
-  /* 🔧 세부옵션 없음일 때: 회색 배경 제거하고 클릭만 막기 */
-  #subSelect.no-sub {
-    pointer-events: none;
-    background-color: #fff;
-    opacity: 1;
-    color: #6c757d;
+  @media (min-width: 1400px){
+    .page-container{ max-width: 1480px; }       /* 초대형에서도 너무 벌어지지 않게 */
+    .left-narrow{ max-width: 1000px; }          /* 살짝 더 여유 */
+    .right-map{  flex-basis: 560px; max-width: 560px; }
   }
 
-  /* ✅ 지도 핀 위 텍스트 라벨 (연한 민트 pill) */
+  /* 패널 간 간격(섹션 사이) */
+  .surface.panel{ padding: 18px; margin-bottom: 1.25rem; }
+
+  /* 지도 라벨/팝업 */
   .ma-label{
-    position: relative;
-    transform: translate(-50%, -110%);
-    padding: 4px 10px;
-    border: 1px solid var(--ivory-border);
-    border-radius: 999px;
-    background: var(--ivory-alpha);
-    box-shadow: 0 2px 6px rgba(0,0,0,.10);
-    font-size: 12px;
-    line-height: 1.05;
-    white-space: nowrap;
-    color: var(--ink);
-    pointer-events: none;
+    position: relative; transform: translate(-50%, -110%);
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
+    background: rgba(230,250,245,.96); box-shadow: 0 2px 6px rgba(0,0,0,.10);
+    font-size: 12px; color: var(--ink); white-space: nowrap; pointer-events: none;
   }
-
-  /* ✅ 커스텀 팝업(연한 민트 카드) - InfoWindow 사용 안함 */
   .ma-iw-wrap{ position:relative; }
-  .ma-iw {
-    display:flex; align-items:center; gap:8px;
-    width:260px; box-sizing:border-box; padding:10px 12px;
-    background: var(--ivory);
-    border:1px solid var(--ivory-border);
-    border-radius:12px;
-    box-shadow: 0 10px 24px rgba(0,0,0,.12);
-    overflow:hidden;
+  .ma-iw{
+    display:flex; align-items:center; gap:8px; width:260px; padding:10px 12px; box-sizing:border-box;
+    background: var(--mint-weak); border:1px solid var(--mint); border-radius:12px;
+    box-shadow: 0 10px 24px rgba(0,0,0,.12); overflow:hidden;
   }
   .ma-iw-close{
-    position:absolute; top:6px; right:8px;
-    width:22px; height:22px; line-height:20px; text-align:center;
-    border-radius:6px; border:1px solid var(--ivory-border);
-    background:#fff; cursor:pointer; font-weight:700;
+    position:absolute; top:6px; right:8px; width:22px; height:22px; line-height:20px; text-align:center;
+    border-radius:6px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:700;
     box-shadow: 0 1px 4px rgba(0,0,0,.08);
   }
   .ma-iw-link{ text-decoration:none; color:inherit; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; }
-  .ma-iw-thumb{
-    width:80px; height:80px; flex:0 0 80px;
-    border-radius:8px; background:#f1f1f1; object-fit:cover; display:block;
-  }
+  .ma-iw-thumb{ width:80px; height:80px; flex:0 0 80px; border-radius:8px; background:#f1f1f1; object-fit:cover; display:block; }
   .ma-iw .txt{ min-width:0; flex:1 1 auto; }
   .ma-iw .name{ font-weight:800; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); }
   .ma-iw .date{ color:var(--muted); font-size:12px; margin-bottom:6px; }
-  .ma-iw .more{ font-size:12px; text-decoration:underline; color:#4c3c88; }
+  .ma-iw .more{ font-size:12px; text-decoration:underline; color: var(--brand-ink); }
 
-  /* ✅ 투명 클릭 히트박스 (크게, 원형) */
-  .ma-hitbox{
-    width:96px; height:96px;
-    transform: translate(-50%, -50%);
-    border-radius:9999px;
-    pointer-events:auto;
-    background: transparent; /* 디버그용: rgba(0,0,0,.06) */
+  .ma-hitbox{ width:96px; height:96px; transform: translate(-50%, -50%); border-radius:9999px; pointer-events:auto; background: transparent; }
+
+  /* 페이지네이션 */
+  .purple-pagination{
+    display:inline-flex; align-items:center; gap:2px; background:#f5efff; border-radius:12px; padding:4px; border:1px solid #e4d9ff;
   }
+  .purple-pagination .pg-btn{
+    min-width:36px; height:36px; line-height:36px; text-align:center; border-radius:8px; cursor:pointer; user-select:none;
+    padding:0 10px; font-weight:600; color:#4c3c88; background:transparent; border:none;
+  }
+  .purple-pagination .pg-btn:hover{ background:#efe7ff; }
+  .purple-pagination .active{ background:var(--brand); color:#fff; }
+  .purple-pagination .disabled{ opacity:.4; pointer-events:none; }
+
+  /* 세부옵션 없음일 때 */
+  #subSelect.no-sub { pointer-events: none; background-color: #fff; opacity: 1; color: #6c757d; }
+
+  /* CTA 버튼 굵게 */
+  .btn-found, .btn-lost{ font-weight: 700; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4 position-relative">
+<div class="container-xxl page-container px-4 mt-2 position-relative">
   <h4 class="text-center mb-4 fw-bold" style="font-size: 24px;">MeetAgain</h4>
 
-  <div class="row">
-    <!-- 좌측: 검색 + 목록 -->
-    <div class="col-md-7">
-      <form id="searchForm" method="get" action="{% url 'meetagain:index' %}">
-        <div class="row g-2">
-          <!-- 1줄: 종류 + 세부옵션 -->
-          <div class="col-md-6">
-            <label class="form-label">종류</label>
-            <select name="category" id="typeSelect" class="form-select">
-              <option value="">종류 선택</option>
-              {% for cat, cat_label in items.model.CATEGORY_CHOICES %}
-                <option value="{{ cat }}" {% if request.GET.category == cat %}selected{% endif %}>{{ cat_label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">세부옵션</label>
-            <select name="subcategory" id="subSelect" class="form-select"
-                    data-subselected="{{ request.GET.subcategory|default:'' }}">
-              <option value="">세부옵션 선택</option>
-            </select>
-          </div>
+  <div class="layout-row">
+    <!-- 좌측: 검색 + 목록 (가로폭 넉넉) -->
+    <div class="left-narrow">
+      <div class="surface panel soft-shadow">
+        <div class="section-header">
+          <span class="section-chip">🔍 습득물 검색</span>
+        </div>
+        <form id="searchForm" method="get" action="{% url 'meetagain:index' %}">
+          <div class="row g-2">
+            <!-- 1줄: 종류 + 세부옵션 -->
+            <div class="col-md-6">
+              <label class="form-label">종류</label>
+              <select name="category" id="typeSelect" class="form-select">
+                <option value="">종류 선택</option>
+                {% for cat, cat_label in items.model.CATEGORY_CHOICES %}
+                  <option value="{{ cat }}" {% if request.GET.category == cat %}selected{% endif %}>{{ cat_label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">세부옵션</label>
+              <select name="subcategory" id="subSelect" class="form-select"
+                      data-subselected="{{ request.GET.subcategory|default:'' }}">
+                <option value="">세부옵션 선택</option>
+              </select>
+            </div>
 
-          <!-- 2줄: 기간 -->
-          <div class="col-md-12">
-            <label class="form-label">습득 기간</label>
-            <div class="d-flex gap-2">
-              <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
-              <span class="align-self-center">~</span>
-              <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
+            <!-- 2줄: 기간 -->
+            <div class="col-md-12">
+              <label class="form-label">습득 기간</label>
+              <div class="d-flex gap-2">
+                <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+                <span class="align-self-center">~</span>
+                <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
+              </div>
+            </div>
+
+            <!-- 3줄: 장소 -->
+            <div class="col-md-12">
+              <label class="form-label">습득 장소</label>
+              <select name="location" class="form-select">
+                <option value="">장소 선택</option>
+                {% for value, label in location_choices %}
+                  <option value="{{ value }}" {% if request.GET.location == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- 4줄: 물품명 -->
+            <div class="col-md-12">
+              <label class="form-label">습득물명</label>
+              <input type="text" name="name" value="{{ request.GET.name }}" class="form-control" placeholder="예: 파란색 우산">
+            </div>
+
+            <!-- 버튼 -->
+            <div class="col-12 text-end mt-2">
+              <button type="submit" class="btn btn-primary px-4">검색</button>
             </div>
           </div>
+        </form>
+      </div>
 
-          <!-- 3줄: 장소 -->
-          <div class="col-md-12">
-            <label class="form-label">습득 장소</label>
-            <select name="location" class="form-select">
-              <option value="">장소 선택</option>
-              {% for value, label in location_choices %}
-                <option value="{{ value }}" {% if request.GET.location == value %}selected{% endif %}>
-                  {{ label }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <!-- 4줄: 물품명 -->
-          <div class="col-md-12">
-            <label class="form-label">습득물명</label>
-            <input type="text" name="name" value="{{ request.GET.name }}" class="form-control" placeholder="예: 파란색 우산">
-          </div>
-
-          <!-- 버튼 -->
-          <div class="col-12 text-end mt-3">
-            <button type="submit" class="btn btn-primary">검색</button>
-          </div>
+      <div class="surface panel">
+        <div class="section-header">
+          <span class="section-chip">📋 등록된 습득물 리스트</span>
+          <span class="text-muted small">습득된 날짜 순</span>
         </div>
-      </form>
-
-      <h5 class="mb-3 mt-4">📋 등록된 습득물 리스트</h5>
-      <div class="row row-cols-1 row-cols-md-3 g-4 mb-3" id="items"></div>
-
-      <div class="d-flex justify-content-center mb-4">
-        <div id="pager" class="purple-pagination"></div>
+        <!-- ✅ 6개 유지: 3열 × 2행 -->
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-3" id="items"></div>
+        <div class="d-flex justify-content-center mb-1">
+          <div id="pager" class="purple-pagination"></div>
+        </div>
       </div>
     </div>
 
-    <!-- 우측: 지도 -->
-    <div class="col-md-5">
-      <div id="map" style="width:100%; height:380px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,.06);"></div>
+    <!-- 우측: 지도 + CTA (지도 폭 유지) -->
+    <div class="right-map">
+      <div class="surface soft-shadow" style="padding: 12px;">
+        <div id="map" style="width:100%; height:380px; border-radius:12px;"></div>
+      </div>
+
       <div class="d-flex gap-2 mt-3">
         <a href="{% url 'meetagain:found_register' %}" class="btn btn-found px-5 py-5 w-50 flex-fill">
           📥 물건을 주웠어요!<br><small>(습득물 등록)</small>
@@ -201,7 +192,6 @@
       .replace(/'/g,'&#039;');
   }
 
-  // ===== 세부옵션 매핑 (라벨 기준) =====
   const SUB_OPTIONS = {
     '카드': [], '지갑': [],
     '전자기기': ['태블릿','스마트워치','무선이어폰','카메라','헤드셋','기타용품'],
@@ -232,8 +222,7 @@
     sub.appendChild(ph);
     list.forEach(v=>{
       const o = document.createElement('option');
-      o.value = v;
-      o.textContent = v;
+      o.value = v; o.textContent = v;
       sub.appendChild(o);
     });
     sub.value = (selectedValue && list.includes(selectedValue)) ? selectedValue : '';
@@ -245,12 +234,10 @@
     return sel.options[sel.selectedIndex]?.text?.trim() || '';
   }
 
-  // ===== 라벨/이름 표시 설정 =====
-  const MAX_NAME_LEN = 8;      // 8자 초과 … 처리
-  const LABEL_SHOW_LEVEL = 3;  // 이 레벨 이하에서 라벨 표시
+  const MAX_NAME_LEN = 8;
+  const LABEL_SHOW_LEVEL = 3;
   const truncateName = (s,n=MAX_NAME_LEN)=>!s?'':(s.length>n? s.slice(0,n)+'…':s);
 
-  // ===== 지도 & 초기화 =====
   window.addEventListener('load', function () {
     const subSelected = document.getElementById('subSelect').dataset.subselected || '';
     fillSubOptions(currentCategoryLabel(), subSelected);
@@ -269,25 +256,19 @@
 
     const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
     const map = new kakao.maps.Map(container, {
-      center: DEFAULT_CENTER,
-      level: 2,
-      maxLevel: 5
+      center: DEFAULT_CENTER, level: 2, maxLevel: 5
     });
 
-    let openOverlay = null; // 현재 열린 커스텀 오버레이
+    let openOverlay = null;
 
-    // ESC 로 닫기
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape' && openOverlay) { openOverlay.setMap(null); openOverlay = null; }
     });
-    // 오른쪽 클릭으로 닫기
     kakao.maps.event.addListener(map, 'rightclick', () => {
       if (openOverlay) { openOverlay.setMap(null); openOverlay = null; }
     });
 
-    const markers = [];
-    const labels  = [];
-    const hitboxes = [];
+    const markers = [], labels = [], hitboxes = [];
 
     const queryString = window.location.search;
     fetch(`/meetagain/api/items${queryString}`)
@@ -303,11 +284,9 @@
           const pos = new kakao.maps.LatLng(item.lat, item.lng);
           bounds.extend(pos);
 
-          // 1) 마커
           const marker = new kakao.maps.Marker({ position: pos, map, clickable: true });
           markers.push(marker);
 
-          // 2) 라벨 (민트 pill)
           const labelEl = document.createElement('div');
           labelEl.className = 'ma-label';
           labelEl.textContent = truncateName(item.name);
@@ -316,7 +295,6 @@
           });
           labels.push(label);
 
-          // 3) 팝업(커스텀 오버레이) — 카드 전체 클릭 시 상세로 이동
           const detailUrl = detailUrlTemplate.replace('/0/', `/${item.id}/`);
           const thumb = item.thumbnail_url
             ? `<img src="${item.thumbnail_url}" alt="" class="ma-iw-thumb"
@@ -343,23 +321,17 @@
             position: pos, content: wrap, yAnchor: 1.1, zIndex: 9999
           });
 
-          // 닫기 버튼
           wrap.querySelector('.ma-iw-close').onclick = (e) => {
-            e.stopPropagation();
-            overlay.setMap(null);
+            e.stopPropagation(); overlay.setMap(null);
             if (openOverlay === overlay) openOverlay = null;
           };
 
           function openCard(){
             if (openOverlay) { openOverlay.setMap(null); openOverlay = null; }
-            overlay.setMap(map);
-            openOverlay = overlay;
+            overlay.setMap(map); openOverlay = overlay;
           }
-
-          // 마커 클릭 → 팝업 열기
           kakao.maps.event.addListener(marker, 'click', openCard);
 
-          // 4) 투명 히트박스(96×96) : 마커 주변도 클릭되게
           const hitEl = document.createElement('div');
           hitEl.className = 'ma-hitbox';
           hitEl.title = '자세히 보기';
@@ -368,42 +340,33 @@
           const hitbox = new kakao.maps.CustomOverlay({
             position: pos, content: hitEl, xAnchor: 0.5, yAnchor: 0.5, zIndex: 10
           });
-          hitbox.setMap(map);
-          hitboxes.push(hitbox);
+          hitbox.setMap(map); hitboxes.push(hitbox);
         });
 
         if (!bounds.isEmpty()) map.setBounds(bounds);
 
-        // ✅ 근접 클릭 자동 오픈(지도 클릭 시 가까운 마커 반경 R 내면 자동 오픈)
         const proj = map.getProjection();
         const targets = markers.map((m, idx) => ({
           pos: m.getPosition(),
           open: () => kakao.maps.event.trigger(markers[idx], 'click')
         }));
-
         kakao.maps.event.addListener(map, 'click', function(mouseEvent){
           const clickPt = proj.containerPointFromCoords(mouseEvent.latLng);
           let best = null, bestD = Infinity;
-
           for (const t of targets){
             const pt = proj.containerPointFromCoords(t.pos);
             const dx = pt.x - clickPt.x, dy = pt.y - clickPt.y;
             const d = Math.hypot(dx, dy);
             if (d < bestD){ bestD = d; best = t; }
           }
-
-          const R = 48; // px 반경 (필요하면 56~64까지)
+          const R = 48;
           if (best && bestD <= R){ best.open(); }
         });
 
-        // 라벨 표시/숨김 제어
         function toggleLabelsByZoom(){
           const lv = map.getLevel();
-          if (lv <= LABEL_SHOW_LEVEL){
-            labels.forEach(l => { if (!l.getMap()) l.setMap(map); });
-          } else {
-            labels.forEach(l => { if (l.getMap()) l.setMap(null); });
-          }
+          if (lv <= 3){ labels.forEach(l => { if (!l.getMap()) l.setMap(map); }); }
+          else { labels.forEach(l => { if (l.getMap()) l.setMap(null); }); }
         }
         toggleLabelsByZoom();
         kakao.maps.event.addListener(map, 'zoom_changed', toggleLabelsByZoom);
@@ -411,7 +374,7 @@
       .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
   }
 
-  // ===== AJAX 페이지네이션 =====
+  /* 리스트 (6개 유지) */
   const GRID  = document.getElementById('items');
   const PAGER = document.getElementById('pager');
 
@@ -444,10 +407,10 @@
       return `
         <div class="col">
           <a class="text-decoration-none" href="${detailUrl}">
-            <div class="card lost-card h-100">
+            <div class="card lost-card h-100 hoverable">
               ${it.image_url
                 ? `<img src="${it.image_url}" alt="${escapeHtml(it.name)}" class="thumb">`
-                : `<img src="https://via.placeholder.com/600x400?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" class="thumb" alt="이미지 없음">`}
+                : `<img src="https://via.placeholder.com/640x420?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" class="thumb" alt="이미지 없음">`}
               <div class="card-body">
                 <p class="text-center fw-bold text-dark mb-1">${escapeHtml(it.name)}</p>
                 <p class="text-center text-muted small mb-1">${it.found_date || ''}</p>
@@ -457,7 +420,7 @@
           </a>
         </div>
       `;
-    }).join('') || `<p class="text-muted">등록된 습득물이 없습니다.</p>`;
+    }).join('') || `<p class="text-muted m-2">등록된 습득물이 없습니다.</p>`;
   }
 
   function renderPager(current, total){
@@ -476,7 +439,6 @@
     });
   }
 
-  // 실행
   initMap();
 </script>
 {% endblock %}
