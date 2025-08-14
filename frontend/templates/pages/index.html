@@ -1,4 +1,4 @@
-{% extends 'base/base.html' %}
+{% extends 'base/base.html' %} 
 {% block title %}MeetAgain - 습득물 조회{% endblock %}
 
 {% block extra_head %}
@@ -6,7 +6,7 @@
   /* === 섹션 헤더(검색/리스트 공통) === */
   .section-header{
     display:flex; align-items:center; justify-content:space-between;
-    margin-bottom: 1.1rem; /* 살짝 더 여유 */
+    margin-bottom: 1.1rem;
   }
   .section-chip{
     font-size: 1.25rem;
@@ -15,23 +15,22 @@
     background: #f3f4f6;
     border: 1px solid #e0e0e0;
     border-radius: 9999px;
-    white-space: nowrap;    /* 줄바꿈 방지로 끊김 방지 */
+    white-space: nowrap;
   }
 
   /* === 레이아웃 (여백은 적당히, 왼쪽 패널만 넓힘) === */
   @media (min-width: 1200px){
-    .page-container{ max-width: 1420px; }       /* 좌우여백 약간만 */
+    .page-container{ max-width: 1420px; }
     .layout-row{ display:flex; gap: 24px; align-items: flex-start; }
-    .left-narrow{ flex: 1 1 auto; max-width: 980px; } /* 900→980로 확장 */
-    .right-map{  flex: 0 0 540px; max-width: 540px; } /* 지도 폭 유지 */
+    .left-narrow{ flex: 1 1 auto; max-width: 980px; }
+    .right-map{  flex: 0 0 540px; max-width: 540px; }
   }
   @media (min-width: 1400px){
-    .page-container{ max-width: 1480px; }       /* 초대형에서도 너무 벌어지지 않게 */
-    .left-narrow{ max-width: 1000px; }          /* 살짝 더 여유 */
+    .page-container{ max-width: 1480px; }
+    .left-narrow{ max-width: 1000px; }
     .right-map{  flex-basis: 560px; max-width: 560px; }
   }
 
-  /* 패널 간 간격(섹션 사이) */
   .surface.panel{ padding: 18px; margin-bottom: 1.25rem; }
 
   /* 지도 라벨/팝업 */
@@ -73,12 +72,19 @@
   .purple-pagination .active{ background:var(--brand); color:#fff; }
   .purple-pagination .disabled{ opacity:.4; pointer-events:none; }
 
-  /* 세부옵션 없음일 때 */
   #subSelect.no-sub { pointer-events: none; background-color: #fff; opacity: 1; color: #6c757d; }
 
-  /* CTA 버튼 굵게 */
   .btn-found, .btn-lost{ font-weight: 700; }
+
+/* 여기 아래에 붙이면 됨 */
+  /* 리스트 카드 메타(날짜/장소) */
+  .meta-line{
+    display:flex; align-items:center; justify-content:center;
+    gap:6px; color:#6c757d; font-size:.875rem; margin-bottom:.25rem;
+  }
+  .meta-line i{ font-size:.95rem; line-height:1; }
 </style>
+
 {% endblock %}
 
 {% block content %}
@@ -86,9 +92,10 @@
   <h4 class="text-center mb-4 fw-bold" style="font-size: 24px;">MeetAgain</h4>
 
   <div class="layout-row">
-    <!-- 좌측: 검색 + 목록 (가로폭 넉넉) -->
+    <!-- 좌측: 검색 + 목록 -->
     <div class="left-narrow">
-      <div class="surface panel soft-shadow">
+      <!-- ✅ id 추가: searchPanel -->
+      <div id="searchPanel" class="surface panel soft-shadow">
         <div class="section-header">
           <span class="section-chip">🔍 습득물 검색</span>
         </div>
@@ -139,7 +146,6 @@
               <input type="text" name="name" value="{{ request.GET.name }}" class="form-control" placeholder="예: 파란색 우산">
             </div>
 
-            <!-- 버튼 -->
             <div class="col-12 text-end mt-2">
               <button type="submit" class="btn btn-primary px-4">검색</button>
             </div>
@@ -152,7 +158,6 @@
           <span class="section-chip">📋 등록된 습득물 리스트</span>
           <span class="text-muted small">습득된 날짜 순</span>
         </div>
-        <!-- ✅ 6개 유지: 3열 × 2행 -->
         <div class="row row-cols-1 row-cols-md-3 g-4 mb-3" id="items"></div>
         <div class="d-flex justify-content-center mb-1">
           <div id="pager" class="purple-pagination"></div>
@@ -160,9 +165,10 @@
       </div>
     </div>
 
-    <!-- 우측: 지도 + CTA (지도 폭 유지) -->
+    <!-- 우측: 지도 + CTA -->
     <div class="right-map">
       <div class="surface soft-shadow" style="padding: 12px;">
+        <!-- 기본 380px, JS가 검색패널 높이로 덮어씀 -->
         <div id="map" style="width:100%; height:380px; border-radius:12px;"></div>
       </div>
 
@@ -238,13 +244,44 @@
   const LABEL_SHOW_LEVEL = 3;
   const truncateName = (s,n=MAX_NAME_LEN)=>!s?'':(s.length>n? s.slice(0,n)+'…':s);
 
+  /* ✅ 검색패널 높이와 지도 높이 동기화 */
+  function syncMapHeight(){
+    const sp = document.getElementById('searchPanel');
+    const mapEl = document.getElementById('map');
+    if (!sp || !mapEl) return;
+    const h = Math.max(300, Math.round(sp.getBoundingClientRect().height)); // 최소 300 유지
+    if (mapEl.style.height !== h + 'px'){
+      mapEl.style.height = h + 'px';
+      // 카카오맵 리레이아웃 및 센터 유지
+      if (window._maMap){
+        const center = window._maMap.getCenter();
+        window._maMap.relayout();
+        window._maMap.setCenter(center);
+      }
+    }
+  }
+
+  // 리사이즈 디바운스
+  let _rzTimer = null;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(_rzTimer);
+    _rzTimer = setTimeout(syncMapHeight, 120);
+  });
+
   window.addEventListener('load', function () {
     const subSelected = document.getElementById('subSelect').dataset.subselected || '';
     fillSubOptions(currentCategoryLabel(), subSelected);
 
     document.getElementById('typeSelect').addEventListener('change', function(){
       fillSubOptions(currentCategoryLabel(), '');
+      // 검색폼 높이 변동 가능 -> 지도 높이 다시 맞춤
+      setTimeout(syncMapHeight, 0);
     });
+
+    // 폰트/레이아웃 적용 후 한 번 더
+    syncMapHeight();
+    setTimeout(syncMapHeight, 100);
+    setTimeout(syncMapHeight, 400);
 
     initMap();
     fetchPage(1);
@@ -255,9 +292,8 @@
     if (!container || !window.kakao || !kakao.maps) return;
 
     const DEFAULT_CENTER = new kakao.maps.LatLng(37.591360, 127.021961);
-    const map = new kakao.maps.Map(container, {
-      center: DEFAULT_CENTER, level: 2, maxLevel: 5
-    });
+    const map = new kakao.maps.Map(container, { center: DEFAULT_CENTER, level: 2, maxLevel: 5 });
+    window._maMap = map; // ✅ 전역 보관
 
     let openOverlay = null;
 
@@ -370,6 +406,9 @@
         }
         toggleLabelsByZoom();
         kakao.maps.event.addListener(map, 'zoom_changed', toggleLabelsByZoom);
+
+        // 데이터 로드 후에도 한 번 더 높이 싱크
+        setTimeout(syncMapHeight, 0);
       })
       .catch(err => console.error('핀 데이터를 불러오지 못했습니다:', err));
   }
@@ -404,17 +443,30 @@
     const detailUrlTemplate = "{% url 'meetagain:found_detail' item_id=0 %}";
     GRID.innerHTML = items.map(it => {
       const detailUrl = detailUrlTemplate.replace('/0/', `/${it.id}/`);
+      const name = escapeHtml(it.name);
+      const loc  = escapeHtml(it.found_location || '');
+      const date = it.found_date || '';
+      const img  = it.image_url
+        ? `<img src="${it.image_url}" alt="${name}" class="thumb">`
+        : `<img src="https://via.placeholder.com/640x420?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" class="thumb" alt="이미지 없음">`;
+
       return `
         <div class="col">
           <a class="text-decoration-none" href="${detailUrl}">
             <div class="card lost-card h-100 hoverable">
-              ${it.image_url
-                ? `<img src="${it.image_url}" alt="${escapeHtml(it.name)}" class="thumb">`
-                : `<img src="https://via.placeholder.com/640x420?text=%EC%9D%B4%EB%AF%B8%EC%A7%80+%EC%97%86%EC%9D%8C" class="thumb" alt="이미지 없음">`}
+              ${img}
               <div class="card-body">
-                <p class="text-center fw-bold text-dark mb-1">${escapeHtml(it.name)}</p>
-                <p class="text-center text-muted small mb-1">${it.found_date || ''}</p>
-                <p class="text-center text-muted small">${escapeHtml(it.found_location || '')}</p>
+                <p class="text-center fw-bold text-dark mb-1">${name}</p>
+
+                <div class="meta-line">
+                  <i class="fa-regular fa-calendar"></i>
+                  <span>${date}</span>
+                </div>
+
+                <div class="meta-line">
+                  <i class="fa-solid fa-location-dot"></i>
+                  <span>${loc}</span>
+                </div>
               </div>
             </div>
           </a>
@@ -423,22 +475,26 @@
     }).join('') || `<p class="text-muted m-2">등록된 습득물이 없습니다.</p>`;
   }
 
-  function renderPager(current, total){
-    if (total <= 1){ PAGER.innerHTML = ''; return; }
-    let html = '';
-    const prevClass = (current > 1) ? 'pg-btn' : 'pg-btn disabled';
-    const nextClass = (current < total) ? 'pg-btn' : 'pg-btn disabled';
-    html += `<button class="${prevClass}" data-pg="${current-1}">&laquo;</button>`;
-    for (let p = 1; p <= total; p++){
-      html += `<button class="pg-btn ${p===current?'active':''}" data-pg="${p}">${p}</button>`;
-    }
-    html += `<button class="${nextClass}" data-pg="${current+1}">&raquo;</button>`;
-    PAGER.innerHTML = html;
-    PAGER.querySelectorAll('.pg-btn:not(.disabled)').forEach(btn=>{
-      btn.onclick = () => fetchPage(parseInt(btn.dataset.pg, 10));
-    });
-  }
 
-  initMap();
+
+
+    function renderPager(current, total){
+      if (total <= 1){ PAGER.innerHTML = ''; return; }
+      let html = '';
+      const prevClass = (current > 1) ? 'pg-btn' : 'pg-btn disabled';
+      const nextClass = (current < total) ? 'pg-btn' : 'pg-btn disabled';
+      html += `<button class="${prevClass}" data-pg="${current-1}">&laquo;</button>`;
+      for (let p = 1; p <= total; p++){
+        html += `<button class="pg-btn ${p===current?'active':''}" data-pg="${p}">${p}</button>`;
+      }
+      html += `<button class="${nextClass}" data-pg="${current+1}">&raquo;</button>`;
+      PAGER.innerHTML = html;
+      PAGER.querySelectorAll('.pg-btn:not(.disabled)').forEach(btn=>{
+        btn.onclick = () => fetchPage(parseInt(btn.dataset.pg, 10));
+      });
+    }
+
+  // 초기 한 번 더 동기화(카카오 스크립트 로딩 타이밍 대비)
+  syncMapHeight();
 </script>
 {% endblock %}
