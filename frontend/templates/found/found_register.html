@@ -247,6 +247,13 @@
   if (categorySelect) {
     categorySelect.addEventListener("change", function () {
       const selected = this.value;
+
+      /* 📢 귀중품 안내 알림 추가 */
+      const valuableItems = ["귀금속", "전자기기", "지갑", "휴대폰"];
+      if (valuableItems.includes(selected)) {
+        alert("📢 귀중품은 성신관 1층 학생지원팀에 맡겨 주세요. (권장 사항)");
+      }
+
       subcategorySelect.innerHTML = '<option value="">세부옵션 선택</option>';
       if (subOptions[selected]) {
         subOptions[selected].forEach(option => {
