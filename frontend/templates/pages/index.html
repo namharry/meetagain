@@ -90,14 +90,25 @@
     top: -0.3px;   /* ↑ 위로 : 수치만 바꿔서 미세조정 */
     left: -3.4px;  /* ← 왼쪽 : 수치만 바꿔서 미세조정 */
   }
-
-
-  .ma-iw-link{ text-decoration:none; color:inherit; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; }
+  .ma-iw-link{
+    text-decoration:none; 
+    color:inherit; 
+    cursor:pointer; 
+    display:flex; 
+    align-items:center; 
+    gap:8px; 
+    width:100%;
+    /* ✅ 오버레이 안에서 클릭 막힘 방지 */
+    pointer-events:auto;
+  }
   .ma-iw-thumb{ width:80px; height:80px; flex:0 0 80px; border-radius:8px; background:#f1f1f1; object-fit:cover; display:block; }
   .ma-iw .txt{ min-width:0; flex:1 1 auto; }
   .ma-iw .name{ font-weight:600; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); }
   .ma-iw .date{ color:var(--muted); font-size:12px; margin-bottom:6px; }
-  .ma-iw .more{ font-size:12px; text-decoration:underline; color: var(--brand-ink); }
+  /* ✅ '자세히 보기' 텍스트도 확실히 클릭되도록 */
+  .ma-iw .more{ font-size:12px; text-decoration:underline; color: var(--brand-ink); pointer-events:auto; }
+
+
 
   .ma-hitbox{ width:96px; height:96px; transform: translate(-50%, -50%); border-radius:9999px; pointer-events:auto; background: transparent; }
 
@@ -415,10 +426,34 @@
             </div>
           `;
 
+          /* 🚫 기존에 넣었던 박스 전체 클릭 핸들러(iw.addEventListener('click', ...))는 지워줘 */
+
+          /* ✅ 링크/자세히보기에 “다중 이벤트”로 강제 네비게이션 */
+          const linkEl = wrap.querySelector('.ma-iw-link');
+          const moreEl = wrap.querySelector('.more');
+
+          function goDetail(e){
+            // 일부 브라우저/라이브러리가 캡처 단계에서 기본동작을 막아도 뚫기 위해 다중 처리
+            try { e.preventDefault(); } catch (_) {}
+            e.stopPropagation();
+            const href = linkEl.getAttribute('href') || detailUrl;
+
+            // iOS/Safari 및 Kakao Overlay 특수케이스 회피용
+            setTimeout(() => { window.location.assign(href); }, 0);
+            return false;
+          }
+
+          // 클릭 뿐 아니라 pointer/mouse/touch 까지 모두 걸어둠
+          ['click','pointerdown','mousedown','touchstart'].forEach(evt => {
+            linkEl.addEventListener(evt, goDetail, { passive: false });
+            moreEl.addEventListener(evt, goDetail, { passive: false });
+          });
 
           const overlay = new kakao.maps.CustomOverlay({
             position: pos, content: wrap, yAnchor: 1.1, zIndex: 9999
           });
+
+
 
           wrap.querySelector('.ma-iw-close').onclick = (e) => {
             e.stopPropagation(); overlay.setMap(null);
