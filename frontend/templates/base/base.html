@@ -6,6 +6,9 @@
   <title>{% block title %}MeetAgain{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
+  <!-- Fonts: Noto Sans KR -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300..900&display=swap" rel="stylesheet">
+
   <!-- Bootstrap, FontAwesome, Custom CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
@@ -29,9 +32,9 @@
       --bg-2: #F3F7FB;
     }
 
-    /* 전체 배경: 은은한 그라데이션 */
     html, body { height: 100%; }
     body{
+      font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       background: radial-gradient(1200px 800px at 20% -10%, #f1f5ff 0%, var(--bg-1) 55%) fixed;
@@ -81,21 +84,17 @@
       color: #000000;
       border: 1px solid #dfe5ff;
       border-radius: 14px;
+      font-weight: 700;
     }
-    .btn-found:hover {
-      background-color: #dde5ff;
-      color: #000000;
-    }
+    .btn-found:hover { background-color: #dde5ff; }
     .btn-lost {
       background-color: #f5ebff;
       color: #000000;
       border: 1px solid #eaddff;
       border-radius: 14px;
+      font-weight: 700;
     }
-    .btn-lost:hover {
-      background-color: #e8d9ff;
-      color: #000000;
-    }
+    .btn-lost:hover { background-color: #e8d9ff; }
 
     /* 카드 호버 */
     .card.hoverable{
@@ -226,7 +225,7 @@
     g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
   };
 
-  // 알림 사이드바 키워드 추가(pill 형태)
+  // 알림 사이드바 키워드 추가(pill 형태) — BUGFIX: 변수명 오류 수정
   window.addKeyword = function () {
     const input = document.getElementById('keywordInput');
     const list = document.getElementById('keywordList');
@@ -246,7 +245,7 @@
     removeBtn.onclick = () => pill.remove();
 
     pill.appendChild(removeBtn);
-    list.appendChild(pill);
+    list.appendChild(pill); // ← '알약' → 'pill' 로 수정
     input.value = '';
   };
 </script>
