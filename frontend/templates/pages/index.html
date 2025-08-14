@@ -3,6 +3,15 @@
 
 {% block extra_head %}
 <style>
+  /* ===== 민트 테마 ===== */
+  :root{
+    --ivory: #E6FAF5;                 /* 배경: 연한 민트 */
+    --ivory-alpha: rgba(230,250,245,.96); /* 반투명 민트 */
+    --ivory-border: #A8E5D8;          /* 테두리: 살짝 진한 민트 */
+    --ink: #222;
+    --muted: #666;
+  }
+
   .lost-card .thumb {
     width: 100%;
     height: 180px;
@@ -14,7 +23,7 @@
   }
   .lost-card .card-body { min-height: 96px; }
 
-  /* 보라색 페이지네이션 */
+  /* 보라색 페이지네이션 (기존 유지) */
   .purple-pagination{
     display:inline-flex; align-items:center; gap:2px;
     background:#f5efff; border-radius:12px; padding:4px;
@@ -37,36 +46,49 @@
     color: #6c757d;
   }
 
-  /* ✅ 지도 핀 위 텍스트 라벨 */
+  /* ✅ 지도 핀 위 텍스트 라벨 (연한 민트 pill) */
   .ma-label{
     position: relative;
     transform: translate(-50%, -110%);
-    padding: 4px 8px;
-    border: 1px solid rgba(0,0,0,.15);
-    border-radius: 8px;
-    background: rgba(255,255,255,.95);
-    box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    padding: 4px 10px;
+    border: 1px solid var(--ivory-border);
+    border-radius: 999px;
+    background: var(--ivory-alpha);
+    box-shadow: 0 2px 6px rgba(0,0,0,.10);
     font-size: 12px;
-    line-height: 1.2;
+    line-height: 1.05;
     white-space: nowrap;
+    color: var(--ink);
     pointer-events: none;
   }
 
-  /* ✅ 인포윈도우 카드(고정폭 + 오버플로우 방지 + 전체 클릭 타겟) */
+  /* ✅ 커스텀 팝업(연한 민트 카드) - InfoWindow 사용 안함 */
+  .ma-iw-wrap{ position:relative; }
   .ma-iw {
     display:flex; align-items:center; gap:8px;
-    width:260px; box-sizing:border-box; padding:8px 10px;
+    width:260px; box-sizing:border-box; padding:10px 12px;
+    background: var(--ivory);
+    border:1px solid var(--ivory-border);
+    border-radius:12px;
+    box-shadow: 0 10px 24px rgba(0,0,0,.12);
     overflow:hidden;
+  }
+  .ma-iw-close{
+    position:absolute; top:6px; right:8px;
+    width:22px; height:22px; line-height:20px; text-align:center;
+    border-radius:6px; border:1px solid var(--ivory-border);
+    background:#fff; cursor:pointer; font-weight:700;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
   }
   .ma-iw-link{ text-decoration:none; color:inherit; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; }
   .ma-iw-thumb{
     width:80px; height:80px; flex:0 0 80px;
-    border-radius:6px; background:#f1f1f1; object-fit:cover; display:block;
+    border-radius:8px; background:#f1f1f1; object-fit:cover; display:block;
   }
   .ma-iw .txt{ min-width:0; flex:1 1 auto; }
-  .ma-iw .name{ font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .ma-iw .date{ color:#666; font-size:12px; margin-bottom:6px; }
-  .ma-iw .more{ font-size:12px; text-decoration:underline; }
+  .ma-iw .name{ font-weight:800; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); }
+  .ma-iw .date{ color:var(--muted); font-size:12px; margin-bottom:6px; }
+  .ma-iw .more{ font-size:12px; text-decoration:underline; color:#4c3c88; }
 
   /* ✅ 투명 클릭 히트박스 (크게, 원형) */
   .ma-hitbox{
@@ -252,17 +274,15 @@
       maxLevel: 5
     });
 
-    // 공용 인포윈도우
-    const infoWindow = new kakao.maps.InfoWindow({ zIndex: 3, removable: true });
+    let openOverlay = null; // 현재 열린 커스텀 오버레이
 
     // ESC 로 닫기
     document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape' && infoWindow.getMap()) infoWindow.close();
+      if (ev.key === 'Escape' && openOverlay) { openOverlay.setMap(null); openOverlay = null; }
     });
-    // ❌ 왼쪽클릭 닫기 제거 (클릭 타겟 축소 문제)
-    // ✅ 오른쪽 클릭으로 닫기만 유지
+    // 오른쪽 클릭으로 닫기
     kakao.maps.event.addListener(map, 'rightclick', () => {
-      if (infoWindow.getMap()) infoWindow.close();
+      if (openOverlay) { openOverlay.setMap(null); openOverlay = null; }
     });
 
     const markers = [];
@@ -287,7 +307,7 @@
           const marker = new kakao.maps.Marker({ position: pos, map, clickable: true });
           markers.push(marker);
 
-          // 2) 라벨
+          // 2) 라벨 (민트 pill)
           const labelEl = document.createElement('div');
           labelEl.className = 'ma-label';
           labelEl.textContent = truncateName(item.name);
@@ -296,15 +316,18 @@
           });
           labels.push(label);
 
-          // 3) 팝업(고정폭 카드) — 카드 전체 클릭 시 상세로 이동
+          // 3) 팝업(커스텀 오버레이) — 카드 전체 클릭 시 상세로 이동
           const detailUrl = detailUrlTemplate.replace('/0/', `/${item.id}/`);
           const thumb = item.thumbnail_url
             ? `<img src="${item.thumbnail_url}" alt="" class="ma-iw-thumb"
                     onerror="this.onerror=null; this.src='https://via.placeholder.com/80x80?text=%20';">`
             : `<div class="ma-iw-thumb"></div>`;
-          const content = `
-            <div class="ma-iw" onclick="event.stopPropagation(); window.location.href='${detailUrl}'">
-              <a class="ma-iw-link" href="${detailUrl}" onclick="event.stopPropagation()">
+
+          const wrap = document.createElement('div');
+          wrap.className = 'ma-iw-wrap';
+          wrap.innerHTML = `
+            <div class="ma-iw">
+              <a class="ma-iw-link" href="${detailUrl}">
                 ${thumb}
                 <div class="txt">
                   <div class="name">${escapeHtml(item.name || '')}</div>
@@ -312,12 +335,25 @@
                   <span class="more">자세히 보기 →</span>
                 </div>
               </a>
-            </div>`;
+            </div>
+            <button class="ma-iw-close" title="닫기">×</button>
+          `;
+
+          const overlay = new kakao.maps.CustomOverlay({
+            position: pos, content: wrap, yAnchor: 1.1, zIndex: 9999
+          });
+
+          // 닫기 버튼
+          wrap.querySelector('.ma-iw-close').onclick = (e) => {
+            e.stopPropagation();
+            overlay.setMap(null);
+            if (openOverlay === overlay) openOverlay = null;
+          };
 
           function openCard(){
-            if (infoWindow.getMap()) infoWindow.close();
-            infoWindow.setContent(content);
-            infoWindow.open(map, marker);
+            if (openOverlay) { openOverlay.setMap(null); openOverlay = null; }
+            overlay.setMap(map);
+            openOverlay = overlay;
           }
 
           // 마커 클릭 → 팝업 열기
@@ -330,11 +366,7 @@
           hitEl.onclick = function(e){ e.stopPropagation(); openCard(); };
 
           const hitbox = new kakao.maps.CustomOverlay({
-            position: pos,
-            content: hitEl,
-            xAnchor: 0.5,
-            yAnchor: 0.5,
-            zIndex: 10
+            position: pos, content: hitEl, xAnchor: 0.5, yAnchor: 0.5, zIndex: 10
           });
           hitbox.setMap(map);
           hitboxes.push(hitbox);
@@ -360,7 +392,7 @@
             if (d < bestD){ bestD = d; best = t; }
           }
 
-          const R = 48; // px 반경 (필요하면 56~64까지 올려도 됨)
+          const R = 48; // px 반경 (필요하면 56~64까지)
           if (best && bestD <= R){ best.open(); }
         });
 
