@@ -34,27 +34,68 @@
   .surface.panel{ padding: 18px; margin-bottom: 1.25rem; }
 
   /* 지도 라벨/팝업 */
-  .ma-label{
-    position: relative; transform: translate(-50%, -110%);
-    padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
-    background: rgba(230,250,245,.96); box-shadow: 0 2px 6px rgba(0,0,0,.10);
-    font-size: 12px; color: var(--ink); white-space: nowrap; pointer-events: none;
-  }
-  .ma-iw-wrap{ position:relative; }
-  .ma-iw{
-    display:flex; align-items:center; gap:8px; width:260px; padding:10px 12px; box-sizing:border-box;
-    background: var(--mint-weak); border:1px solid var(--mint); border-radius:12px;
-    box-shadow: 0 10px 24px rgba(0,0,0,.12); overflow:hidden;
-  }
+  .ma-label {
+  position: relative;
+  transform: translateY(-8px);
+  padding: 4px 10px;
+  border: 1px solid #b6ffe8; /* 윤곽선 색 */
+  border-radius: 999px;
+  background: rgba(190, 255, 227, 0.636); /* 배경색 */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .10);
+  font-size: 12px;
+  font-weight: 450;
+  color: var(--ink);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.ma-iw-wrap {
+  position: relative;
+}
+
+.ma-iw {
+  position: relative; /* ✅ X버튼 위치 기준 */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 260px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  background: rgba(190, 255, 227, 0.890); /* 배경색 */
+  border: 1px solid #b6ffe8; /* 윤곽선 색 */
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
+  overflow: hidden;
+}
+
+  /* 버튼 박스는 그대로, 가운데 정렬 */
   .ma-iw-close{
-    position:absolute; top:6px; right:8px; width:22px; height:22px; line-height:20px; text-align:center;
-    border-radius:6px; border:1px solid var(--border); background:#fff; cursor:pointer; font-weight:700;
-    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    position:absolute;
+    top:6px; right:8px;   /* 박스 위치 고정 */
+    width:22px; height:22px;
+    display:grid; place-items:center;
+    line-height:1;
+    border-radius:6px;
+    border:1px solid #b6ffe8;
+    background:#fff; cursor:pointer; font-weight:700;
+    box-shadow:0 1px 4px rgba(0,0,0,.08);
   }
+
+  /* 원래 글자는 숨기고, 가짜 글자를 원하는 만큼만 미세 이동 */
+  .ma-iw-close { color: transparent; }         /* 원 글자 숨김 */
+  .ma-iw-close::before{
+    content: '×';
+    color: #000;
+    position: relative;
+    top: -0.3px;   /* ↑ 위로 : 수치만 바꿔서 미세조정 */
+    left: -3.4px;  /* ← 왼쪽 : 수치만 바꿔서 미세조정 */
+  }
+
+
   .ma-iw-link{ text-decoration:none; color:inherit; cursor:pointer; display:flex; align-items:center; gap:8px; width:100%; }
   .ma-iw-thumb{ width:80px; height:80px; flex:0 0 80px; border-radius:8px; background:#f1f1f1; object-fit:cover; display:block; }
   .ma-iw .txt{ min-width:0; flex:1 1 auto; }
-  .ma-iw .name{ font-weight:800; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); }
+  .ma-iw .name{ font-weight:600; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); }
   .ma-iw .date{ color:var(--muted); font-size:12px; margin-bottom:6px; }
   .ma-iw .more{ font-size:12px; text-decoration:underline; color: var(--brand-ink); }
 
@@ -74,7 +115,23 @@
 
   #subSelect.no-sub { pointer-events: none; background-color: #fff; opacity: 1; color: #6c757d; }
 
-  .btn-found, .btn-lost{ font-weight: 700; }
+  .btn-found, .btn-lost{ 
+    font-weight: 550;
+  display: flex;                /* 가운데 정렬 */
+  flex-direction: column;       /* 줄바꿈 */
+  justify-content: center;      /* 세로 가운데 */
+  align-items: center;          /* 가로 가운데 */
+  min-height: 180px;            /* 세로 크기 ↑ */
+  text-align: center;           /* 텍스트 중앙 */
+  line-height: 1.4; 
+  font-size: 1.0rem;
+  }
+
+  .btn-found small,
+  .btn-lost small {
+    font-size: 0.95rem;       /* 괄호 안 글씨 크기 */
+  }
+
 
 /* 여기 아래에 붙이면 됨 */
   /* 리스트 카드 메타(날짜/장소) */
@@ -326,8 +383,13 @@
           const labelEl = document.createElement('div');
           labelEl.className = 'ma-label';
           labelEl.textContent = truncateName(item.name);
+
           const label = new kakao.maps.CustomOverlay({
-            position: pos, content: labelEl, yAnchor: 1.1, zIndex: 2
+            position: pos,
+            content: labelEl,
+            xAnchor: 0.5,   // ✅ 가로 기준: 가운데
+            yAnchor: 1.8,   // ✅ 세로 기준: 아래쪽(핀 꼭지점)
+            zIndex: 2
           });
           labels.push(label);
 
@@ -341,6 +403,7 @@
           wrap.className = 'ma-iw-wrap';
           wrap.innerHTML = `
             <div class="ma-iw">
+              <button class="ma-iw-close" title="닫기">×</button>
               <a class="ma-iw-link" href="${detailUrl}">
                 ${thumb}
                 <div class="txt">
@@ -350,8 +413,8 @@
                 </div>
               </a>
             </div>
-            <button class="ma-iw-close" title="닫기">×</button>
           `;
+
 
           const overlay = new kakao.maps.CustomOverlay({
             position: pos, content: wrap, yAnchor: 1.1, zIndex: 9999
@@ -497,4 +560,4 @@
   // 초기 한 번 더 동기화(카카오 스크립트 로딩 타이밍 대비)
   syncMapHeight();
 </script>
-{% endblock %}
+{% endblock %} 
