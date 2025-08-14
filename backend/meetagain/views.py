@@ -14,11 +14,6 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from .forms import LOCATION_CHOICES
 
-
-
-
-
-
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
     """
@@ -284,6 +279,7 @@ def found_edit_view(request, item_id):
     else:
         form = FoundItemForm(instance=item)   # ✅ GET에서도 instance
     return render(request, 'found/found_register.html', {'form': form, 'item': item, 'mode': 'update'})
+
 # --------------------
 # 키워드 관련 뷰
 # --------------------
@@ -325,9 +321,6 @@ def keyword_delete(request, keyword_id):
         messages.error(request, "해당 키워드를 찾을 수 없습니다.")
     return redirect('meetagain:keyword_list')
 
-
-
-
 # --------------------
 # 사용자 키워드 알림(Notification) 관련 뷰
 # --------------------
@@ -355,7 +348,6 @@ def mark_notifications_read(request):
     user = request.user
     user.notification_set.filter(is_read=False).update(is_read=True)
     return JsonResponse({'status': 'success'})
-
 
 # --------------------
 # 공지사항 관련 뷰(관리자만 접근 가능)
@@ -385,7 +377,7 @@ def notice_create(request):
             notice.author = request.user
             notice.save()
             messages.success(request, '공지사항이 성공적으로 등록되었습니다.')
-            return redirect('notice_detail', pk=notice.pk)
+            return redirect('meetagain:notice_detail', pk=notice.pk)
     else:
         form = NoticeForm()
     return render(request, 'notice/notice_form.html', {'form': form})
@@ -399,7 +391,7 @@ def notice_update(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, '공지사항이 성공적으로 수정되었습니다.')
-            return redirect('notice_detail', pk=notice.pk)
+            return redirect('meetagain:notice_detail', pk=notice.pk)
     else:
         form = NoticeForm(instance=notice)
     return render(request, 'notice/notice_form.html', {'form': form})
@@ -408,12 +400,9 @@ def notice_update(request, pk):
 @staff_required
 def notice_delete(request, pk):
     notice = get_object_or_404(Notice, pk=pk)
-    if request.method == 'POST':
-        notice.delete()
-        messages.success(request, '공지사항이 삭제되었습니다.')
-        return redirect('notice_list')
-    return render(request, 'notice/notice_confirm_delete.html', {'notice': notice})
-
+    notice.delete()
+    messages.success(request, '공지사항이 삭제되었습니다.')
+    return redirect('meetagain:notice_list')
 
 # --------------------
 # 지도 API (map pins) 관련 뷰
@@ -507,7 +496,6 @@ def quit_account_view(request):
 def quit_done_view(request):
     return render(request, 'quit/quit_done.html')
 
-
 # --------------------
 # FAQ / Inquiry 단순 페이지
 # --------------------
@@ -560,7 +548,6 @@ def inquiry_edit_view(request, pk):
 
     return render(request, "help/help_inquiry.html", {"form": form, "inquiry": inquiry})
 
-
 # --------------------
 # 관리자용 문의사항 관련 뷰
 # --------------------
@@ -580,4 +567,4 @@ def admin_inquiry_create(request):
 
 @staff_member_required
 def admin_inquiry_success(request):
-    return render('meetagain:admin_inquiry_success')
+    return render(request, 'meetagain/inquiry_success.html')

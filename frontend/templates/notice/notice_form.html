@@ -125,7 +125,15 @@
         </div>
       {% endif %}
 
-      {{ form.as_p }}
+      <div class="mb-3">
+        <label for="{{ form.title.id_for_label }}" class="form-label">제목</label>
+        {{ form.title }}
+      </div>
+
+      <div class="mb-3">
+          <label for="{{ form.content.id_for_label }}" class="form-label">내용</label>
+          {{ form.content }}
+      </div>
 
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">저장</button>

@@ -329,10 +329,12 @@ def lost_items_view(request): return HttpResponse("분실물 등록 내역 - 준
 
 @admin_required
 def admin_lost_list(request):
-    lost_items = LostItem.objects.all().order_by('-created_at')
-    return render(request, 'users/admin_lost_list.html', {'lost_items': lost_items})
+    qs = LostItem.objects.all().order_by('-created_at')
+    page = Paginator(qs, 20).get_page(request.GET.get('page'))
+    return render(request, 'users/admin_lost_list.html', {'page_obj': page})
 
 @admin_required
 def admin_found_list(request):
-    found_items = FoundItem.objects.all().order_by('-created_at')
-    return render(request, 'users/admin_found_list.html', {'found_items': found_items})
+    qs = FoundItem.objects.all().order_by('-created_at')
+    page = Paginator(qs, 20).get_page(request.GET.get('page'))
+    return render(request, 'users/admin_found_list.html', {'page_obj': page})
