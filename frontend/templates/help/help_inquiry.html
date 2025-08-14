@@ -3,10 +3,44 @@
 
 {% block title %}1:1 문의하기 - MeetAgain{% endblock %}
 
+{% block extra_head %}
+<style>
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f8f9fa;
+  }
+
+  .page-wrap {
+    max-width: 700px;
+    margin: 60px auto 80px;
+  }
+
+  /* 제목/서브타이틀: help_faq와 동일 스타일 */
+  .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: #6A5ACD;
+    text-align: center;
+  }
+
+  .small-label {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #6c757d;
+  }
+
+  .form-label {
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container" style="max-width: 700px; margin-top: 60px;">
-  <h2 class="text-center mb-4" style="color: #6A5ACD; font-weight: 700;">
-    {% if inquiry %}문의 수정{% else %}1:1 문의하기{% endif %}
+<div class="page-wrap">
+  <h2 class="section-title">
+    고객센터
+    <span class="small-label d-block">1:1 문의하기</span>
   </h2>
 
   <form method="post"
