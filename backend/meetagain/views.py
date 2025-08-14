@@ -1,7 +1,6 @@
 # backend/meetagain/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -10,14 +9,15 @@ from django.contrib.auth import logout
 from django.core.paginator import Paginator  # ➕ 페이지네이션
 from .models import Inquiry, LostItem, FoundItem, Keyword, Notification, Notice
 from .forms import InquiryForm, LostItemForm, FoundItemForm, NoticeForm
-from django.views.decorators.http import require_http_methods
-from django.db.models import Q
 from datetime import timedelta
 from django.utils import timezone
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
 from .forms import LOCATION_CHOICES
+
+
+
+
+
 
 # staff_member_required를 직접 정의
 def staff_member_required(view_func):
@@ -520,8 +520,20 @@ def notice_view(request):
     return render(request, "notice/notice_list.html")
 
 
+@login_required
 def inquiry_view(request):
-    return render(request, "help/help_inquiry.html")
+    if request.method == 'POST':
+        form = InquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.user = request.user
+            inquiry.save()
+            messages.success(request, '문의가 등록되었습니다.')
+            return redirect('meetagain:myinquiries')
+    else:
+        form = InquiryForm()
+
+    return render(request, "help/help_inquiry.html", {"form": form})
 
 
 def myinquiries_view(request):
