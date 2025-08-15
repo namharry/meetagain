@@ -100,7 +100,7 @@ class FoundItem(models.Model):
         ('소유자 반환', '소유자 반환'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='보관 중')
-
+    is_deleted = models.BooleanField(default=False, db_index=True)
     def __str__(self):
         return f"[습득물] {self.name}"
     
