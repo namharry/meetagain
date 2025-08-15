@@ -99,7 +99,6 @@
     .then(response => {
       if (response.ok) {
         pill.remove();
-        loadNotifications();  // 알림 목록 새로고침
       } else {
         alert('키워드 삭제에 실패했습니다.');
       }
@@ -153,46 +152,49 @@
   });
 
   // 서버에서 알림 목록 불러오기
-function loadNotifications() {
-  fetch('/meetagain/notifications/')
-    .then(res => res.json())
-    .then(data => {
-      const alertList = document.getElementById('alertList');
-      alertList.innerHTML = '';
+  function loadNotifications() {
+    fetch('/meetagain/notifications/')
+      .then(res => res.json())
+      .then(data => {
+        const alertList = document.getElementById('alertList');
+        alertList.innerHTML = '';
 
-      if (!data.notifications || data.notifications.length === 0) {
-        alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
-        setNotificationBadge(false);
-        return;
-      }
+        if (!data.notifications || data.notifications.length === 0) {
+          alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
+          setNotificationBadge(false);
+          return;
+        }
 
-      const divListGroup = document.createElement('div');
-      divListGroup.className = 'list-group';
+        const divListGroup = document.createElement('div');
+        divListGroup.className = 'list-group';
 
-      data.notifications.forEach(n => {
-        if (n.content_type !== 'founditem') return;
+        const seen = new Set(); // 중복 방지
+        data.notifications.forEach(n => {
+          if (n.content_type !== 'founditem') return;
+          if (!n.item_name || !n.object_id) return; // 삭제된 경우 제외
+          if (seen.has(n.object_id)) return; // 중복 알림 제외
+          seen.add(n.object_id);
 
-        const a = document.createElement('a');
-        a.href = `/meetagain/found/${n.object_id}/`;
-        a.className = 'list-group-item list-group-item-action';
+          const a = document.createElement('a');
+          a.href = `/meetagain/found/${n.object_id}/`;
+          a.className = 'list-group-item list-group-item-action';
+          a.textContent = n.item_name;
 
-        // 제목 텍스트만 추가 (읽음/안읽음 배지는 삭제)
-        a.textContent = n.item_name || '(제목 없음)';
-
-        // 클릭하면 그냥 해당 페이지로 이동 (읽음 처리 따로 호출하지 않음)
-        a.addEventListener('click', function() {
-          window.location.href = `/meetagain/found/${n.object_id}/`;
+          divListGroup.appendChild(a);
         });
 
-        divListGroup.appendChild(a);
-      });
+        if (divListGroup.children.length === 0) {
+          alertList.innerHTML = '<p>받은 알림이 없습니다.</p>';
+          setNotificationBadge(false);
+          return;
+        }
 
-      alertList.appendChild(divListGroup);
+        alertList.appendChild(divListGroup);
+        setNotificationBadge(divListGroup.children.length > 0);
+      })
+      .catch(console.error);
+  }
 
-      // 알림 배지 상태도 알림 존재 여부만 체크
-      setNotificationBadge(data.notifications.length > 0);
-    })
-}
 
   function setNotificationBadge(visible) {
     const badge = document.getElementById('notificationBadge');
