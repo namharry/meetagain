@@ -176,24 +176,23 @@
     if (newOpenState === '1') {
       el.removeAttribute('aria-hidden');
       el.removeAttribute('inert');
-      loadKeywords();
-      loadNotifications();
+      
+      fetch('/meetagain/notifications/mark_read/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      })
+      .then(res => {
+        if (res.ok) {
+          setNotificationBadge(false);
+          loadKeywords();
+          loadNotifications();  // 한 번만 호출
+        }
+      })
+      .catch(console.error);
     } else {
       el.setAttribute('aria-hidden', 'true');
       el.setAttribute('inert', '');
     }
-
-    fetch('/meetagain/notifications/mark_read/', {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCookie('csrftoken') }
-    })
-    .then(res => {
-      if (res.ok) {
-        setNotificationBadge(false);
-        loadNotifications();
-      }
-    })
-    .catch(console.error);
   };
 
   // 메뉴 사이드바 토글 (오른쪽)
@@ -225,29 +224,6 @@
     g.style.display = (g.style.display === 'none' || !g.style.display) ? 'block' : 'none';
   };
 
-  // 알림 사이드바 키워드 추가(pill 형태) — BUGFIX: 변수명 오류 수정
-  window.addKeyword = function () {
-    const input = document.getElementById('keywordInput');
-    const list = document.getElementById('keywordList');
-    if (!input || !list) return;
-
-    const text = (input.value || '').trim();
-    if (!text) return;
-
-    const pill = document.createElement('span');
-    pill.className = 'badge rounded-pill text-bg-light me-1 mb-1';
-    pill.textContent = text;
-
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'btn btn-sm btn-link text-danger ms-1 p-0';
-    removeBtn.textContent = '×';
-    removeBtn.onclick = () => pill.remove();
-
-    pill.appendChild(removeBtn);
-    list.appendChild(pill); // ← '알약' → 'pill' 로 수정
-    input.value = '';
-  };
 </script>
 
 {% block extra_scripts %}{% endblock %}
